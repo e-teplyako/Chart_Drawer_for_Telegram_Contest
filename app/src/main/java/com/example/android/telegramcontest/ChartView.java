@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 public class ChartView extends View {
@@ -18,6 +19,7 @@ public class ChartView extends View {
     private final int X_LABELS_COUNT = 6;
     private final int LABELS_COLOR = Color.parseColor("#9E9E9E");
     private final int DIVIDER_COLOR = Color.parseColor("#E0E0E0");
+    private final int CHART_STROKE_WIDTH = 6;
 
     private float mDrawingAreaWidth;
     private float mSpaceBetweenDividers;
@@ -29,6 +31,13 @@ public class ChartView extends View {
     private long[] mXPoints;
     private long[][] mYPoints;
     private String[] mColors;
+    private Paint mChartPaint;
+
+
+    private boolean mPointIsChosen = false;
+    private float mXCoordinateOfChosenPoint;
+    private int mPositionOfChosenPoint;
+    private Paint mCirclePaint;
 
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -40,6 +49,12 @@ public class ChartView extends View {
         mDividerPaint = new Paint();
         mDividerPaint.setColor(DIVIDER_COLOR);
         mDividerPaint.setStrokeWidth(DIVIDER_STROKE_WIDTH);
+
+        mChartPaint = new Paint();
+        mChartPaint.setStrokeWidth(CHART_STROKE_WIDTH);
+
+        mCirclePaint = new Paint();
+        mCirclePaint.setStrokeWidth(CHART_STROKE_WIDTH);
     }
 
     public void setChartParams(long[] xPts, long[][] yPts, String[] colors) {
@@ -56,7 +71,7 @@ public class ChartView extends View {
 
         Log.e(LOG_TAG, "OnDraw() called");
 
-        mSpaceForBottomLabels = (float) (getHeight() * 0.1);
+        mSpaceForBottomLabels = (float) (getHeight() * 0.15);
         mDrawingAreaWidth = getWidth();
         mDrawingAreaHeight = getHeight() - mSpaceForBottomLabels;
         mSpaceBetweenDividers = mDrawingAreaHeight / DIVIDERS_COUNT;
@@ -77,6 +92,17 @@ public class ChartView extends View {
 
         if (mXPoints != null && mYPoints != null) {
             drawChart(canvas);
+        }
+
+        if (mPointIsChosen) {
+            canvas.drawLine(mXCoordinateOfChosenPoint, 0f, mXCoordinateOfChosenPoint, mDrawingAreaHeight, mDividerPaint);
+            for (int i = 0; i < mYPoints.length; i++){
+                mCirclePaint.setColor(Color.parseColor(mColors[i]));
+                float yCoordinateOfChosenPoint = mapYPoints(mYPoints[i], getMin(mYPoints), getMax(mYPoints))[mPositionOfChosenPoint];
+                canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 16f, mCirclePaint);
+                mCirclePaint.setColor(Color.WHITE);
+                canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 8f, mCirclePaint);
+            }
         }
     }
 
@@ -182,7 +208,7 @@ public class ChartView extends View {
         for (int i = 0; i < X_LABELS_COUNT; i++) {
             canvas.drawText(DateTimeUtils.formatDate(absLabel), absXCoord, absYCoord, paint);
             absLabel += absStep;
-            absXCoord = mapXPoint(absLabel, absMin, absMax);
+            absXCoord = mapXPoint(absLabel);
         }
     }
 
@@ -207,11 +233,26 @@ public class ChartView extends View {
         return mapped;
     }
 
-    private float mapXPoint (long point, long min, long max) {
-        long calculatedArea = nearestSixDivider(max - min);
-        float percentage = ((float) (point - min)) / (float) calculatedArea;
+    private float mapXPoint (long point) {
+        long calculatedArea = nearestSixDivider(getMax(mXPoints) - getMin(mXPoints));
+        float percentage = ((float) (point - getMin(mXPoints))) / (float) calculatedArea;
         float mapped = mDrawingAreaWidth * percentage;
         return mapped;
+    }
+
+    private int mapCoordinateToPoint (float xCoord) {
+        float calculatedArea = (float) nearestSixDivider(getMax(mXPoints) - getMin(mXPoints));
+        float point = (xCoord * calculatedArea) / mDrawingAreaWidth + getMin(mXPoints);
+
+        int position = 0;
+        long closestToPoint = mXPoints[position];
+        for (int i = 0; i < mXPoints.length; i ++) {
+            if (Math.abs(mXPoints[i] - point) < Math.abs(closestToPoint - point)) {
+                position = i;
+                closestToPoint = mXPoints[i];
+            }
+        }
+        return position;
     }
 
 
@@ -219,9 +260,7 @@ public class ChartView extends View {
         if (mXPoints == null || mYPoints == null) return;
         labelScales(mXPoints, mYPoints, canvas);
 
-        Paint paint = new Paint();
-        paint.setColor(Color.RED);
-        paint.setStrokeWidth(6);
+        mChartPaint.setColor(Color.RED);
 
         long maxX = getMax(mXPoints);
         long minX = getMin(mXPoints);
@@ -232,18 +271,54 @@ public class ChartView extends View {
 
         for (int i = 0; i < mYPoints.length; i++) {
             float[] mappedY = mapYPoints(mYPoints[i], minY, maxY);
-            paint.setColor(Color.parseColor(mColors[i]));
+            mChartPaint.setColor(Color.parseColor(mColors[i]));
             for (int j = 0; j < mappedY.length - 1; j++){
-                canvas.drawLine(mappedX[j], mappedY[j], mappedX[j+1], mappedY[j+1], paint);
+                canvas.drawLine(mappedX[j], mappedY[j], mappedX[j+1], mappedY[j+1], mChartPaint);
             }
         }
     }
 
-    public void clear() {
-        invalidate();
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
+        float x = event.getX();
+        float y = event.getY();
+
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                if (y >= mDrawingAreaHeight) {
+                    hideVerticalDivider();
+                }
+                else {
+                    showPointDetails(x);
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                return false;
+            case MotionEvent.ACTION_UP:
+                return false;
+        }
+        return true;
+    }
+
+    private void showPointDetails(float xCoord) {
+        int pointPosition = mapCoordinateToPoint(xCoord);
+        float pointCoordinate = mapXPoint(mXPoints[pointPosition]);
+        showVerticalDivider(pointCoordinate, pointPosition);
     }
 
 
+    private void showVerticalDivider(float xCoord, int position) {
+        mPointIsChosen = true;
+        mXCoordinateOfChosenPoint = xCoord;
+        mPositionOfChosenPoint = position;
+        invalidate();
+    }
+
+    private void hideVerticalDivider() {
+        mPointIsChosen = false;
+        invalidate();
+    }
 
 
 }
