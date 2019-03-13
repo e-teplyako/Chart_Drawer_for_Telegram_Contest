@@ -1,7 +1,6 @@
 package com.example.android.telegramcontest;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -9,29 +8,53 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import com.example.android.telegramcontest.DateTimeUtils;
 
 public class ChartView extends View {
 
     private final String LOG_TAG = ChartView.class.getSimpleName();
 
     private final int DIVIDERS_COUNT = 6;
-    private final int DIVIDER_STROKE_WIDTH = 3;
+    private final int DIVIDER_STROKE_WIDTH = 2;
     private final int X_LABELS_COUNT = 6;
+    private final int LABELS_COLOR = Color.parseColor("#9E9E9E");
+    private final int DIVIDER_COLOR = Color.parseColor("#E0E0E0");
 
     private float mDrawingAreaWidth;
     private float mSpaceBetweenDividers;
     private float mSpaceForBottomLabels;
     private float mDrawingAreaHeight;
     private float[] mDividerYCoords;
+    private Paint mDividerPaint;
+
+    private long[] mXPoints;
+    private long[][] mYPoints;
+    private String[] mColors;
 
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        init();
+        setWillNotDraw(false);
     }
+
+    private void init() {
+        mDividerPaint = new Paint();
+        mDividerPaint.setColor(DIVIDER_COLOR);
+        mDividerPaint.setStrokeWidth(DIVIDER_STROKE_WIDTH);
+    }
+
+    public void setChartParams(long[] xPts, long[][] yPts, String[] colors) {
+        mXPoints = xPts;
+        mYPoints = yPts;
+        mColors = colors;
+        invalidate();
+    }
+
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        Log.e(LOG_TAG, "OnDraw() called");
 
         mSpaceForBottomLabels = (float) (getHeight() * 0.1);
         mDrawingAreaWidth = getWidth();
@@ -39,9 +62,6 @@ public class ChartView extends View {
         mSpaceBetweenDividers = mDrawingAreaHeight / DIVIDERS_COUNT;
         mDividerYCoords = new float[DIVIDERS_COUNT];
 
-        Paint paint = new Paint();
-        paint.setColor(Color.GRAY);
-        paint.setStrokeWidth(DIVIDER_STROKE_WIDTH);
 
         float startX = 0f;
         float stopX = getWidth();
@@ -49,49 +69,15 @@ public class ChartView extends View {
         float stopY = startY;
 
         for (int i = 0; i < DIVIDERS_COUNT; i++) {
-            canvas.drawLine(startX, startY, stopX, stopY, paint);
+            canvas.drawLine(startX, startY, stopX, stopY, mDividerPaint);
             mDividerYCoords[i] = startY;
             startY -= mSpaceBetweenDividers;
             stopY = startY;
         }
 
-
-        long[] x  = {1542412800000L,
-                1542499200000L,
-                1542585600000L,
-                1542672000000L,
-                1542758400000L,
-                1542844800000L,
-                1542931200000L,
-                1543017600000L,
-                1543104000000L,
-                1543190400000L};
-        long[][] y = {{37,
-                20,
-                32,
-                39,
-                32,
-                35,
-                19,
-                65,
-                36,
-                62},
-                {22,
-                 12,
-                 30,
-                 40,
-                 33,
-                 23,
-                 18,
-                 41,
-                 45,
-                 69
-                }};
-
-        long[][] b = {{0, 4, 2, 5 ,1, 10 , 15, 3, 5, 13}, {12, 15, 9, 9, 9, 12, 15, 9, 9, 9}};
-        drawChart(x, b, canvas);
-
-
+        if (mXPoints != null && mYPoints != null) {
+            drawChart(canvas);
+        }
     }
 
     //    Helper function for mapping points values
@@ -172,7 +158,7 @@ public class ChartView extends View {
         long ordLabel = ordMin;
 
         Paint paint = new Paint();
-        paint.setColor(Color.GRAY);
+        paint.setColor(LABELS_COLOR);
         paint.setTextSize(40);
 
         for (int i = 0; i < mDividerYCoords.length; i++) {
@@ -229,29 +215,34 @@ public class ChartView extends View {
     }
 
 
-    public void drawChart (long[] xPts, long[][] yPts, Canvas canvas) {
-        labelScales(xPts, yPts, canvas);
+    public void drawChart (Canvas canvas) {
+        if (mXPoints == null || mYPoints == null) return;
+        labelScales(mXPoints, mYPoints, canvas);
 
         Paint paint = new Paint();
         paint.setColor(Color.RED);
         paint.setStrokeWidth(6);
 
-        long maxX = getMax(xPts);
-        long minX = getMin(xPts);
-        long maxY = getMax(yPts);
-        long minY = getMin(yPts);
+        long maxX = getMax(mXPoints);
+        long minX = getMin(mXPoints);
+        long maxY = getMax(mYPoints);
+        long minY = getMin(mYPoints);
 
-        float[] mappedX = mapXPoints(xPts, minX, maxX);
+        float[] mappedX = mapXPoints(mXPoints, minX, maxX);
 
-        for (int i = 0; i < yPts.length; i++) {
-            float[] mappedY = mapYPoints(yPts[i], minY, maxY);
+        for (int i = 0; i < mYPoints.length; i++) {
+            float[] mappedY = mapYPoints(mYPoints[i], minY, maxY);
+            paint.setColor(Color.parseColor(mColors[i]));
             for (int j = 0; j < mappedY.length - 1; j++){
                 canvas.drawLine(mappedX[j], mappedY[j], mappedX[j+1], mappedY[j+1], paint);
             }
         }
-
-
     }
+
+    public void clear() {
+        invalidate();
+    }
+
 
 
 

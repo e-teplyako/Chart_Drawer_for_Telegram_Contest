@@ -10,7 +10,6 @@
         android:id="@+id/chartview"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:background="#F3E5F5"
         android:layout_margin="8dp"/>
 
 </android.support.constraint.ConstraintLayout>
