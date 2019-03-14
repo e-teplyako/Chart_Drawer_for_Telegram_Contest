@@ -1,15 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:layout_height="match_parent">
 
-    <com.example.android.telegramcontest.ChartView
-        android:id="@+id/chartview"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_margin="8dp"/>
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
 
-</android.support.constraint.ConstraintLayout>
+
+        <com.example.android.telegramcontest.ChartView
+            android:id="@+id/chartview"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_margin="8dp" />
+
+        <com.example.android.telegramcontest.ScrollChartView
+            android:id="@+id/scrollchartview"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_margin="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/chartview" />
+
+
+    </android.support.constraint.ConstraintLayout>
+</ScrollView>

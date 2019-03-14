@@ -7,6 +7,7 @@ import android.os.Bundle;
 public class MainActivity extends AppCompatActivity {
 
     ChartView chartView;
+    ScrollChartView scrollChartView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -14,6 +15,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         chartView = findViewById(R.id.chartview);
+        scrollChartView = findViewById(R.id.scrollchartview);
 
         long[] x  = {1542412800000L,
                 1542499200000L,
@@ -24,7 +26,10 @@ public class MainActivity extends AppCompatActivity {
                 1542931200000L,
                 1543017600000L,
                 1543104000000L,
-                1543190400000L};
+                1543190400000L,
+                1543276800000L,
+                1543363200000L,
+                1543449600000L};
         long[][] y = {{37,
                 20,
                 32,
@@ -34,7 +39,10 @@ public class MainActivity extends AppCompatActivity {
                 19,
                 65,
                 36,
-                62},
+                62,
+                11,
+        45,
+        58},
                 {22,
                         12,
                         30,
@@ -44,12 +52,13 @@ public class MainActivity extends AppCompatActivity {
                         18,
                         41,
                         45,
-                        69
+                        69, 48, 36, 55
                 }};
 
         long[][] b = {{0, 4, 2, 5 ,1, 10 , 15, 3, 5, 13}, {12, 15, 9, 9, 9, 12, 15, 9, 9, 9}};
         String[] colors = {"#3DC23F", "#F34C44"};
         chartView.setChartParams(x, y, colors);
+        scrollChartView.setChartParams(x, y, colors);
     }
 
 

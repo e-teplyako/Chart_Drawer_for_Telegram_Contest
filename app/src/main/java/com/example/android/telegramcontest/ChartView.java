@@ -4,11 +4,17 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.support.annotation.Nullable;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.sql.Time;
+import java.util.concurrent.TimeUnit;
 
 public class ChartView extends View {
 
@@ -16,12 +22,13 @@ public class ChartView extends View {
 
     private final int DIVIDERS_COUNT = 6;
     private final int DIVIDER_STROKE_WIDTH = 2;
-    private final int X_LABELS_COUNT = 6;
     private final int LABELS_COLOR = Color.parseColor("#9E9E9E");
     private final int DIVIDER_COLOR = Color.parseColor("#E0E0E0");
     private final int CHART_STROKE_WIDTH = 6;
 
     private float mDrawingAreaWidth;
+    private float mDrawingAreaWidthStart;
+    private float mDrawingAreaWidthEnd;
     private float mSpaceBetweenDividers;
     private float mSpaceForBottomLabels;
     private float mDrawingAreaHeight;
@@ -38,6 +45,9 @@ public class ChartView extends View {
     private float mXCoordinateOfChosenPoint;
     private int mPositionOfChosenPoint;
     private Paint mCirclePaint;
+    private Paint mPlatePaint;
+    private TextPaint mBaseLabelPaint;
+    private TextPaint mPlateLabelPaint;
 
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -55,6 +65,18 @@ public class ChartView extends View {
 
         mCirclePaint = new Paint();
         mCirclePaint.setStrokeWidth(CHART_STROKE_WIDTH);
+
+        mPlatePaint = new Paint();
+
+        mBaseLabelPaint = new TextPaint();
+        mBaseLabelPaint.setColor(LABELS_COLOR);
+        mBaseLabelPaint.setTextSize(40);
+
+        mPlateLabelPaint = new TextPaint();
+        mPlateLabelPaint.setColor(Color.BLACK);
+        mPlateLabelPaint.setTextSize(40);
+        mPlateLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+
     }
 
     public void setChartParams(long[] xPts, long[][] yPts, String[] colors) {
@@ -71,15 +93,17 @@ public class ChartView extends View {
 
         Log.e(LOG_TAG, "OnDraw() called");
 
-        mSpaceForBottomLabels = (float) (getHeight() * 0.15);
-        mDrawingAreaWidth = getWidth();
+        mSpaceForBottomLabels = getHeight() * 0.15f;
+        mDrawingAreaWidth = getWidth() * 0.92f;
+        mDrawingAreaWidthStart = getWidth() * 0.04f;
+        mDrawingAreaWidthEnd = getWidth() - mDrawingAreaWidthStart;
         mDrawingAreaHeight = getHeight() - mSpaceForBottomLabels;
         mSpaceBetweenDividers = mDrawingAreaHeight / DIVIDERS_COUNT;
         mDividerYCoords = new float[DIVIDERS_COUNT];
 
 
-        float startX = 0f;
-        float stopX = getWidth();
+        float startX = mDrawingAreaWidthStart;
+        float stopX = mDrawingAreaWidthEnd;
         float startY = mDrawingAreaHeight;
         float stopY = startY;
 
@@ -96,20 +120,63 @@ public class ChartView extends View {
 
         if (mPointIsChosen) {
             canvas.drawLine(mXCoordinateOfChosenPoint, 0f, mXCoordinateOfChosenPoint, mDrawingAreaHeight, mDividerPaint);
-            for (int i = 0; i < mYPoints.length; i++){
-                mCirclePaint.setColor(Color.parseColor(mColors[i]));
-                float yCoordinateOfChosenPoint = mapYPoints(mYPoints[i], getMin(mYPoints), getMax(mYPoints))[mPositionOfChosenPoint];
-                canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 16f, mCirclePaint);
-                mCirclePaint.setColor(Color.WHITE);
-                canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 8f, mCirclePaint);
-            }
+            drawChosenPointCircle(canvas);
+            drawPlate(canvas);
+        }
+    }
+
+    private void drawPlate(Canvas canvas) {
+        float top = mDrawingAreaHeight * 0.1f;
+        float bottom = top * 3f;
+        float width = (bottom - top) * 1.8f;
+        float left;
+        float right;
+        float offset = getWidth() * 0.05f;
+        if ((mXCoordinateOfChosenPoint + offset + width) >= mDrawingAreaWidthEnd) {
+            right = mXCoordinateOfChosenPoint - offset;
+            left = right - width;
+        }
+        else {
+            left = mXCoordinateOfChosenPoint + offset;
+            right = left + width;
+        }
+        RectF rectF = new RectF(left,
+                top,
+                right,
+                bottom
+                );
+        int cornerRadius = 25;
+
+        mPlatePaint.setColor(DIVIDER_COLOR);
+        mPlatePaint.setStrokeWidth(DIVIDER_STROKE_WIDTH);
+        mPlatePaint.setStyle(Paint.Style.STROKE);
+
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
+
+        mPlatePaint.setStyle(Paint.Style.FILL);
+        mPlatePaint.setColor(Color.WHITE);
+
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
+
+        String date = DateTimeUtils.formatDateEEEMMMd(mXPoints[mPositionOfChosenPoint]);
+        canvas.drawText(date, left + width * 0.1f, top + width * 0.15f, mPlateLabelPaint);
+
+    }
+
+    private void drawChosenPointCircle(Canvas canvas) {
+        for (int i = 0; i < mYPoints.length; i++){
+            mCirclePaint.setColor(Color.parseColor(mColors[i]));
+            float yCoordinateOfChosenPoint = mapYPoints(mYPoints[i], getMin(mYPoints), getMax(mYPoints))[mPositionOfChosenPoint];
+            canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 16f, mCirclePaint);
+            mCirclePaint.setColor(Color.WHITE);
+            canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 8f, mCirclePaint);
         }
     }
 
     //    Helper function for mapping points values
     private long nearestSixDivider(long num) {
         if (num % 6 == 0)
-            return num;
+            return (num + 6);
         return (num + (6 - num % 6));
     }
 
@@ -170,46 +237,65 @@ public class ChartView extends View {
 
 
 
-    private void labelScales (long[] timestamps, long[][] pts, Canvas canvas) {
-//        for ordinate axis
-        long ordMin = getMin(pts);
-        long ordMax = getMax(pts);
-        long diffBetweeenOrdMinMax = ordMax - ordMin;
-        diffBetweeenOrdMinMax = nearestSixDivider(diffBetweeenOrdMinMax);
+    private void labelScales (Canvas canvas) {
+        labelAxisY(canvas);
+        labelAxisX(canvas);
+    }
 
-        long ordStep = diffBetweeenOrdMinMax / DIVIDERS_COUNT;
+    private void labelAxisY(Canvas canvas) {
+        long ordMin = getMin(mYPoints);
+        long ordMax = getMax(mYPoints);
+        long diffBetweenOrdMinMax = ordMax - ordMin;
+        diffBetweenOrdMinMax = nearestSixDivider(diffBetweenOrdMinMax);
 
-        float ordXCoord = 0f;
+        long ordStep = diffBetweenOrdMinMax / DIVIDERS_COUNT;
+
+        float ordXCoord = mDrawingAreaWidthStart;
 
         long ordLabel = ordMin;
 
-        Paint paint = new Paint();
-        paint.setColor(LABELS_COLOR);
-        paint.setTextSize(40);
-
         for (int i = 0; i < mDividerYCoords.length; i++) {
-            canvas.drawText(String.valueOf(ordLabel), ordXCoord, mDividerYCoords[i] - 4f, paint);
+            canvas.drawText(String.valueOf(ordLabel), ordXCoord, mDividerYCoords[i] - 4f, mBaseLabelPaint);
             ordLabel += ordStep;
         }
+    }
 
-//        for abs axis
-        long absMin = getMin(timestamps);
-        long absMax = getMax(timestamps);
-        long diffBetweenAbsMinMax = absMax - absMin;
-        diffBetweenAbsMinMax = nearestSixDivider(diffBetweenAbsMinMax);
+    private void labelAxisX(Canvas canvas) {
+        long min = getMin(mXPoints);
+        long max = getMax(mXPoints);
+        long diffBetweenAbsMinMax = max - min;
+        long days = TimeUnit.MILLISECONDS.toDays(diffBetweenAbsMinMax);
 
-        long absStep = diffBetweenAbsMinMax / X_LABELS_COUNT;
 
-        float absYCoord = mDrawingAreaHeight +  0.5f * mSpaceForBottomLabels;
-        float absXCoord = 0f;
+        float yCoord = mDrawingAreaHeight +  0.5f * mSpaceForBottomLabels;
+        float xCoord = mDrawingAreaWidthStart;
+        canvas.drawText(DateTimeUtils.formatDateMMMd(mXPoints[0]), xCoord, yCoord, mBaseLabelPaint);
+        mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
+        xCoord = mDrawingAreaWidthEnd;
+        canvas.drawText(DateTimeUtils.formatDateMMMd(mXPoints[mXPoints.length - 1]), xCoord, yCoord, mBaseLabelPaint);
+        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
+        Log.e(LOG_TAG, String.valueOf(days));
+        if ((days % 2) == 0) {
+            long middle = days / 2;
+            long middleInMillis = TimeUnit.DAYS.toMillis(middle);
+            xCoord = mapXPoint(min + middleInMillis);
+            mBaseLabelPaint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText(DateTimeUtils.formatDateMMMd(min + middleInMillis), xCoord, yCoord, mBaseLabelPaint);
+            if (middle % 2 == 0) {
+                long middleSide = middle / 2;
+                long middleSideInMillis = TimeUnit.DAYS.toMillis(middleSide);
+                float leftXCoord = mapXPoint(min + middleSideInMillis);
+                float rightXCoord = mapXPoint(max - middleSideInMillis);
+                canvas.drawText(DateTimeUtils.formatDateMMMd(min + middleSideInMillis), leftXCoord, yCoord, mBaseLabelPaint);
+                canvas.drawText(DateTimeUtils.formatDateMMMd(max - middleSideInMillis), rightXCoord, yCoord, mBaseLabelPaint);
 
-        long absLabel = absMin;
-
-        for (int i = 0; i < X_LABELS_COUNT; i++) {
-            canvas.drawText(DateTimeUtils.formatDate(absLabel), absXCoord, absYCoord, paint);
-            absLabel += absStep;
-            absXCoord = mapXPoint(absLabel);
+            }
         }
+        else {
+
+        }
+
+        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
     }
 
     private float[] mapXPoints (long[] xPts, long min, long max) {
@@ -217,7 +303,7 @@ public class ChartView extends View {
         float[] mapped = new float[xPts.length];
         for (int i = 0; i < xPts.length; i++) {
             float percentage = (float)(xPts[i] - min) / (float) calculatedArea;
-            mapped[i] = mDrawingAreaWidth * percentage;
+            mapped[i] = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
         }
         return mapped;
     }
@@ -236,13 +322,13 @@ public class ChartView extends View {
     private float mapXPoint (long point) {
         long calculatedArea = nearestSixDivider(getMax(mXPoints) - getMin(mXPoints));
         float percentage = ((float) (point - getMin(mXPoints))) / (float) calculatedArea;
-        float mapped = mDrawingAreaWidth * percentage;
+        float mapped = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
         return mapped;
     }
 
     private int mapCoordinateToPoint (float xCoord) {
         float calculatedArea = (float) nearestSixDivider(getMax(mXPoints) - getMin(mXPoints));
-        float point = (xCoord * calculatedArea) / mDrawingAreaWidth + getMin(mXPoints);
+        float point = ((xCoord - mDrawingAreaWidthStart) * calculatedArea) / mDrawingAreaWidth + getMin(mXPoints);
 
         int position = 0;
         long closestToPoint = mXPoints[position];
@@ -256,9 +342,9 @@ public class ChartView extends View {
     }
 
 
-    public void drawChart (Canvas canvas) {
+    private void drawChart (Canvas canvas) {
         if (mXPoints == null || mYPoints == null) return;
-        labelScales(mXPoints, mYPoints, canvas);
+        labelScales(canvas);
 
         mChartPaint.setColor(Color.RED);
 
@@ -285,6 +371,7 @@ public class ChartView extends View {
         float y = event.getY();
 
         switch (event.getAction()) {
+            case MotionEvent.ACTION_MOVE:
             case MotionEvent.ACTION_DOWN:
                 if (y >= mDrawingAreaHeight) {
                     hideVerticalDivider();
@@ -293,8 +380,6 @@ public class ChartView extends View {
                     showPointDetails(x);
                 }
                 break;
-            case MotionEvent.ACTION_MOVE:
-                return false;
             case MotionEvent.ACTION_UP:
                 return false;
         }
