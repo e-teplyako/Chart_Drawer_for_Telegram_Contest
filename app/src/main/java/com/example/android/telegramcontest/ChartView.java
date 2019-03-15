@@ -86,12 +86,9 @@ public class ChartView extends View {
         invalidate();
     }
 
-
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-
-        Log.e(LOG_TAG, "OnDraw() called");
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
 
         mSpaceForBottomLabels = getHeight() * 0.15f;
         mDrawingAreaWidth = getWidth() * 0.92f;
@@ -99,6 +96,14 @@ public class ChartView extends View {
         mDrawingAreaWidthEnd = getWidth() - mDrawingAreaWidthStart;
         mDrawingAreaHeight = getHeight() - mSpaceForBottomLabels;
         mSpaceBetweenDividers = mDrawingAreaHeight / DIVIDERS_COUNT;
+
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+        Log.e(LOG_TAG, "OnDraw() called");
         mDividerYCoords = new float[DIVIDERS_COUNT];
 
 
