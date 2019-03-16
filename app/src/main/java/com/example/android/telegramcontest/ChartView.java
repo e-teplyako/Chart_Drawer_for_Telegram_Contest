@@ -171,75 +171,12 @@ public class ChartView extends View {
     private void drawChosenPointCircle(Canvas canvas) {
         for (int i = 0; i < mYPoints.length; i++){
             mCirclePaint.setColor(Color.parseColor(mColors[i]));
-            float yCoordinateOfChosenPoint = mapYPoints(mYPoints[i], getMin(mYPoints), getMax(mYPoints))[mPositionOfChosenPoint];
+            float yCoordinateOfChosenPoint = mapYPoints(mYPoints[i], MathUtils.getMin(mYPoints), MathUtils.getMax(mYPoints))[mPositionOfChosenPoint];
             canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 16f, mCirclePaint);
             mCirclePaint.setColor(Color.WHITE);
             canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 8f, mCirclePaint);
         }
     }
-
-    //    Helper function for mapping points values
-    private long nearestSixDivider(long num) {
-        if (num % 6 == 0)
-            return (num + 6);
-        return (num + (6 - num % 6));
-    }
-
-
-
-
-
-    //    Helper function for mapping points values
-    private long getMax(long[][] array) {
-        long max = array[0][0];
-
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[i].length; j++) {
-                if (array[i][j] > max) {
-                    max = array[i][j];
-                }
-            }
-        }
-        return max;
-    }
-
-    //    Helper function for mapping points values
-    private long getMin(long[][] array) {
-        long min = array[0][0];
-
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[i].length; j++) {
-                if (array[i][j] < min) {
-                    min = array[i][j];
-                }
-            }
-        }
-        return min;
-    }
-
-    //    Helper function for mapping points values
-    private long getMax(long[] array) {
-        long max = array[0];
-
-        for (int i = 0; i < array.length; i++)
-                if (array[i] > max) {
-                    max = array[i];
-                }
-        return max;
-    }
-
-    //    Helper function for mapping points values
-    private long getMin(long[] array) {
-        long min = array[0];
-
-        for (int i = 0; i < array.length; i++) {
-                if (array[i] < min) {
-                    min = array[i];
-                }
-        }
-        return min;
-    }
-
 
 
     private void labelScales (Canvas canvas) {
@@ -248,10 +185,10 @@ public class ChartView extends View {
     }
 
     private void labelAxisY(Canvas canvas) {
-        long ordMin = getMin(mYPoints);
-        long ordMax = getMax(mYPoints);
+        long ordMin = MathUtils.getMin(mYPoints);
+        long ordMax = MathUtils.getMax(mYPoints);
         long diffBetweenOrdMinMax = ordMax - ordMin;
-        diffBetweenOrdMinMax = nearestSixDivider(diffBetweenOrdMinMax);
+        diffBetweenOrdMinMax = MathUtils.nearestSixDivider(diffBetweenOrdMinMax);
 
         long ordStep = diffBetweenOrdMinMax / DIVIDERS_COUNT;
 
@@ -266,8 +203,8 @@ public class ChartView extends View {
     }
 
     private void labelAxisX(Canvas canvas) {
-        long min = getMin(mXPoints);
-        long max = getMax(mXPoints);
+        long min = MathUtils.getMin(mXPoints);
+        long max = MathUtils.getMax(mXPoints);
         long diffBetweenAbsMinMax = max - min;
         long days = TimeUnit.MILLISECONDS.toDays(diffBetweenAbsMinMax);
 
@@ -304,7 +241,7 @@ public class ChartView extends View {
     }
 
     private float[] mapXPoints (long[] xPts, long min, long max) {
-        long calculatedArea = nearestSixDivider(max - min);
+        long calculatedArea = MathUtils.nearestSixDivider(max - min);
         float[] mapped = new float[xPts.length];
         for (int i = 0; i < xPts.length; i++) {
             float percentage = (float)(xPts[i] - min) / (float) calculatedArea;
@@ -314,7 +251,7 @@ public class ChartView extends View {
     }
 
     private float[] mapYPoints (long[] yPts, long min, long max) {
-        long calculatedArea = nearestSixDivider(max - min);
+        long calculatedArea = MathUtils.nearestSixDivider(max - min);
         float[] mapped = new float[yPts.length];
         for (int i = 0; i < yPts.length; i++) {
             float percentage = (float) (yPts[i] - min) / (float) calculatedArea;
@@ -325,15 +262,15 @@ public class ChartView extends View {
     }
 
     private float mapXPoint (long point) {
-        long calculatedArea = nearestSixDivider(getMax(mXPoints) - getMin(mXPoints));
-        float percentage = ((float) (point - getMin(mXPoints))) / (float) calculatedArea;
+        long calculatedArea = MathUtils.nearestSixDivider(MathUtils.getMax(mXPoints) - MathUtils.getMin(mXPoints));
+        float percentage = ((float) (point - MathUtils.getMin(mXPoints))) / (float) calculatedArea;
         float mapped = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
         return mapped;
     }
 
     private int mapCoordinateToPoint (float xCoord) {
-        float calculatedArea = (float) nearestSixDivider(getMax(mXPoints) - getMin(mXPoints));
-        float point = ((xCoord - mDrawingAreaWidthStart) * calculatedArea) / mDrawingAreaWidth + getMin(mXPoints);
+        float calculatedArea = (float) MathUtils.nearestSixDivider(MathUtils.getMax(mXPoints) - MathUtils.getMin(mXPoints));
+        float point = ((xCoord - mDrawingAreaWidthStart) * calculatedArea) / mDrawingAreaWidth + MathUtils.getMin(mXPoints);
 
         int position = 0;
         long closestToPoint = mXPoints[position];
@@ -353,10 +290,10 @@ public class ChartView extends View {
 
         mChartPaint.setColor(Color.RED);
 
-        long maxX = getMax(mXPoints);
-        long minX = getMin(mXPoints);
-        long maxY = getMax(mYPoints);
-        long minY = getMin(mYPoints);
+        long maxX = MathUtils.getMax(mXPoints);
+        long minX = MathUtils.getMin(mXPoints);
+        long maxY = MathUtils.getMax(mYPoints);
+        long minY = MathUtils.getMin(mYPoints);
 
         float[] mappedX = mapXPoints(mXPoints, minX, maxX);
 

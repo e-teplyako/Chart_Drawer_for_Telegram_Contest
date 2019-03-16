@@ -49,7 +49,8 @@ public class ScrollChartView extends View {
     private boolean mRightSliderIsCaught;
     private boolean mHighlightedAreaIsCaught;
     private float mHighlightedAreaMinimalWidth;
-    private float mDeltaX;
+    private float mCurrentHighlightedAreaPosition;
+    private float mCurrentHighlightedAreaWidth;
 
 
 
@@ -84,7 +85,6 @@ public class ScrollChartView extends View {
        mLeftSliderIsCaught = false;
        mRightSliderIsCaught = false;
        mHighlightedAreaIsCaught = false;
-       mDeltaX = 0;
     }
 
     public void setChartParams(long[] xPts, long[][] yPts, String[] colors) {
@@ -129,10 +129,10 @@ public class ScrollChartView extends View {
 
         mChartPaint.setColor(Color.RED);
 
-        long maxX = getMax(mXPoints);
-        long minX = getMin(mXPoints);
-        long maxY = getMax(mYPoints);
-        long minY = getMin(mYPoints);
+        long maxX = MathUtils.getMax(mXPoints);
+        long minX = MathUtils.getMin(mXPoints);
+        long maxY = MathUtils.getMax(mYPoints);
+        long minY = MathUtils.getMin(mYPoints);
 
         float[] mappedX = mapXPoints(mXPoints, minX, maxX);
 
@@ -166,56 +166,7 @@ public class ScrollChartView extends View {
         return mapped;
     }
 
-    //    Helper function for mapping points values
-    private long getMax(long[][] array) {
-        long max = array[0][0];
 
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[i].length; j++) {
-                if (array[i][j] > max) {
-                    max = array[i][j];
-                }
-            }
-        }
-        return max;
-    }
-
-    //    Helper function for mapping points values
-    private long getMin(long[][] array) {
-        long min = array[0][0];
-
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[i].length; j++) {
-                if (array[i][j] < min) {
-                    min = array[i][j];
-                }
-            }
-        }
-        return min;
-    }
-
-    //    Helper function for mapping points values
-    private long getMax(long[] array) {
-        long max = array[0];
-
-        for (int i = 0; i < array.length; i++)
-            if (array[i] > max) {
-                max = array[i];
-            }
-        return max;
-    }
-
-    //    Helper function for mapping points values
-    private long getMin(long[] array) {
-        long min = array[0];
-
-        for (int i = 0; i < array.length; i++) {
-            if (array[i] < min) {
-                min = array[i];
-            }
-        }
-        return min;
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -234,19 +185,28 @@ public class ScrollChartView extends View {
                 }
                 else if (mHighlightedRect.contains(x, y)) {
                     mHighlightedAreaIsCaught = true;
+                    mCurrentHighlightedAreaPosition = x;
+                    mCurrentHighlightedAreaWidth = mHighlightedAreaRightBorder - mHighlightedAreaLeftBorder;
                 }
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                if (mLeftSliderIsCaught && (x >= 0f) && (x <= mHighlightedAreaRightBorder - mHighlightedAreaMinimalWidth)){
-                    mHighlightedAreaLeftBorder = x;
+                if (mLeftSliderIsCaught){
+                    mHighlightedAreaLeftBorder = MathUtils.clamp(x,mHighlightedAreaRightBorder - mHighlightedAreaMinimalWidth, 0f);
                     invalidate();
                 }
-                else if (mRightSliderIsCaught && (x <= mDrawingAreaWidth) && (x >= mHighlightedAreaLeftBorder + mHighlightedAreaMinimalWidth)) {
-                    mHighlightedAreaRightBorder = x;
+                else if (mRightSliderIsCaught) {
+                    mHighlightedAreaRightBorder = MathUtils.clamp(x, mDrawingAreaWidth, mHighlightedAreaLeftBorder + mHighlightedAreaMinimalWidth);
                     invalidate();
                 }
-                
+                else if (mHighlightedAreaIsCaught) {
+                    float deltaX = x - mCurrentHighlightedAreaPosition;
+                    mHighlightedAreaRightBorder = MathUtils.clamp(mHighlightedAreaRightBorder + deltaX, mDrawingAreaWidth, mCurrentHighlightedAreaWidth);
+                    mHighlightedAreaLeftBorder = MathUtils.clamp(mHighlightedAreaLeftBorder + deltaX, mDrawingAreaWidth - mCurrentHighlightedAreaWidth, 0f);
+                    mCurrentHighlightedAreaPosition = x;
+                    invalidate();
+                }
+
                 return true;
 
             case MotionEvent.ACTION_UP:
