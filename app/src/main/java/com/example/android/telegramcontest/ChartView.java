@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 
 public class ChartView extends View {
@@ -35,9 +34,19 @@ public class ChartView extends View {
     private float[] mDividerYCoords;
     private Paint mDividerPaint;
 
-    private long[] mXPoints;
-    private long[][] mYPoints;
-    private String[] mColors;
+    private long[] mXPointsFull;
+    private long[][] mYPointsFull;
+    private String[] mColorsFull;
+    private String[] mChartNamesFull;
+    private long[] mXPointsPart;
+    private long[][] mYPointsPart;
+    private String[] mColorsPart;
+    private String[] mChartNamesPart;
+    private int[] mYPartArrayPositions;
+    private int mAdditionalPointLeft;
+    private int mAdditionalPointRight;
+
+
     private Paint mChartPaint;
 
 
@@ -47,7 +56,9 @@ public class ChartView extends View {
     private Paint mCirclePaint;
     private Paint mPlatePaint;
     private TextPaint mBaseLabelPaint;
-    private TextPaint mPlateLabelPaint;
+    private TextPaint mPlateXValuePaint;
+    private TextPaint mPlateYValuePaint;
+    private TextPaint mPlateNamePaint;
 
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -70,20 +81,113 @@ public class ChartView extends View {
 
         mBaseLabelPaint = new TextPaint();
         mBaseLabelPaint.setColor(LABELS_COLOR);
-        mBaseLabelPaint.setTextSize(40);
+        mBaseLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
 
-        mPlateLabelPaint = new TextPaint();
-        mPlateLabelPaint.setColor(Color.BLACK);
-        mPlateLabelPaint.setTextSize(40);
-        mPlateLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+        mPlateXValuePaint = new TextPaint();
+        mPlateXValuePaint.setColor(Color.BLACK);
+        mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
+        mPlateXValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+
+        mPlateYValuePaint = new TextPaint();
+        mPlateYValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+
+        mPlateNamePaint = new TextPaint();
+        mPlateNamePaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+
 
     }
 
-    public void setChartParams(long[] xPts, long[][] yPts, String[] colors) {
-        mXPoints = xPts;
-        mYPoints = yPts;
-        mColors = colors;
+    public void setChartParams(long[] xPts, long[][] yPts, String[] colors, String[] names) {
+        mXPointsFull = xPts;
+        mYPointsFull = yPts;
+        mColorsFull = colors;
+        mChartNamesFull = names;
+        mXPointsPart = xPts;
+        mYPointsPart = yPts;
+        mColorsPart = colors;
+        mChartNamesPart = names;
+        mAdditionalPointRight = -1;
+        mAdditionalPointLeft = -1;
+        mYPartArrayPositions = new int[mYPointsFull.length];
+        for (int i = 0; i < mYPointsFull.length; i++) {
+            mYPartArrayPositions[i] = i;
+        }
         invalidate();
+    }
+
+    public void setChartParams(long[] xPts, long[][] yPts, String[] colors, String[] names, float start, float percentage) {
+        mXPointsFull = xPts;
+        mYPointsFull = yPts;
+        mColorsFull = colors;
+        mChartNamesFull = names;
+        mYPartArrayPositions = new int[mYPointsFull.length];
+        for (int i = 0; i < mYPointsFull.length; i++) {
+            mYPartArrayPositions[i] = i;
+        }
+        setPartialChartParams(start, percentage);
+        invalidate();
+    }
+
+    public void setChartParams(float start, float percentage) {
+        setPartialChartParams(start, percentage);
+        invalidate();
+    }
+
+    private void setPartialChartParams (float start, float percentage) {
+        if (mXPointsFull == null || mYPointsFull == null)
+            return;
+        int startPosition = (int) Math.floor(mXPointsFull.length * start);
+        if (startPosition != 0) mAdditionalPointLeft = startPosition - 1;
+        else mAdditionalPointLeft = -1;
+        //Log.e(LOG_TAG, "Start position: " + String.valueOf(startPosition));
+        int amountOfPoints = (int) Math.ceil(mXPointsFull.length * percentage);
+        //Log.e(LOG_TAG, "Amount of points: " + String.valueOf(amountOfPoints));
+        if (startPosition + amountOfPoints != mXPointsFull.length) mAdditionalPointRight = startPosition + amountOfPoints;
+        else mAdditionalPointRight = -1;
+        int arrayLength = 0;
+        int first = 0;
+        int last = 0;
+        if (mAdditionalPointLeft == -1 && mAdditionalPointRight == -1){
+            //Log.e(LOG_TAG, "NO additional points");
+            arrayLength = amountOfPoints;
+            first = startPosition;
+            last = startPosition + amountOfPoints - 1;
+        }
+        else if (mAdditionalPointLeft != -1 && mAdditionalPointRight == -1) {
+            //Log.e(LOG_TAG, "1 additional point left");
+            //Log.e(LOG_TAG, "Left: " + String.valueOf(DateTimeUtils.formatDateMMMd(mXPointsFull[mAdditionalPointLeft])));
+            arrayLength = amountOfPoints;
+            first = startPosition;
+            last = startPosition + amountOfPoints - 1;
+        }
+        else if (mAdditionalPointLeft == -1 && mAdditionalPointRight != -1) {
+            //Log.e(LOG_TAG, "1 additional point right");
+            //Log.e(LOG_TAG, "Right: " + String.valueOf(DateTimeUtils.formatDateMMMd(mXPointsFull[mAdditionalPointRight])));
+            arrayLength = amountOfPoints;
+            first = startPosition;
+            last = startPosition + amountOfPoints - 1;
+        }
+        else {
+            //Log.e(LOG_TAG, "2 additional points");
+            //Log.e(LOG_TAG, "Right: " + String.valueOf(DateTimeUtils.formatDateMMMd(mXPointsFull[mAdditionalPointRight])));
+            //Log.e(LOG_TAG, "Left: " + String.valueOf(DateTimeUtils.formatDateMMMd(mXPointsFull[mAdditionalPointLeft])));
+            arrayLength = amountOfPoints;
+            first = startPosition;
+            last = startPosition + amountOfPoints - 1;
+        }
+            mXPointsPart = new long[arrayLength];
+            mColorsPart = new String[mYPartArrayPositions.length];
+            mChartNamesPart = new String[mYPartArrayPositions.length];
+            mYPointsPart = new long[mYPartArrayPositions.length][arrayLength];
+            for (int i = first, j = 0; i <= last; i++, j++) {
+                mXPointsPart[j] = mXPointsFull[i];
+                for (int n = 0; n < mYPointsPart.length; n++) {
+                    mYPointsPart[n][j] = mYPointsFull[mYPartArrayPositions[n]][i];
+                    mColorsPart[n] = mColorsFull[mYPartArrayPositions[n]];
+                    mChartNamesPart[n] = mChartNamesFull[mYPartArrayPositions[n]];
+                }
+            }
+
     }
 
     @Override
@@ -103,7 +207,6 @@ public class ChartView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        Log.e(LOG_TAG, "OnDraw() called");
         mDividerYCoords = new float[DIVIDERS_COUNT];
 
 
@@ -112,6 +215,8 @@ public class ChartView extends View {
         float startY = mDrawingAreaHeight;
         float stopY = startY;
 
+        mBaseLabelPaint.setTextSize(40);
+
         for (int i = 0; i < DIVIDERS_COUNT; i++) {
             canvas.drawLine(startX, startY, stopX, stopY, mDividerPaint);
             mDividerYCoords[i] = startY;
@@ -119,7 +224,7 @@ public class ChartView extends View {
             stopY = startY;
         }
 
-        if (mXPoints != null && mYPoints != null) {
+        if (mXPointsPart != null && mYPointsPart != null) {
             drawChart(canvas);
         }
 
@@ -131,9 +236,10 @@ public class ChartView extends View {
     }
 
     private void drawPlate(Canvas canvas) {
-        float top = mDrawingAreaHeight * 0.1f;
-        float bottom = top * 3f;
-        float width = (bottom - top) * 1.8f;
+        float top = mDrawingAreaHeight * 0.05f + mDrawingAreaWidth * 0.05f;
+        float bottom = top * 3.5f;
+        float height = bottom - top;
+        float width = height * 1.8f;
         float left;
         float right;
         float offset = getWidth() * 0.05f;
@@ -163,15 +269,83 @@ public class ChartView extends View {
 
         canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
 
-        String date = DateTimeUtils.formatDateEEEMMMd(mXPoints[mPositionOfChosenPoint]);
-        canvas.drawText(date, left + width * 0.1f, top + width * 0.15f, mPlateLabelPaint);
+        mPlateXValuePaint.setTextSize(height * 0.2f);
+        String date = DateTimeUtils.formatDateEEEMMMd(mXPointsPart[mPositionOfChosenPoint]);
+        canvas.drawText(date, (left + right) / 2, top + width * 0.15f, mPlateXValuePaint);
+
+        switch (mYPointsPart.length) {
+            case 1:
+                mPlateYValuePaint.setTextSize(height * 0.25f);
+                mPlateYValuePaint.setColor(Color.parseColor(mColorsPart[0]));
+                mPlateYValuePaint.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(String.valueOf(mYPointsPart[0][mPositionOfChosenPoint]), (left + right) / 2, top + height * 0.6f, mPlateYValuePaint);
+                mPlateNamePaint.setColor(Color.parseColor(mColorsPart[0]));
+                mPlateNamePaint.setTextSize(height * 0.2f);
+                mPlateNamePaint.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(mChartNamesPart[0], (left + right) / 2, top + height * 0.8f, mPlateNamePaint);
+                break;
+            case 2:
+                mPlateYValuePaint.setTextSize(height * 0.2f);
+                mPlateYValuePaint.setColor(Color.parseColor(mColorsPart[0]));
+                mPlateYValuePaint.setTextAlign(Paint.Align.LEFT);
+                canvas.drawText(String.valueOf(mYPointsPart[0][mPositionOfChosenPoint]), left + width * 0.05f, top + height * 0.6f, mPlateYValuePaint);
+                mPlateNamePaint.setColor(Color.parseColor(mColorsPart[0]));
+                mPlateNamePaint.setTextSize(height * 0.15f);
+                mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
+                canvas.drawText(mChartNamesPart[0], left + width * 0.05f, top + height * 0.8f, mPlateNamePaint);
+                mPlateYValuePaint.setColor(Color.parseColor(mColorsPart[1]));
+                mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
+                canvas.drawText(String.valueOf(mYPointsPart[1][mPositionOfChosenPoint]), right - width * 0.05f, top + height * 0.6f, mPlateYValuePaint);
+                mPlateNamePaint.setColor(Color.parseColor(mColorsPart[1]));
+                mPlateNamePaint.setTextAlign(Paint.Align.RIGHT);
+                canvas.drawText(mChartNamesPart[1], right - width * 0.05f, top + height * 0.8f, mPlateNamePaint);
+                break;
+            case 3:
+                mPlateYValuePaint.setTextSize(height * 0.15f);
+                mPlateYValuePaint.setColor(Color.parseColor(mColorsPart[0]));
+                mPlateYValuePaint.setTextAlign(Paint.Align.LEFT);
+                canvas.drawText(String.valueOf(mYPointsPart[0][mPositionOfChosenPoint]), left + width * 0.05f, top + height * 0.6f, mPlateYValuePaint);
+                mPlateNamePaint.setColor(Color.parseColor(mColorsPart[0]));
+                mPlateNamePaint.setTextSize(height * 0.1f);
+                mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
+                canvas.drawText(mChartNamesPart[0], left + width * 0.05f, top + width * 0.8f, mPlateNamePaint);
+                mPlateYValuePaint.setColor(Color.parseColor(mColorsPart[2]));
+                mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
+                canvas.drawText(String.valueOf(mYPointsPart[2][mPositionOfChosenPoint]), right - width * 0.05f, top + height * 0.6f, mPlateYValuePaint);
+                mPlateNamePaint.setColor(Color.parseColor(mColorsPart[2]));
+                mPlateNamePaint.setTextAlign(Paint.Align.RIGHT);
+                canvas.drawText(mChartNamesPart[2], right - width * 0.05f, top + height * 0.8f, mPlateNamePaint);
+                mPlateYValuePaint.setColor(Color.parseColor(mColorsPart[1]));
+                mPlateYValuePaint.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(String.valueOf(mYPointsPart[1][mPositionOfChosenPoint]), (left + right) / 2, top + height * 0.6f, mPlateYValuePaint);
+                mPlateNamePaint.setColor(Color.parseColor(mColorsPart[1]));
+                mPlateNamePaint.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(mChartNamesPart[1], (left + right) / 2, top + height * 0.8f, mPlateNamePaint);
+                break;
+            default:
+                mPlateYValuePaint.setTextSize(height * 0.1f);
+                mPlateNamePaint.setTextSize(height * 0.05f);
+                mPlateYValuePaint.setTextAlign(Paint.Align.LEFT);
+                mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
+                float labelOffset = width * 0.05f;
+                for (int i = 0; i < mYPointsPart.length; i++){
+                    mPlateYValuePaint.setColor(Color.parseColor(mColorsPart[i]));
+                    mPlateNamePaint.setColor(Color.parseColor(mColorsPart[i]));
+                    canvas.drawText(String.valueOf(mYPointsPart[i][mPositionOfChosenPoint]), right - labelOffset, top + height * 0.6f, mPlateYValuePaint);
+                    canvas.drawText(mChartNamesPart[i], right - width * labelOffset, top + height * 0.8f, mPlateNamePaint);
+                    labelOffset *= 2;
+                }
+                break;
+
+        }
+
 
     }
 
     private void drawChosenPointCircle(Canvas canvas) {
-        for (int i = 0; i < mYPoints.length; i++){
-            mCirclePaint.setColor(Color.parseColor(mColors[i]));
-            float yCoordinateOfChosenPoint = mapYPoints(mYPoints[i], MathUtils.getMin(mYPoints), MathUtils.getMax(mYPoints))[mPositionOfChosenPoint];
+        for (int i = 0; i < mYPointsPart.length; i++){
+            mCirclePaint.setColor(Color.parseColor(mColorsPart[i]));
+            float yCoordinateOfChosenPoint = mapYPoint(i, mPositionOfChosenPoint, MathUtils.getMin(mYPointsPart), MathUtils.getMax(mYPointsPart));
             canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 16f, mCirclePaint);
             mCirclePaint.setColor(Color.WHITE);
             canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 8f, mCirclePaint);
@@ -185,8 +359,8 @@ public class ChartView extends View {
     }
 
     private void labelAxisY(Canvas canvas) {
-        long ordMin = MathUtils.getMin(mYPoints);
-        long ordMax = MathUtils.getMax(mYPoints);
+        long ordMin = MathUtils.getMin(mYPointsPart);
+        long ordMax = MathUtils.getMax(mYPointsPart);
         long diffBetweenOrdMinMax = ordMax - ordMin;
         diffBetweenOrdMinMax = MathUtils.nearestSixDivider(diffBetweenOrdMinMax);
 
@@ -203,20 +377,20 @@ public class ChartView extends View {
     }
 
     private void labelAxisX(Canvas canvas) {
-        long min = MathUtils.getMin(mXPoints);
-        long max = MathUtils.getMax(mXPoints);
+        long min = MathUtils.getMin(mXPointsPart);
+        long max = MathUtils.getMax(mXPointsPart);
         long diffBetweenAbsMinMax = max - min;
         long days = TimeUnit.MILLISECONDS.toDays(diffBetweenAbsMinMax);
 
 
         float yCoord = mDrawingAreaHeight +  0.5f * mSpaceForBottomLabels;
         float xCoord = mDrawingAreaWidthStart;
-        canvas.drawText(DateTimeUtils.formatDateMMMd(mXPoints[0]), xCoord, yCoord, mBaseLabelPaint);
+        canvas.drawText(DateTimeUtils.formatDateMMMd(mXPointsPart[0]), xCoord, yCoord, mBaseLabelPaint);
         mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
         xCoord = mDrawingAreaWidthEnd;
-        canvas.drawText(DateTimeUtils.formatDateMMMd(mXPoints[mXPoints.length - 1]), xCoord, yCoord, mBaseLabelPaint);
+        canvas.drawText(DateTimeUtils.formatDateMMMd(mXPointsPart[mXPointsPart.length - 1]), xCoord, yCoord, mBaseLabelPaint);
         mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
-        Log.e(LOG_TAG, String.valueOf(days));
+        //Log.e(LOG_TAG, String.valueOf(days));
         if ((days % 2) == 0) {
             long middle = days / 2;
             long middleInMillis = TimeUnit.DAYS.toMillis(middle);
@@ -240,66 +414,153 @@ public class ChartView extends View {
         mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
     }
 
-    private float[] mapXPoints (long[] xPts, long min, long max) {
-        long calculatedArea = MathUtils.nearestSixDivider(max - min);
-        float[] mapped = new float[xPts.length];
-        for (int i = 0; i < xPts.length; i++) {
-            float percentage = (float)(xPts[i] - min) / (float) calculatedArea;
-            mapped[i] = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
+    private float[] mapXPoints () {
+        long max = MathUtils.getMax(mXPointsPart);
+        long min = MathUtils.getMin(mXPointsPart);
+        long calculatedArea = max - min;
+        float[] mapped;
+        Log.e(LOG_TAG, "Drawing Area Start: " + String.valueOf(mDrawingAreaWidthStart));
+        Log.e(LOG_TAG, "Drawing Area End: " + String.valueOf(mDrawingAreaWidthEnd));
+        if (mAdditionalPointLeft == -1 && mAdditionalPointRight == -1) {
+            mapped = new float[mXPointsPart.length];
+            for (int i = 0; i < mapped.length; i++) {
+                float percentage = (float) (mXPointsPart[i] - min) / (float) calculatedArea;
+                mapped[i] = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
+            }
         }
+        else if (mAdditionalPointLeft != -1 && mAdditionalPointRight == -1) {
+            mapped = new float[mXPointsPart.length + 1];
+            float addLeftPercentage = (float) (mXPointsFull[mAdditionalPointLeft] - min) / (float) calculatedArea;
+            Log.e(LOG_TAG, "Left percentage: " + String.valueOf(addLeftPercentage));
+            mapped[0] = mDrawingAreaWidth * addLeftPercentage + mDrawingAreaWidthStart;
+            Log.e(LOG_TAG, "Mapped position of Add point: " + String.valueOf(mapped[0]));
+            for (int i = 1, j = 0; i < mapped.length; i++, j++) {
+                float percentage = (float) (mXPointsPart[j] - min) / (float) calculatedArea;
+                mapped[i] = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
+                Log.e(LOG_TAG, "Mapped pos of element " + i + ": " + String.valueOf(mapped[i]));
+            }
+        }
+        else if (mAdditionalPointLeft == -1 && mAdditionalPointRight != -1) {
+            mapped = new float[mXPointsPart.length + 1];
+            for (int i = 0; i < mapped.length - 1; i++) {
+                float percentage = (float) (mXPointsPart[i] - min) / (float) calculatedArea;
+                mapped[i] = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
+            }
+            float addRightPercentage = (float) (mXPointsFull[mAdditionalPointRight] - min) / (float) calculatedArea;
+            mapped[mapped.length - 1] = mDrawingAreaWidth * addRightPercentage + mDrawingAreaWidthStart;
+        }
+        else {
+            mapped = new float[mXPointsPart.length + 2];
+            float addLeftPercentage = (float) (mXPointsFull[mAdditionalPointLeft] - min) / (float) calculatedArea;
+            mapped[0] = mDrawingAreaWidth * addLeftPercentage + mDrawingAreaWidthStart;
+            for (int i = 1, j = 0; i < mapped.length - 1; i++, j++) {
+                float percentage = (float) (mXPointsPart[j] - min) / (float) calculatedArea;
+                mapped[i] = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
+            }
+            float addRightPercentage = (float) (mXPointsFull[mAdditionalPointRight] - min) / (float) calculatedArea;
+            mapped[mapped.length - 1] = mDrawingAreaWidth * addRightPercentage + mDrawingAreaWidthStart;
+        }
+
         return mapped;
     }
 
-    private float[] mapYPoints (long[] yPts, long min, long max) {
+    private float[] mapYPoints (long[] yPts, long min, long max, int position) {
         long calculatedArea = MathUtils.nearestSixDivider(max - min);
-        float[] mapped = new float[yPts.length];
-        for (int i = 0; i < yPts.length; i++) {
-            float percentage = (float) (yPts[i] - min) / (float) calculatedArea;
-            mapped[i] = mDrawingAreaHeight * percentage;
-            mapped[i] = mDrawingAreaHeight - mapped[i];
+        float[] mapped;
+        if (mAdditionalPointLeft == -1 && mAdditionalPointRight == -1) {
+            mapped = new float[yPts.length];
+            for (int i = 0; i < yPts.length; i++) {
+                float percentage = (float) (yPts[i] - min) / (float) calculatedArea;
+                mapped[i] = mDrawingAreaHeight * percentage;
+                mapped[i] = mDrawingAreaHeight - mapped[i];
+            }
+        }
+        else if (mAdditionalPointLeft != -1 && mAdditionalPointRight == -1) {
+            mapped = new float[yPts.length + 1];
+            float addLeftPercentage = (float) (mYPointsFull[mYPartArrayPositions[position]][mAdditionalPointLeft] - min) / (float) calculatedArea;
+            mapped[0] = mDrawingAreaHeight * addLeftPercentage;
+            mapped[0] = mDrawingAreaHeight - mapped[0];
+            for (int i = 1, j = 0; i < mapped.length; i++, j++) {
+                float percentage = (float) (yPts[j] - min) / (float) calculatedArea;
+                mapped[i] = mDrawingAreaHeight * percentage;
+                mapped[i] = mDrawingAreaHeight - mapped[i];
+            }
+        }
+        else if (mAdditionalPointLeft == -1 && mAdditionalPointRight != -1) {
+            mapped = new float[yPts.length + 1];
+            for (int i = 0; i < mapped.length - 1; i++) {
+                float percentage = (float) (yPts[i] - min) / (float) calculatedArea;
+                mapped[i] = mDrawingAreaHeight * percentage;
+                mapped[i] = mDrawingAreaHeight - mapped[i];
+            }
+            float addRightPercentage = (float) (mYPointsFull[mYPartArrayPositions[position]][mAdditionalPointRight] - min) / (float) calculatedArea;
+            mapped[mapped.length - 1] = mDrawingAreaHeight * addRightPercentage;
+            mapped[mapped.length - 1] = mDrawingAreaHeight - mapped[mapped.length - 1];
+        }
+        else {
+            mapped = new float[yPts.length + 2];
+            float addLeftPercentage = (float) (mYPointsFull[mYPartArrayPositions[position]][mAdditionalPointLeft] - min) / (float) calculatedArea;
+            mapped[0] = mDrawingAreaHeight * addLeftPercentage;
+            mapped[0] = mDrawingAreaHeight - mapped[0];
+            for (int i = 1, j = 0; i < mapped.length - 1; i++, j++) {
+                float percentage = (float) (yPts[j] - min) / (float) calculatedArea;
+                mapped[i] = mDrawingAreaHeight * percentage;
+                mapped[i] = mDrawingAreaHeight - mapped[i];
+            }
+            float addRightPercentage = (float) (mYPointsFull[mYPartArrayPositions[position]][mAdditionalPointRight] - min) / (float) calculatedArea;
+            mapped[mapped.length - 1] = mDrawingAreaHeight * addRightPercentage;
+            mapped[mapped.length - 1] = mDrawingAreaHeight - mapped[mapped.length - 1];
         }
         return mapped;
     }
 
     private float mapXPoint (long point) {
-        long calculatedArea = MathUtils.nearestSixDivider(MathUtils.getMax(mXPoints) - MathUtils.getMin(mXPoints));
-        float percentage = ((float) (point - MathUtils.getMin(mXPoints))) / (float) calculatedArea;
+        long calculatedArea = MathUtils.nearestSixDivider(MathUtils.getMax(mXPointsPart) - MathUtils.getMin(mXPointsPart));
+        float percentage = ((float) (point - MathUtils.getMin(mXPointsPart))) / (float) calculatedArea;
         float mapped = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
         return mapped;
     }
 
+    private float mapYPoint (int arrayPosition, int itemPosition, long min, long max) {
+        long calculatedArea = MathUtils.nearestSixDivider(max - min);
+        float mapped;
+        float percentage = (float) (mYPointsPart[arrayPosition][itemPosition] - min) / (float) calculatedArea;
+        mapped = mDrawingAreaHeight * percentage;
+        mapped = mDrawingAreaHeight - mapped;
+        return mapped;
+    }
+
     private int mapCoordinateToPoint (float xCoord) {
-        float calculatedArea = (float) MathUtils.nearestSixDivider(MathUtils.getMax(mXPoints) - MathUtils.getMin(mXPoints));
-        float point = ((xCoord - mDrawingAreaWidthStart) * calculatedArea) / mDrawingAreaWidth + MathUtils.getMin(mXPoints);
+        float calculatedArea = (float) MathUtils.nearestSixDivider(MathUtils.getMax(mXPointsPart) - MathUtils.getMin(mXPointsPart));
+        float point = ((xCoord - mDrawingAreaWidthStart) * calculatedArea) / mDrawingAreaWidth + MathUtils.getMin(mXPointsPart);
 
         int position = 0;
-        long closestToPoint = mXPoints[position];
-        for (int i = 0; i < mXPoints.length; i ++) {
-            if (Math.abs(mXPoints[i] - point) < Math.abs(closestToPoint - point)) {
+        long closestToPoint = mXPointsPart[position];
+        for (int i = 0; i < mXPointsPart.length; i ++) {
+            if (Math.abs(mXPointsPart[i] - point) < Math.abs(closestToPoint - point)) {
                 position = i;
-                closestToPoint = mXPoints[i];
+                closestToPoint = mXPointsPart[i];
             }
         }
         return position;
     }
 
 
+
     private void drawChart (Canvas canvas) {
-        if (mXPoints == null || mYPoints == null) return;
+        if (mXPointsPart == null || mYPointsPart == null) return;
         labelScales(canvas);
 
         mChartPaint.setColor(Color.RED);
 
-        long maxX = MathUtils.getMax(mXPoints);
-        long minX = MathUtils.getMin(mXPoints);
-        long maxY = MathUtils.getMax(mYPoints);
-        long minY = MathUtils.getMin(mYPoints);
+        long maxY = MathUtils.getMax(mYPointsPart);
+        long minY = MathUtils.getMin(mYPointsPart);
 
-        float[] mappedX = mapXPoints(mXPoints, minX, maxX);
+        float[] mappedX = mapXPoints();
 
-        for (int i = 0; i < mYPoints.length; i++) {
-            float[] mappedY = mapYPoints(mYPoints[i], minY, maxY);
-            mChartPaint.setColor(Color.parseColor(mColors[i]));
+        for (int i = 0; i < mYPointsPart.length; i++) {
+            float[] mappedY = mapYPoints(mYPointsPart[i], minY, maxY, i);
+            mChartPaint.setColor(Color.parseColor(mColorsPart[i]));
             for (int j = 0; j < mappedY.length - 1; j++){
                 canvas.drawLine(mappedX[j], mappedY[j], mappedX[j+1], mappedY[j+1], mChartPaint);
             }
@@ -330,7 +591,7 @@ public class ChartView extends View {
 
     private void showPointDetails(float xCoord) {
         int pointPosition = mapCoordinateToPoint(xCoord);
-        float pointCoordinate = mapXPoint(mXPoints[pointPosition]);
+        float pointCoordinate = mapXPoint(mXPointsPart[pointPosition]);
         showVerticalDivider(pointCoordinate, pointPosition);
     }
 

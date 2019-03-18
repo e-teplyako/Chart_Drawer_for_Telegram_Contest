@@ -56,6 +56,22 @@ public class MathUtils {
         return min;
     }
 
+    public static long[] removeFirst (long[] array) {
+        long[] removed = new long[array.length - 1];
+        for (int i = 0, j = 1; i < removed.length; i++, j++) {
+            removed[i] = array[j];
+        }
+        return removed;
+    }
+
+    public static long[] removeLast (long[] array) {
+        long[] removed = new long[array.length - 1];
+        for (int i = 0; i < removed.length; i++) {
+            removed[i] = array[i];
+        }
+        return removed;
+    }
+
 
     public static long nearestSixDivider(long num) {
         if (num % 6 == 0)

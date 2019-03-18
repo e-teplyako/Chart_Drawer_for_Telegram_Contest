@@ -26,38 +26,20 @@ public class MainActivity extends AppCompatActivity {
                 1542931200000L,
                 1543017600000L,
                 1543104000000L,
-                1543190400000L,
-                1543276800000L,
-                1543363200000L,
-                1543449600000L};
-        long[][] y = {{37,
-                20,
-                32,
-                39,
-                32,
-                35,
-                19,
-                65,
-                36,
-                62,
-                11,
-        45,
-        58},
-                {22,
-                        12,
-                        30,
-                        40,
-                        33,
-                        23,
-                        18,
-                        41,
-                        45,
-                        69, 48, 36, 55
+                1543190400000L};
+        long[][] y = {{37, 20, 32, 39, 32, 35, 19, 65, 36, 62},
+                {22, 12, 30, 40, 33, 23, 18, 41, 45, 69
                 }};
-
+        long[] a = {2, 5 , 8 , 9, 11, 12, 15, 16, 17, 18};
         long[][] b = {{0, 4, 2, 5 ,1, 10 , 15, 3, 5, 13}, {12, 15, 9, 9, 9, 12, 15, 9, 9, 9}};
         String[] colors = {"#3DC23F", "#F34C44"};
-        chartView.setChartParams(x, y, colors);
+        String[] names = {"Joined", "Left"};
+        chartView.setChartParams(x, y, colors, names);
+        //chartView.setChartParams(a, b, colors, names);
+        chartView.setChartParams(0.2f, 0.4f);
+        //chartView.setChartParams(0f, 1f);
+        //chartView.setChartParams(0f, 0.5f);
+        //chartView.setChartParams(0.2f, 0.8f);
         scrollChartView.setChartParams(x, y, colors);
     }
 

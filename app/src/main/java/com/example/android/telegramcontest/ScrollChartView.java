@@ -23,11 +23,11 @@ public class ScrollChartView extends View {
     private final int CHART_STROKE_WIDTH = 4;
 
     private Paint mBackgroundPaint;
-    private final int BACKGROUND_COLOR = Color.parseColor("#AAEEEEEE");
+    private final int BACKGROUND_COLOR = Color.parseColor("#CCEEEEEE");
     private Paint mHighlightedPaint;
     private Paint mSliderPaint;
-    private final int HIGHLIGHTED_BORDER_COLOR = Color.parseColor("#88BDBDBD");
-    private final int HIGHLIGHTED_BORDER_STROKE_WIDTH = 3;
+    private final int HIGHLIGHTED_BORDER_COLOR = Color.parseColor("#66BDBDBD");
+    private final int HIGHLIGHTED_BORDER_STROKE_WIDTH = 10;
 
     private float mDrawingAreaWidth;
     private float mDrawingAreaHeight;
@@ -114,7 +114,7 @@ public class ScrollChartView extends View {
         }
         mBackgroundRectLeft.set(0f, 0f, mHighlightedAreaLeftBorder, mDrawingAreaHeight);
         mBackgroundRectRight.set(mHighlightedAreaRightBorder, 0f, mDrawingAreaWidth, mDrawingAreaHeight);
-        mHighlightedRect.set(mHighlightedAreaLeftBorder, 0f, mHighlightedAreaRightBorder, mDrawingAreaHeight);
+        mHighlightedRect.set(mHighlightedAreaLeftBorder + mSliderWidth, 0f, mHighlightedAreaRightBorder - mSliderWidth, mDrawingAreaHeight);
         mSliderLeft.set(mHighlightedAreaLeftBorder, 0f, mHighlightedAreaLeftBorder + mSliderWidth, mDrawingAreaHeight);
         mSliderRight.set(mHighlightedAreaRightBorder - mSliderWidth, 0f, mHighlightedAreaRightBorder, mDrawingAreaHeight);
         canvas.drawRect(mBackgroundRectLeft, mBackgroundPaint);
