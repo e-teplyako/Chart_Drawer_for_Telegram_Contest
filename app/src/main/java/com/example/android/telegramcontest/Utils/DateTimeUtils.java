@@ -1,4 +1,4 @@
-package com.example.android.telegramcontest;
+package com.example.android.telegramcontest.Utils;
 
 
 import java.text.DateFormat;

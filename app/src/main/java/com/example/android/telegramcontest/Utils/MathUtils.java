@@ -1,4 +1,4 @@
-package com.example.android.telegramcontest;
+package com.example.android.telegramcontest.Utils;
 
 public class MathUtils {
 
@@ -8,8 +8,8 @@ public class MathUtils {
         return num;
     }
 
-    public static long getMax(long[][] array) {
-        long max = array[0][0];
+    public static int getMax(int[][] array) {
+        int max = array[0][0];
 
         for (int i = 0; i < array.length; i++) {
             for (int j = 0; j < array[i].length; j++) {
@@ -21,8 +21,8 @@ public class MathUtils {
         return max;
     }
 
-    public static long getMin(long[][] array) {
-        long min = array[0][0];
+    public static int getMin(int[][] array) {
+        int min = array[0][0];
 
         for (int i = 0; i < array.length; i++) {
             for (int j = 0; j < array[i].length; j++) {

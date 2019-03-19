@@ -1,7 +1,5 @@
 package com.example.android.telegramcontest;
 
-import android.animation.PropertyValuesHolder;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -9,15 +7,19 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AccelerateInterpolator;
 import android.widget.ScrollView;
 
-public class ScrollChartView extends View {
+import com.example.android.telegramcontest.Utils.MathUtils;
+
+import java.util.ArrayList;
+
+public class ScrollChartView extends View implements Observable {
 
     private final String LOG_TAG = ScrollView.class.getSimpleName();
+
+    ArrayList<Observer> mObservers;
 
     private Paint mChartPaint;
     private final int CHART_STROKE_WIDTH = 4;
@@ -33,7 +35,7 @@ public class ScrollChartView extends View {
     private float mDrawingAreaHeight;
 
     private long[] mXPoints;
-    private long[][] mYPoints;
+    private int[][] mYPoints;
     private String[] mColors;
 
     private float mHighlightedAreaLeftBorder;
@@ -61,6 +63,8 @@ public class ScrollChartView extends View {
     }
 
     private void init(){
+        mObservers = new ArrayList<>();
+
         mChartPaint = new Paint();
         mChartPaint.setStrokeWidth(CHART_STROKE_WIDTH);
 
@@ -82,12 +86,12 @@ public class ScrollChartView extends View {
         mSliderLeft = new RectF();
         mSliderRight = new RectF();
 
-       mLeftSliderIsCaught = false;
-       mRightSliderIsCaught = false;
-       mHighlightedAreaIsCaught = false;
+        mLeftSliderIsCaught = false;
+        mRightSliderIsCaught = false;
+        mHighlightedAreaIsCaught = false;
     }
 
-    public void setChartParams(long[] xPts, long[][] yPts, String[] colors) {
+    public void setChartParams(long[] xPts, int[][] yPts, String[] colors) {
         mXPoints = xPts;
         mYPoints = yPts;
         mColors = colors;
@@ -103,6 +107,7 @@ public class ScrollChartView extends View {
         mHighlightedAreaRightBorder = mDrawingAreaWidth;
         mSliderWidth = mDrawingAreaWidth * 0.02f;
         mHighlightedAreaMinimalWidth = mDrawingAreaWidth * 0.2f;
+        notifyObservers();
     }
 
     @Override
@@ -155,7 +160,7 @@ public class ScrollChartView extends View {
         return mapped;
     }
 
-    private float[] mapYPoints (long[] yPts, long min, long max) {
+    private float[] mapYPoints (int[] yPts, long min, long max) {
         long calculatedArea = max - min;
         float[] mapped = new float[yPts.length];
         for (int i = 0; i < yPts.length; i++) {
@@ -176,7 +181,6 @@ public class ScrollChartView extends View {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                Log.e(LOG_TAG, "X: " +  String.valueOf(x));
                 if ((x >= mHighlightedAreaLeftBorder - 3f * mSliderWidth) && (x <= mHighlightedAreaLeftBorder + 3f * mSliderWidth)) {
                     mLeftSliderIsCaught = true;
                 }
@@ -193,10 +197,12 @@ public class ScrollChartView extends View {
             case MotionEvent.ACTION_MOVE:
                 if (mLeftSliderIsCaught){
                     mHighlightedAreaLeftBorder = MathUtils.clamp(x,mHighlightedAreaRightBorder - mHighlightedAreaMinimalWidth, 0f);
+                    notifyObservers();
                     invalidate();
                 }
                 else if (mRightSliderIsCaught) {
                     mHighlightedAreaRightBorder = MathUtils.clamp(x, mDrawingAreaWidth, mHighlightedAreaLeftBorder + mHighlightedAreaMinimalWidth);
+                    notifyObservers();
                     invalidate();
                 }
                 else if (mHighlightedAreaIsCaught) {
@@ -204,6 +210,7 @@ public class ScrollChartView extends View {
                     mHighlightedAreaRightBorder = MathUtils.clamp(mHighlightedAreaRightBorder + deltaX, mDrawingAreaWidth, mCurrentHighlightedAreaWidth);
                     mHighlightedAreaLeftBorder = MathUtils.clamp(mHighlightedAreaLeftBorder + deltaX, mDrawingAreaWidth - mCurrentHighlightedAreaWidth, 0f);
                     mCurrentHighlightedAreaPosition = x;
+                    notifyObservers();
                     invalidate();
                 }
 
@@ -216,5 +223,28 @@ public class ScrollChartView extends View {
                 return true;
         }
         return false;
+    }
+
+    @Override
+    public void registerObserver(Observer observer) {
+        mObservers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(Observer observer) {
+        int i = mObservers.indexOf(observer);
+        if (i >= 0) {
+            mObservers.remove(i);
+        }
+    }
+
+    @Override
+    public void notifyObservers() {
+        float start = mHighlightedAreaLeftBorder / getWidth();
+        float percentage = (mHighlightedAreaRightBorder - mHighlightedAreaLeftBorder) / getWidth();
+        for (int i = 0; i < mObservers.size(); i++) {
+            Observer observer = mObservers.get(i);
+            observer.update(start, percentage);
+        }
     }
 }

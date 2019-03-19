@@ -9,9 +9,11 @@ import android.graphics.Typeface;
 import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import com.example.android.telegramcontest.Utils.DateTimeUtils;
+import com.example.android.telegramcontest.Utils.MathUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,11 +37,11 @@ public class ChartView extends View {
     private Paint mDividerPaint;
 
     private long[] mXPointsFull;
-    private long[][] mYPointsFull;
+    private int[][] mYPointsFull;
     private String[] mColorsFull;
     private String[] mChartNamesFull;
     private long[] mXPointsPart;
-    private long[][] mYPointsPart;
+    private int[][] mYPointsPart;
     private String[] mColorsPart;
     private String[] mChartNamesPart;
     private int[] mYPartArrayPositions;
@@ -97,7 +99,7 @@ public class ChartView extends View {
 
     }
 
-    public void setChartParams(long[] xPts, long[][] yPts, String[] colors, String[] names) {
+    public void setChartParams(long[] xPts, int[][] yPts, String[] colors, String[] names) {
         mXPointsFull = xPts;
         mYPointsFull = yPts;
         mColorsFull = colors;
@@ -115,7 +117,7 @@ public class ChartView extends View {
         invalidate();
     }
 
-    public void setChartParams(long[] xPts, long[][] yPts, String[] colors, String[] names, float start, float percentage) {
+    public void setChartParams(long[] xPts, int[][] yPts, String[] colors, String[] names, float start, float percentage) {
         mXPointsFull = xPts;
         mYPointsFull = yPts;
         mColorsFull = colors;
@@ -137,11 +139,13 @@ public class ChartView extends View {
         if (mXPointsFull == null || mYPointsFull == null)
             return;
         int startPosition = (int) Math.floor(mXPointsFull.length * start);
+        if (startPosition < 0) startPosition = 0;
         if (startPosition != 0) mAdditionalPointLeft = startPosition - 1;
         else mAdditionalPointLeft = -1;
         //Log.e(LOG_TAG, "Start position: " + String.valueOf(startPosition));
         int amountOfPoints = (int) Math.ceil(mXPointsFull.length * percentage);
         //Log.e(LOG_TAG, "Amount of points: " + String.valueOf(amountOfPoints));
+        if (startPosition + amountOfPoints > mXPointsFull.length) amountOfPoints = mXPointsFull.length - startPosition;
         if (startPosition + amountOfPoints != mXPointsFull.length) mAdditionalPointRight = startPosition + amountOfPoints;
         else mAdditionalPointRight = -1;
         int arrayLength = 0;
@@ -178,7 +182,7 @@ public class ChartView extends View {
             mXPointsPart = new long[arrayLength];
             mColorsPart = new String[mYPartArrayPositions.length];
             mChartNamesPart = new String[mYPartArrayPositions.length];
-            mYPointsPart = new long[mYPartArrayPositions.length][arrayLength];
+            mYPointsPart = new int[mYPartArrayPositions.length][arrayLength];
             for (int i = first, j = 0; i <= last; i++, j++) {
                 mXPointsPart[j] = mXPointsFull[i];
                 for (int n = 0; n < mYPointsPart.length; n++) {
@@ -232,6 +236,7 @@ public class ChartView extends View {
             canvas.drawLine(mXCoordinateOfChosenPoint, 0f, mXCoordinateOfChosenPoint, mDrawingAreaHeight, mDividerPaint);
             drawChosenPointCircle(canvas);
             drawPlate(canvas);
+            mPointIsChosen = false;
         }
     }
 
@@ -419,8 +424,6 @@ public class ChartView extends View {
         long min = MathUtils.getMin(mXPointsPart);
         long calculatedArea = max - min;
         float[] mapped;
-        Log.e(LOG_TAG, "Drawing Area Start: " + String.valueOf(mDrawingAreaWidthStart));
-        Log.e(LOG_TAG, "Drawing Area End: " + String.valueOf(mDrawingAreaWidthEnd));
         if (mAdditionalPointLeft == -1 && mAdditionalPointRight == -1) {
             mapped = new float[mXPointsPart.length];
             for (int i = 0; i < mapped.length; i++) {
@@ -431,13 +434,10 @@ public class ChartView extends View {
         else if (mAdditionalPointLeft != -1 && mAdditionalPointRight == -1) {
             mapped = new float[mXPointsPart.length + 1];
             float addLeftPercentage = (float) (mXPointsFull[mAdditionalPointLeft] - min) / (float) calculatedArea;
-            Log.e(LOG_TAG, "Left percentage: " + String.valueOf(addLeftPercentage));
             mapped[0] = mDrawingAreaWidth * addLeftPercentage + mDrawingAreaWidthStart;
-            Log.e(LOG_TAG, "Mapped position of Add point: " + String.valueOf(mapped[0]));
             for (int i = 1, j = 0; i < mapped.length; i++, j++) {
                 float percentage = (float) (mXPointsPart[j] - min) / (float) calculatedArea;
                 mapped[i] = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
-                Log.e(LOG_TAG, "Mapped pos of element " + i + ": " + String.valueOf(mapped[i]));
             }
         }
         else if (mAdditionalPointLeft == -1 && mAdditionalPointRight != -1) {
@@ -464,7 +464,7 @@ public class ChartView extends View {
         return mapped;
     }
 
-    private float[] mapYPoints (long[] yPts, long min, long max, int position) {
+    private float[] mapYPoints (int[] yPts, long min, long max, int position) {
         long calculatedArea = MathUtils.nearestSixDivider(max - min);
         float[] mapped;
         if (mAdditionalPointLeft == -1 && mAdditionalPointRight == -1) {
