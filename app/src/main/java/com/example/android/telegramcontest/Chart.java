@@ -18,6 +18,25 @@ public class Chart {
     public String[] getTypes() {return mTypes;}
     public String[] getNames() {return mNames;}
     public String[] getColors() {return mColors;}
+    public String getName(int i) {return mNames[i];}
+    public String getColor(int i) {return  mColors[i];}
+    public int getSizeOfSingleArray (){return mXPoints.length;}
+    public int getAmountOfLines() {return mYPoints.size();}
+    public int[] getIndexesOfFullYArray() {
+        int[] indexes = new int[mYPoints.size()];
+        for (int i = 0; i < mYPoints.size(); i++) {
+            indexes[i] = i;
+        }
+        return indexes;
+    }
+    public int[][] getYPointsAsArray() {
+        if (mYPoints == null) return null;
+        int[][] array = new int[mYPoints.size()][mYPoints.get(0).length];
+        for (int i = 0; i < mYPoints.size(); i++) {
+            array[i] = mYPoints.get(i);
+        }
+        return array;
+    }
 
     public void setXPoints(long[] xPoints) {mXPoints = xPoints;}
     public void setYPoints (ArrayList<int[]> yPoints) {mYPoints = yPoints;}

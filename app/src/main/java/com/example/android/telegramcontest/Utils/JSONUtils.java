@@ -1,6 +1,9 @@
 package com.example.android.telegramcontest.Utils;
 
+import android.util.TimingLogger;
+
 import com.example.android.telegramcontest.Chart;
+import com.example.android.telegramcontest.MainActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;

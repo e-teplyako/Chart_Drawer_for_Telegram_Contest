@@ -56,6 +56,26 @@ public class MathUtils {
         return min;
     }
 
+    public static int[] add (int[] array, int element) {
+        int[] result = new int[array.length + 1];
+        for (int i = 0; i < result.length - 1; i++) {
+            result[i] = array[i];
+        }
+        result[result.length - 1] = element;
+        return result;
+    }
+
+    public static int[] remove (int[] array, int element) {
+        int[] result = new int[array.length - 1];
+        for (int i = 0, j = 0; i < array.length; i++) {
+            if (array[i] != element) {
+                result[j] = array[i];
+                j++;
+            }
+        }
+        return result;
+    }
+
     public static long[] removeFirst (long[] array) {
         long[] removed = new long[array.length - 1];
         for (int i = 0, j = 1; i < removed.length; i++, j++) {

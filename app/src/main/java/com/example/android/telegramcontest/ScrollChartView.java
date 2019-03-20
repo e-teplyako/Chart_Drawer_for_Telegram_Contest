@@ -11,15 +11,17 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ScrollView;
 
+import com.example.android.telegramcontest.Interfaces.WidthObservable;
+import com.example.android.telegramcontest.Interfaces.WidthObserver;
 import com.example.android.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
 
-public class ScrollChartView extends View implements Observable {
+public class ScrollChartView extends View implements WidthObservable {
 
     private final String LOG_TAG = ScrollView.class.getSimpleName();
 
-    ArrayList<Observer> mObservers;
+    ArrayList<WidthObserver> mWidthObservers;
 
     private Paint mChartPaint;
     private final int CHART_STROKE_WIDTH = 4;
@@ -37,6 +39,8 @@ public class ScrollChartView extends View implements Observable {
     private long[] mXPoints;
     private int[][] mYPoints;
     private String[] mColors;
+    private int[] mIndexesOfLinesToInclude;
+    private Chart mChart;
 
     private float mHighlightedAreaLeftBorder;
     private float mHighlightedAreaRightBorder;
@@ -63,7 +67,7 @@ public class ScrollChartView extends View implements Observable {
     }
 
     private void init(){
-        mObservers = new ArrayList<>();
+        mWidthObservers = new ArrayList<>();
 
         mChartPaint = new Paint();
         mChartPaint.setStrokeWidth(CHART_STROKE_WIDTH);
@@ -91,10 +95,35 @@ public class ScrollChartView extends View implements Observable {
         mHighlightedAreaIsCaught = false;
     }
 
-    public void setChartParams(long[] xPts, int[][] yPts, String[] colors) {
-        mXPoints = xPts;
-        mYPoints = yPts;
-        mColors = colors;
+    public void setChartParams(Chart chart, @Nullable int[] indexesOfLinesToInclude) {
+        mChart = chart;
+        mXPoints = chart.getXPoints();
+        mIndexesOfLinesToInclude = indexesOfLinesToInclude;
+        if (mIndexesOfLinesToInclude != null) {
+            mYPoints = new int[indexesOfLinesToInclude.length][chart.getSizeOfSingleArray()];
+            mColors = new String[indexesOfLinesToInclude.length];
+            for (int i = 0; i < indexesOfLinesToInclude.length; i++) {
+                mYPoints[i] = chart.getYPoints().get(indexesOfLinesToInclude[i]);
+                mColors[i] = chart.getColor(indexesOfLinesToInclude[i]);
+            }
+
+        }
+        notifyObservers();
+        invalidate();
+    }
+
+    public void setChartParams(@Nullable int[] indexesOfLinesToInclude) {
+        if (mChart == null) return;
+        mIndexesOfLinesToInclude = indexesOfLinesToInclude;
+        if (mIndexesOfLinesToInclude != null) {
+            mYPoints = new int[indexesOfLinesToInclude.length][mChart.getSizeOfSingleArray()];
+            mColors = new String[indexesOfLinesToInclude.length];
+            for (int i = 0; i < indexesOfLinesToInclude.length; i++) {
+                mYPoints[i] = mChart.getYPoints().get(indexesOfLinesToInclude[i]);
+                mColors[i] = mChart.getColor(indexesOfLinesToInclude[i]);
+            }
+        }
+        notifyObservers();
         invalidate();
     }
 
@@ -114,7 +143,7 @@ public class ScrollChartView extends View implements Observable {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (mXPoints != null && mYPoints != null) {
+        if (mIndexesOfLinesToInclude != null && mIndexesOfLinesToInclude.length != 0) {
             drawChart(canvas);
         }
         mBackgroundRectLeft.set(0f, 0f, mHighlightedAreaLeftBorder, mDrawingAreaHeight);
@@ -130,7 +159,7 @@ public class ScrollChartView extends View implements Observable {
     }
 
     private void drawChart (Canvas canvas) {
-        if (mXPoints == null || mYPoints == null) return;
+        if (mIndexesOfLinesToInclude == null) return;
 
         mChartPaint.setColor(Color.RED);
 
@@ -226,15 +255,15 @@ public class ScrollChartView extends View implements Observable {
     }
 
     @Override
-    public void registerObserver(Observer observer) {
-        mObservers.add(observer);
+    public void registerObserver(WidthObserver widthObserver) {
+        mWidthObservers.add(widthObserver);
     }
 
     @Override
-    public void removeObserver(Observer observer) {
-        int i = mObservers.indexOf(observer);
+    public void removeObserver(WidthObserver widthObserver) {
+        int i = mWidthObservers.indexOf(widthObserver);
         if (i >= 0) {
-            mObservers.remove(i);
+            mWidthObservers.remove(i);
         }
     }
 
@@ -242,9 +271,9 @@ public class ScrollChartView extends View implements Observable {
     public void notifyObservers() {
         float start = mHighlightedAreaLeftBorder / getWidth();
         float percentage = (mHighlightedAreaRightBorder - mHighlightedAreaLeftBorder) / getWidth();
-        for (int i = 0; i < mObservers.size(); i++) {
-            Observer observer = mObservers.get(i);
-            observer.update(start, percentage);
+        for (int i = 0; i < mWidthObservers.size(); i++) {
+            WidthObserver widthObserver = mWidthObservers.get(i);
+            widthObserver.update(mChart, start, percentage, mIndexesOfLinesToInclude);
         }
     }
 }
