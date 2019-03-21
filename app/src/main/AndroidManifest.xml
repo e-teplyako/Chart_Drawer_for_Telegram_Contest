@@ -18,7 +18,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ChartActivity"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/DayMode">
         </activity>
     </application>
 

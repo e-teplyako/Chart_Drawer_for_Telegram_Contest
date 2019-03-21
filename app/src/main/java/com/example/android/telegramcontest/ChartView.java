@@ -1,6 +1,7 @@
 package com.example.android.telegramcontest;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -9,6 +10,8 @@ import android.graphics.Typeface;
 import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -21,10 +24,12 @@ public class ChartView extends View {
 
     private final String LOG_TAG = ChartView.class.getSimpleName();
 
+    private Context mContext;
+    private Resources.Theme mTheme;
+
     private final int DIVIDERS_COUNT = 6;
     private final int DIVIDER_STROKE_WIDTH = 2;
     private final int LABELS_COLOR = Color.parseColor("#9E9E9E");
-    private final int DIVIDER_COLOR = Color.parseColor("#E0E0E0");
     private final int CHART_STROKE_WIDTH = 6;
 
     private float mDrawingAreaWidth;
@@ -59,15 +64,25 @@ public class ChartView extends View {
     private TextPaint mPlateYValuePaint;
     private TextPaint mPlateNamePaint;
 
+    public void animateLineDisappearing() {
+        
+    }
+
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
         init();
         setWillNotDraw(false);
     }
 
     private void init() {
+        mTheme = mContext.getTheme();
+
         mDividerPaint = new Paint();
-        mDividerPaint.setColor(DIVIDER_COLOR);
+        TypedValue dividerColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.dividerColor, dividerColor, true)) {
+            mDividerPaint.setColor(dividerColor.data);
+        }
         mDividerPaint.setStrokeWidth(DIVIDER_STROKE_WIDTH);
 
         mChartPaint = new Paint();
@@ -83,7 +98,10 @@ public class ChartView extends View {
         mBaseLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
 
         mPlateXValuePaint = new TextPaint();
-        mPlateXValuePaint.setColor(Color.BLACK);
+        TypedValue textColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.labelTextColor, textColor, true)) {
+            mPlateXValuePaint.setColor(textColor.data);
+        }
         mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
         mPlateXValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
 
@@ -247,14 +265,21 @@ public class ChartView extends View {
                 );
         int cornerRadius = 25;
 
-        mPlatePaint.setColor(DIVIDER_COLOR);
+
+        TypedValue dividerColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.dividerColor, dividerColor, true)) {
+            mPlatePaint.setColor(dividerColor.data);
+        }
         mPlatePaint.setStrokeWidth(DIVIDER_STROKE_WIDTH);
         mPlatePaint.setStyle(Paint.Style.STROKE);
 
         canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
 
         mPlatePaint.setStyle(Paint.Style.FILL);
-        mPlatePaint.setColor(Color.WHITE);
+        TypedValue plateColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.plateBackgroundColor, plateColor, true)) {
+            mPlatePaint.setColor(plateColor.data);
+        }
 
         canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
 
@@ -336,7 +361,11 @@ public class ChartView extends View {
             mCirclePaint.setColor(Color.parseColor(mColorsPart[i]));
             float yCoordinateOfChosenPoint = mapYPoint(i, mPositionOfChosenPoint, MathUtils.getMin(mYPointsPart), MathUtils.getMax(mYPointsPart));
             canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 16f, mCirclePaint);
-            mCirclePaint.setColor(Color.WHITE);
+            TypedValue background = new TypedValue();
+            if (mTheme.resolveAttribute(R.attr.primaryBackgroundColor, background, true)) {
+                Log.e(LOG_TAG, "color found");
+                mCirclePaint.setColor(background.data);
+            }
             canvas.drawCircle(mXCoordinateOfChosenPoint, yCoordinateOfChosenPoint, 8f, mCirclePaint);
         }
     }
@@ -562,15 +591,17 @@ public class ChartView extends View {
         switch (event.getAction()) {
             case MotionEvent.ACTION_MOVE:
             case MotionEvent.ACTION_DOWN:
+                this.getParent().requestDisallowInterceptTouchEvent(true);
                 if (y >= mDrawingAreaHeight) {
                     hideVerticalDivider();
                 }
                 else {
                     showPointDetails(x);
                 }
-                break;
+                return true;
             case MotionEvent.ACTION_UP:
-                return false;
+                this.getParent().requestDisallowInterceptTouchEvent(true);
+                return true;
         }
         return true;
     }

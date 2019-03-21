@@ -8,5 +8,25 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="DayMode" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/actionBarColorDay</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkDay</item>
+        <item name="android:colorBackground">@color/primaryBackgroundColorDay</item>
+        <item name="chartScrollViewBackgroundColor">@color/chartScrollViewBackgroundColorDay</item>
+        <item name="labelTextColor">@color/labelTextColorDay</item>
+        <item name="dividerColor">@color/dividerColorDay</item>
+        <item name="plateBackgroundColor">@color/plateBackgroundColorDay</item>
+    </style>
+
+    <style name="NightMode" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/actionBarColorNight</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkNight</item>
+        <item name="android:colorBackground">@color/primaryBackgroundColorNight</item>
+        <item name="chartScrollViewBackgroundColor">@color/chartScrollViewBackgroundColorNight</item>
+        <item name="labelTextColor">@color/labelTextColorNight</item>
+        <item name="dividerColor">@color/dividerColorNight</item>
+        <item name="plateBackgroundColor">@color/plateBackgroundColorNight</item>
+    </style>
+
 
 </resources>

@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">TelegramContest</string>
+    <string name="app_name">Telegram Contest</string>
+    <string name="switch_mode">Switch mode</string>
 </resources>

@@ -3,4 +3,19 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="actionBarColorDay">#517da2</color>
+    <color name="actionBarColorNight">#212d3b</color>
+    <color name="primaryBackgroundColorDay">#ffffff</color>
+    <color name="primaryBackgroundColorNight">#1d2733</color>
+    <color name="chartScrollViewBackgroundColorDay">#AAf5f8f9</color>
+    <color name="chartScrollViewBackgroundColorNight">#AA19232e</color>
+    <color name="labelTextColorDay">#232323</color>
+    <color name="labelTextColorNight">#ffffff</color>
+    <color name="dividerColorDay">#9E9E9E</color>
+    <color name="dividerColorNight">#19232e</color>
+    <color name="plateBackgroundColorDay">#ffffff</color>
+    <color name="plateBackgroundColorNight">#202b38</color>
+    <color name="colorPrimaryDarkDay">#426382</color>
+    <color name="colorPrimaryDarkNight">#1a242e</color>
 </resources>

@@ -1,6 +1,8 @@
 package com.example.android.telegramcontest;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -14,8 +16,12 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String NIGHT_MODE_ENABLED_KEY = "night_mode";
+    private boolean mNightModeIsEnabled = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        changeTheme();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ChartData.init(this);
@@ -28,9 +34,30 @@ public class MainActivity extends AppCompatActivity {
             layout.addView(row);
         }
 
-
-
     }
+
+    @Override
+    protected void onResume() {
+        if (mNightModeIsEnabled != isNightModeEnabled())
+            recreate();
+        super.onResume();
+    }
+
+    private void changeTheme() {
+        if (isNightModeEnabled()) {
+            setTheme(R.style.NightMode);
+        }
+        else {
+            setTheme(R.style.DayMode);
+        }
+    }
+
+    private boolean isNightModeEnabled() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mNightModeIsEnabled = sharedPreferences.getBoolean(NIGHT_MODE_ENABLED_KEY, false);
+        return mNightModeIsEnabled;
+    }
+
 
     private void createButton (final int index, LinearLayout row) {
                 Button btnTag = new Button(this);

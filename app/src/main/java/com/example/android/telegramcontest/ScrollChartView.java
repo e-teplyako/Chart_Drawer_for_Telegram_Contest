@@ -1,12 +1,14 @@
 package com.example.android.telegramcontest;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ScrollView;
@@ -21,13 +23,15 @@ public class ScrollChartView extends View implements WidthObservable {
 
     private final String LOG_TAG = ScrollView.class.getSimpleName();
 
+    private Context mContext;
+    private Resources.Theme mTheme;
+
     ArrayList<WidthObserver> mWidthObservers;
 
     private Paint mChartPaint;
     private final int CHART_STROKE_WIDTH = 4;
 
     private Paint mBackgroundPaint;
-    private final int BACKGROUND_COLOR = Color.parseColor("#CCEEEEEE");
     private Paint mHighlightedPaint;
     private Paint mSliderPaint;
     private final int HIGHLIGHTED_BORDER_COLOR = Color.parseColor("#66BDBDBD");
@@ -62,18 +66,24 @@ public class ScrollChartView extends View implements WidthObservable {
 
     public ScrollChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
         init();
         setWillNotDraw(false);
     }
 
     private void init(){
+        mTheme = mContext.getTheme();
+
         mWidthObservers = new ArrayList<>();
 
         mChartPaint = new Paint();
         mChartPaint.setStrokeWidth(CHART_STROKE_WIDTH);
 
         mBackgroundPaint = new Paint();
-        mBackgroundPaint.setColor(BACKGROUND_COLOR);
+        TypedValue backgroundColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.chartScrollViewBackgroundColor, backgroundColor, true)) {
+            mBackgroundPaint.setColor(backgroundColor.data);
+        }
 
         mHighlightedPaint = new Paint();
         mHighlightedPaint.setColor(HIGHLIGHTED_BORDER_COLOR);
@@ -123,6 +133,25 @@ public class ScrollChartView extends View implements WidthObservable {
                 mColors[i] = mChart.getColor(indexesOfLinesToInclude[i]);
             }
         }
+        notifyObservers();
+        invalidate();
+    }
+
+    public void setChartParams (Chart chart, @Nullable int[] indexesOfLinesToInclude, float start, float percentage) {
+        mChart = chart;
+        mXPoints = chart.getXPoints();
+        mIndexesOfLinesToInclude = indexesOfLinesToInclude;
+        if (mIndexesOfLinesToInclude != null) {
+            mYPoints = new int[indexesOfLinesToInclude.length][chart.getSizeOfSingleArray()];
+            mColors = new String[indexesOfLinesToInclude.length];
+            for (int i = 0; i < indexesOfLinesToInclude.length; i++) {
+                mYPoints[i] = chart.getYPoints().get(indexesOfLinesToInclude[i]);
+                mColors[i] = chart.getColor(indexesOfLinesToInclude[i]);
+            }
+
+        }
+        mHighlightedAreaLeftBorder = start * mDrawingAreaWidth;
+        mHighlightedAreaRightBorder = mHighlightedAreaLeftBorder + mDrawingAreaWidth * percentage;
         notifyObservers();
         invalidate();
     }
@@ -200,7 +229,10 @@ public class ScrollChartView extends View implements WidthObservable {
         return mapped;
     }
 
+    void SetSlidersPos(float pos1, float pos2)
+    {
 
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -210,6 +242,7 @@ public class ScrollChartView extends View implements WidthObservable {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                this.getParent().requestDisallowInterceptTouchEvent(true);
                 if ((x >= mHighlightedAreaLeftBorder - 3f * mSliderWidth) && (x <= mHighlightedAreaLeftBorder + 3f * mSliderWidth)) {
                     mLeftSliderIsCaught = true;
                 }
@@ -224,6 +257,7 @@ public class ScrollChartView extends View implements WidthObservable {
                 return true;
 
             case MotionEvent.ACTION_MOVE:
+                this.getParent().requestDisallowInterceptTouchEvent(true);
                 if (mLeftSliderIsCaught){
                     mHighlightedAreaLeftBorder = MathUtils.clamp(x,mHighlightedAreaRightBorder - mHighlightedAreaMinimalWidth, 0f);
                     notifyObservers();
@@ -246,6 +280,7 @@ public class ScrollChartView extends View implements WidthObservable {
                 return true;
 
             case MotionEvent.ACTION_UP:
+                this.getParent().requestDisallowInterceptTouchEvent(true);
                 mRightSliderIsCaught = false;
                 mLeftSliderIsCaught = false;
                 mHighlightedAreaIsCaught = false;
@@ -269,8 +304,8 @@ public class ScrollChartView extends View implements WidthObservable {
 
     @Override
     public void notifyObservers() {
-        float start = mHighlightedAreaLeftBorder / getWidth();
-        float percentage = (mHighlightedAreaRightBorder - mHighlightedAreaLeftBorder) / getWidth();
+        float start = mHighlightedAreaLeftBorder / mDrawingAreaWidth;
+        float percentage = (mHighlightedAreaRightBorder - mHighlightedAreaLeftBorder) / mDrawingAreaWidth;
         for (int i = 0; i < mWidthObservers.size(); i++) {
             WidthObserver widthObserver = mWidthObservers.get(i);
             widthObserver.update(mChart, start, percentage, mIndexesOfLinesToInclude);
