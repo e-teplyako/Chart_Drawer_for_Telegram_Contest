@@ -13,14 +13,12 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatCheckBox;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 
 import com.example.android.telegramcontest.Interfaces.WidthObserver;
 import com.example.android.telegramcontest.Utils.MathUtils;
@@ -54,7 +52,7 @@ public class ChartActivity extends AppCompatActivity implements WidthObserver {
 
         Intent intent = getIntent();
         int index = intent.getIntExtra(Intent.EXTRA_TEXT, 0);
-        mChart = ChartData.getChart(index);
+        mChart = ChartsManager.getChart(index);
         mIncludedLines = mChart.getIndexesOfFullYArray();
         mScrollChartView.setChartParams(mChart, mIncludedLines);
 

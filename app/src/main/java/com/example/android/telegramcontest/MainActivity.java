@@ -9,11 +9,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-import com.example.android.telegramcontest.Utils.FileIOUtils;
-import com.example.android.telegramcontest.Utils.JSONUtils;
-
-import java.util.ArrayList;
-
 public class MainActivity extends AppCompatActivity {
 
     private final String NIGHT_MODE_ENABLED_KEY = "night_mode";
@@ -24,8 +19,8 @@ public class MainActivity extends AppCompatActivity {
         changeTheme();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ChartData.init(this);
-        int amountOfButtons = ChartData.getAmountOfCharts();
+        ChartsManager.init(this);
+        int amountOfButtons = ChartsManager.getAmountOfCharts();
         LinearLayout layout = (LinearLayout) findViewById(R.id.main_linear_layout);
         for (int i = 0; i < amountOfButtons; i++) {
             LinearLayout row = new LinearLayout(this);

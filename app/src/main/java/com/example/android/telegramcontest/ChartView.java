@@ -1,5 +1,7 @@
 package com.example.android.telegramcontest;
 
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -64,9 +66,8 @@ public class ChartView extends View {
     private TextPaint mPlateYValuePaint;
     private TextPaint mPlateNamePaint;
 
-    public void animateLineDisappearing() {
-        
-    }
+    private int mAlpha = 255;
+
 
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -576,6 +577,7 @@ public class ChartView extends View {
         for (int i = 0; i < mYPointsPart.length; i++) {
             float[] mappedY = mapYPoints(mYPointsPart[i], minY, maxY, i);
             mChartPaint.setColor(Color.parseColor(mColorsPart[i]));
+            mChartPaint.setAlpha(mAlpha);
             for (int j = 0; j < mappedY.length - 1; j++){
                 canvas.drawLine(mappedX[j], mappedY[j], mappedX[j+1], mappedY[j+1], mChartPaint);
             }
