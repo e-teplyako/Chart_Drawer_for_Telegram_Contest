@@ -1,6 +1,7 @@
 package com.example.android.telegramcontest.Utils;
 
 import android.graphics.Color;
+import android.util.Log;
 
 import com.example.android.telegramcontest.Chart;
 import com.example.android.telegramcontest.ChartData;
@@ -107,9 +108,9 @@ public class JSONUtils {
                     else {
                         LineData line  = new LineData();
                         line.id = points.optString(0);
-                        line.posY = new long[points.length()];
+                        line.posY = new long[points.length() - 1];
                         for (int m = 1; m < points.length(); m++) {
-                            line.posY[m-1] = points.optInt(m);
+                            line.posY[m-1] = points.optLong(m);
                         }
                         lines.add(line);
                     }
@@ -122,7 +123,7 @@ public class JSONUtils {
                     line.color = Color.parseColor(jsonColors.optString(line.id));
                 }
 
-                chartData.lines = lines.toArray(chartData.lines);
+                chartData.lines = lines.toArray(new LineData[lines.size()]);
                 charts.add(chartData);
             }
         }

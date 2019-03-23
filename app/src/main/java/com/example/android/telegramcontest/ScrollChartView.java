@@ -71,7 +71,7 @@ public class ScrollChartView extends View implements WidthObservable {
         setWillNotDraw(false);
     }
 
-    private void init(){
+   private void init(){
         mTheme = mContext.getTheme();
 
         mWidthObservers = new ArrayList<>();

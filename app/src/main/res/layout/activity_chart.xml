@@ -5,7 +5,7 @@
     android:id="@+id/charts_scrollview"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:paddingBottom="16dp">
 
     <LinearLayout
         android:id="@+id/charts_linear_layout"
@@ -18,14 +18,24 @@
         <com.example.android.telegramcontest.ChartView
             android:id="@+id/chartview"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_margin="8dp" />
+            android:layout_height="300dp"/>
 
         <com.example.android.telegramcontest.ScrollChartView
             android:id="@+id/scrollchartview"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_margin="8dp" />
+
+        <com.example.android.telegramcontest.ChartView2
+            android:id="@+id/chartview2"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"/>
+
+        <com.example.android.telegramcontest.ScrollChartView2
+            android:id="@+id/scrollchartview2"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_margin="8dp"/>
 
 
     </LinearLayout>

@@ -1,7 +1,5 @@
 package com.example.android.telegramcontest;
 
-import android.animation.PropertyValuesHolder;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -381,7 +379,7 @@ public class ChartView extends View {
         long ordMin = MathUtils.getMin(mYPointsPart);
         long ordMax = MathUtils.getMax(mYPointsPart);
         long diffBetweenOrdMinMax = ordMax - ordMin;
-        diffBetweenOrdMinMax = MathUtils.nearestSixDivider(diffBetweenOrdMinMax);
+        diffBetweenOrdMinMax = MathUtils.getNearestSixDivider(diffBetweenOrdMinMax);
 
         long ordStep = diffBetweenOrdMinMax / DIVIDERS_COUNT;
 
@@ -390,7 +388,7 @@ public class ChartView extends View {
         long ordLabel = ordMin;
 
         for (int i = 0; i < mDividerYCoords.length; i++) {
-            canvas.drawText(String.valueOf(ordLabel), ordXCoord, mDividerYCoords[i] - 4f, mBaseLabelPaint);
+            canvas.drawText(MathUtils.getFriendlyNumber(ordLabel), ordXCoord, mDividerYCoords[i] - 4f, mBaseLabelPaint);
             ordLabel += ordStep;
         }
     }
@@ -481,7 +479,7 @@ public class ChartView extends View {
 
     private float[] mapYPoints (int[] yPts, long min, long max, int position) {
         int[][] yPointsFull = mFullChart.getYPointsAsArray();
-        long calculatedArea = MathUtils.nearestSixDivider(max - min);
+        long calculatedArea = MathUtils.getNearestSixDivider(max - min);
         float[] mapped;
         if (mAdditionalPointLeft == -1 && mAdditionalPointRight == -1) {
             mapped = new float[yPts.length];
@@ -531,14 +529,14 @@ public class ChartView extends View {
     }
 
     private float mapXPoint (long point) {
-        long calculatedArea = MathUtils.nearestSixDivider(MathUtils.getMax(mXPointsPart) - MathUtils.getMin(mXPointsPart));
+        long calculatedArea = MathUtils.getNearestSixDivider(MathUtils.getMax(mXPointsPart) - MathUtils.getMin(mXPointsPart));
         float percentage = ((float) (point - MathUtils.getMin(mXPointsPart))) / (float) calculatedArea;
         float mapped = mDrawingAreaWidth * percentage + mDrawingAreaWidthStart;
         return mapped;
     }
 
     private float mapYPoint (int arrayPosition, int itemPosition, long min, long max) {
-        long calculatedArea = MathUtils.nearestSixDivider(max - min);
+        long calculatedArea = MathUtils.getNearestSixDivider(max - min);
         float mapped;
         float percentage = (float) (mYPointsPart[arrayPosition][itemPosition] - min) / (float) calculatedArea;
         mapped = mDrawingAreaHeight * percentage;
@@ -547,7 +545,7 @@ public class ChartView extends View {
     }
 
     private int mapCoordinateToPoint (float xCoord) {
-        float calculatedArea = (float) MathUtils.nearestSixDivider(MathUtils.getMax(mXPointsPart) - MathUtils.getMin(mXPointsPart));
+        float calculatedArea = (float) MathUtils.getNearestSixDivider(MathUtils.getMax(mXPointsPart) - MathUtils.getMin(mXPointsPart));
         float point = ((xCoord - mDrawingAreaWidthStart) * calculatedArea) / mDrawingAreaWidth + MathUtils.getMin(mXPointsPart);
 
         int position = 0;

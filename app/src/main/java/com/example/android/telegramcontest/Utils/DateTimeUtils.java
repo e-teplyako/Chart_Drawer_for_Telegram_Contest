@@ -8,8 +8,8 @@ import java.util.Locale;
 
 public class DateTimeUtils {
 
-    public static Date fromTimestamp(Long timestamp) {
-        return timestamp == null ? null : new Date(timestamp);
+    public static Date fromTimestamp(long timestamp) {
+        return new Date(timestamp);
     }
 
     public static String formatDateMMMd(Long timestamp) {
@@ -18,7 +18,7 @@ public class DateTimeUtils {
         return dateFormat.format(date);
     }
 
-    public static String formatDateEEEMMMd(Long timestamp) {
+    public static String formatDateEEEMMMd(long timestamp) {
         Date date = fromTimestamp(timestamp);
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMM d", Locale.getDefault());
         return dateFormat.format(date);

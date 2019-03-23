@@ -1,11 +1,21 @@
 package com.example.android.telegramcontest.Utils;
 
+import com.example.android.telegramcontest.LineData;
+
 public class MathUtils {
 
     public static float clamp (float num, float max, float min) {
         if (num < min) return min;
         if (num > max) return max;
         return num;
+    }
+
+    public static float lerp (float a, float b, float t) {
+        return a + (b - a) * t;
+    }
+
+    public static float inverseLerp (float a, float b, float value) {
+        return (value - a) / (b - a);
     }
 
     public static int getMax(int[][] array) {
@@ -56,6 +66,28 @@ public class MathUtils {
         return min;
     }
 
+    public static long getMax (LineData[] lines) {
+        long max = lines[0].posY[0];
+
+        for (LineData line : lines) {
+            long maxInLine = getMax(line.posY);
+            if (maxInLine > max)
+                max = maxInLine;
+        }
+        return max;
+    }
+
+    public static long getMin (LineData[] lines) {
+        long min = lines[0].posY[0];
+
+        for (LineData line : lines) {
+            long minInLine = getMin(line.posY);
+            if (minInLine < min)
+                min = minInLine;
+        }
+        return min;
+    }
+
     public static int[] add (int[] array, int element) {
         int[] result = new int[array.length + 1];
         for (int i = 0; i < result.length - 1; i++) {
@@ -92,10 +124,62 @@ public class MathUtils {
         return removed;
     }
 
+    public static int getIndexOfNearestLeftElement (long[] array, long point) {
+        int index = 0;
+        long diff = Math.abs(array[0] - point);
+        for (int i = 0; i < array.length; i++) {
+            if (Math.abs(array[i] - point) < diff) {
+                diff = Math.abs(array[i] - point);
+                index = i;
+            }
+        }
+        if (array[index] - point > 0)
+            return index > 0 ? index - 1 : 0;
+        return index;
+    }
 
-    public static long nearestSixDivider(long num) {
+    public static int getIndexOfNearestRightElement (long[] array, long point) {
+        int index = 0;
+        long diff = Math.abs(array[0] - point);
+        for (int i = 0; i < array.length; i++) {
+            if (Math.abs(array[i] - point) < diff) {
+                diff = Math.abs(array[i] - point);
+                index = i;
+            }
+        }
+        if (array[index] - point < 0)
+            return index < array.length - 1 ? index + 1 : array.length - 1;
+        return index;
+    }
+
+
+    public static long getNearestSixDivider(long num) {
         if (num % 6 == 0)
             return (num + 6);
         return (num + (6 - num % 6));
+    }
+
+    public static String getFriendlyNumber (long num) {
+        String result = "";
+        long div = num / 1000;
+        if (div < 10)
+            return String.valueOf(num);
+        else if (div < 1000)
+            return String.valueOf(div) + "K";
+        else if (div < 10000)
+            return String.valueOf(div / 1000) + "M";
+        return String.valueOf(num);
+    }
+
+    public static String getFriendlyNumber (int num) {
+        String result = "";
+        int div = num / 1000;
+        if (div < 10)
+            return String.valueOf(num);
+        else if (div < 1000)
+            return String.valueOf(div) + "K";
+        else if (div < 10000)
+            return String.valueOf(div / 1000) + "M";
+        return String.valueOf(num);
     }
 }

@@ -16,6 +16,7 @@
         <item name="labelTextColor">@color/labelTextColorDay</item>
         <item name="dividerColor">@color/dividerColorDay</item>
         <item name="plateBackgroundColor">@color/plateBackgroundColorDay</item>
+        <item name="sliderColor">@color/sliderColorDay</item>
     </style>
 
     <style name="NightMode" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -26,6 +27,7 @@
         <item name="labelTextColor">@color/labelTextColorNight</item>
         <item name="dividerColor">@color/dividerColorNight</item>
         <item name="plateBackgroundColor">@color/plateBackgroundColorNight</item>
+        <item name="sliderColor">@color/sliderColorNight</item>
     </style>
 
 

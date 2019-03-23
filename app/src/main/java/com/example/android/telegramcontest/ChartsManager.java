@@ -29,7 +29,7 @@ public class ChartsManager {
         return JSONUtils.parseJSON(data);
     }
 
-    private static ArrayList<ChartData> loadData2(Context context){
+    public static ArrayList<ChartData> loadData2(Context context){
         String data = FileIOUtils.readFileToString(context);
         return JSONUtils.parseJSON2(data);
     }
