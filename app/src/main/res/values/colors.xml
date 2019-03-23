@@ -20,4 +20,6 @@
     <color name="colorPrimaryDarkNight">#1a242e</color>
     <color name="sliderColorDay">#66BDBDBD</color>
     <color name="sliderColorNight">#66BDBDBD</color>
+    <color name="baseLabelColorDay">#9E9E9E</color>
+    <color name="baseLabelColorNight">#9E9E9E</color>
 </resources>

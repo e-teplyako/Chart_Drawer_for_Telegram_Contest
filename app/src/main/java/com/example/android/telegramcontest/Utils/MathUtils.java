@@ -1,5 +1,8 @@
 package com.example.android.telegramcontest.Utils;
 
+import android.content.Context;
+import android.util.TypedValue;
+
 import com.example.android.telegramcontest.LineData;
 
 public class MathUtils {
@@ -16,6 +19,14 @@ public class MathUtils {
 
     public static float inverseLerp (float a, float b, float value) {
         return (value - a) / (b - a);
+    }
+
+    public static float pixesToDP (float px, Context context) {
+        return px / context.getResources().getSystem().getDisplayMetrics().density;
+    }
+
+    public static float dpToPixels (float dp, Context context) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
     }
 
     public static int getMax(int[][] array) {

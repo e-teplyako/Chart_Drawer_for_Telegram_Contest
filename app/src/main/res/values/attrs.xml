@@ -8,5 +8,6 @@
         <attr name="dividerColor" format="reference"/>
         <attr name="plateBackgroundColor" format="reference"/>
         <attr name="sliderColor" format="reference"/>
+        <attr name="baseLabelColor" format="reference"/>
     </declare-styleable>
 </resources>

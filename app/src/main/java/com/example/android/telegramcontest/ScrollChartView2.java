@@ -22,6 +22,8 @@ import java.util.Arrays;
 
 public class ScrollChartView2 extends View implements SliderObservable{
 
+    public final static float MINIMAL_NORM_SLIDER_WIDTH = 0.2f;
+
     ArrayList<SliderObserver> mObservers;
 
     private Context mContext;
@@ -96,9 +98,9 @@ public class ScrollChartView2 extends View implements SliderObservable{
         mViewHeight = getHeight();
 
         mSliderWidth = mViewWidth * 0.02f;
-        mChosenAreaMinimalWidth = mViewWidth * 0.2f;
+        mChosenAreaMinimalWidth = mViewWidth * MINIMAL_NORM_SLIDER_WIDTH;
 
-        float defaultSliderPosLeft = mViewWidth * 0.7f;
+        float defaultSliderPosLeft = mViewWidth * (1 - MINIMAL_NORM_SLIDER_WIDTH);
         float defaultSliderPosRight = mViewWidth;
         setSliderPositions(defaultSliderPosLeft, defaultSliderPosRight);
 
@@ -235,10 +237,10 @@ public class ScrollChartView2 extends View implements SliderObservable{
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 this.getParent().requestDisallowInterceptTouchEvent(true);
-                if ((x >= mSliderPositionLeft - 3f * mSliderWidth) && (x <= mSliderPositionLeft + 3f * mSliderWidth)) {
+                if ((x >= mSliderPositionLeft - 3f * mSliderWidth) && (x <= mSliderPositionLeft + 2f * mSliderWidth)) {
                     mLeftSliderIsCaught = true;
                 }
-                else if ((x >= mSliderPositionRight - 3f * mSliderWidth) &&(x <= mSliderPositionRight + 3f * mSliderWidth)) {
+                else if ((x >= mSliderPositionRight - 3f * mSliderWidth) &&(x <= mSliderPositionRight + 2f * mSliderWidth)) {
                     mRightSliderIsCaught = true;
                 }
                 else if (mChosenArea.contains(x, y)) {
@@ -292,7 +294,7 @@ public class ScrollChartView2 extends View implements SliderObservable{
     public void notifyObservers() {
         float normPos1 = mSliderPositionLeft / mViewWidth;
         float normPos2 = mSliderPositionRight / mViewWidth;
-        Log.e("Borders: ", String.valueOf(normPos1) + ", " + String.valueOf(normPos2));
+
         for (int i = 0; i < mObservers.size(); i++) {
             SliderObserver observer = mObservers.get(i);
             observer.setBorders(normPos1, normPos2);
