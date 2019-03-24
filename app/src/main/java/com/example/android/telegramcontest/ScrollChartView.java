@@ -3,81 +3,159 @@ package com.example.android.telegramcontest;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ScrollView;
 
-import com.example.android.telegramcontest.Interfaces.WidthObservable;
+import com.example.android.telegramcontest.Interfaces.SliderObservable;
+import com.example.android.telegramcontest.Interfaces.SliderObserver;
 import com.example.android.telegramcontest.Interfaces.WidthObserver;
 import com.example.android.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
-public class ScrollChartView extends View implements WidthObservable {
+public class ScrollChartView extends View implements SliderObservable{
 
-    private final String LOG_TAG = ScrollView.class.getSimpleName();
+    public final static float MINIMAL_NORM_SLIDER_WIDTH = 0.2f;
+
+    private final float mOptimizeTolerancePx;
+
+    ArrayList<SliderObserver> mObservers;
 
     private Context mContext;
     private Resources.Theme mTheme;
 
-    ArrayList<WidthObserver> mWidthObservers;
+    private long[] mPosX;
+    private LineData[] mLines;
+    private long mDefaultYMax;
+    private long mDefaultYMin;
 
-    private Paint mChartPaint;
-    private final int CHART_STROKE_WIDTH = 4;
+    private float mSliderPositionLeft;
+    private float mSliderPositionRight;
 
-    private Paint mBackgroundPaint;
-    private Paint mHighlightedPaint;
-    private Paint mSliderPaint;
-    private final int HIGHLIGHTED_BORDER_COLOR = Color.parseColor("#66BDBDBD");
-    private final int HIGHLIGHTED_BORDER_STROKE_WIDTH = 10;
-
-    private float mDrawingAreaWidth;
-    private float mDrawingAreaHeight;
-
-    private long[] mXPoints;
-    private int[][] mYPoints;
-    private String[] mColors;
-    private int[] mIndexesOfLinesToInclude;
-    private Chart mChart;
-
-    private float mHighlightedAreaLeftBorder;
-    private float mHighlightedAreaRightBorder;
-    private RectF mBackgroundRectLeft;
-    private RectF mBackgroundRectRight;
-    private RectF mHighlightedRect;
+    private RectF mBackGroundLeft;
+    private RectF mBackgroundRight;
     private RectF mSliderLeft;
     private RectF mSliderRight;
+    private RectF mChosenArea;
     private float mSliderWidth;
 
-    private boolean mLeftSliderIsCaught;
-    private boolean mRightSliderIsCaught;
-    private boolean mHighlightedAreaIsCaught;
-    private float mHighlightedAreaMinimalWidth;
-    private float mCurrentHighlightedAreaPosition;
-    private float mCurrentHighlightedAreaWidth;
+    private boolean mLeftSliderIsCaught = false;
+    private boolean mRightSliderIsCaught = false;
+    private boolean mChosenAreaIsCaught = false;
+    private float mCurrChosenAreaPosition;
+    private float mCurrChosenAreaWidth;
+    private float mChosenAreaMinimalWidth;
 
+    private float mViewWidth;
+    private float mViewHeight;
 
+    private Paint mChartPaint;
+    private Paint mBackgroundPaint;
+    private Paint mSliderPaint;
+    private Paint mChosenPaint;
+
+    private boolean mSizesChanged;
+
+    private HashMap<LineData, ArrayList<Float>> mLineDataToPointsX = new HashMap<>();
+    private HashMap<LineData, ArrayList<Float>> mLineDataToPointsY = new HashMap<>();
 
     public ScrollChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
-        init();
-        setWillNotDraw(false);
-    }
-
-   private void init(){
         mTheme = mContext.getTheme();
 
-        mWidthObservers = new ArrayList<>();
+        mObservers = new ArrayList<>();
 
+        setUpPaints();
+
+        mBackGroundLeft = new RectF();
+        mBackgroundRight = new RectF();
+        mSliderLeft = new RectF();
+        mSliderRight = new RectF();
+        mChosenArea = new RectF();
+
+        mOptimizeTolerancePx = MathUtils.dpToPixels(4, context);
+    }
+
+    public void init (ChartData chartData) {
+        mPosX = chartData.posX;
+    }
+
+    public void setLines (LineData[] lines) {
+        mLines = lines;
+        invalidate();
+
+        if (mLines != null && mLines.length != 0) {
+            mDefaultYMax = MathUtils.getMax(lines);
+            mDefaultYMin = MathUtils.getMin(lines);
+        }
+
+        CalculatePoints();
+    }
+
+    void CalculatePoints() {
+        if (mLines == null || mLines.length == 0 || !mSizesChanged)
+            return;
+
+        float[] mappedX = mapXPoints(mPosX);
+
+        for (LineData line : mLines)
+        {
+            float[] mappedY = mapYPoints(line.posY, mDefaultYMin, mDefaultYMax);
+            ArrayList<Float> optimizedX = new ArrayList<Float>();
+            ArrayList<Float> optimizedY = new ArrayList<Float>();
+
+            MathUtils.optimizePoints(mappedX, mappedY, mOptimizeTolerancePx, optimizedX, optimizedY);
+
+            mLineDataToPointsX.put(line, optimizedX);
+            mLineDataToPointsY.put(line, optimizedY);
+        }
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        mSizesChanged = true;
+
+        mViewWidth = getWidth();
+        mViewHeight = getHeight();
+
+        mSliderWidth = mViewWidth * 0.02f;
+        mChosenAreaMinimalWidth = mViewWidth * MINIMAL_NORM_SLIDER_WIDTH;
+
+        float defaultSliderPosLeft = mViewWidth * (1 - MINIMAL_NORM_SLIDER_WIDTH);
+        float defaultSliderPosRight = mViewWidth;
+        setSliderPositions(defaultSliderPosLeft, defaultSliderPosRight);
+
+        calculateRects();
+        CalculatePoints();
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+        if (mLines != null && mPosX != null && mLines.length != 0) {
+            for (LineData line : mLines)
+                if (mLineDataToPointsX.containsKey(line))
+                    drawLine(mLineDataToPointsX.get(line), mLineDataToPointsY.get(line), line.color, 255, canvas);
+        }
+
+        drawRects(canvas);
+    }
+
+    private void setUpPaints() {
         mChartPaint = new Paint();
-        mChartPaint.setStrokeWidth(CHART_STROKE_WIDTH);
+        mChartPaint.setStyle(Paint.Style.STROKE);
+        mChartPaint.setStrokeWidth(4);
 
         mBackgroundPaint = new Paint();
         TypedValue backgroundColor = new TypedValue();
@@ -85,153 +163,103 @@ public class ScrollChartView extends View implements WidthObservable {
             mBackgroundPaint.setColor(backgroundColor.data);
         }
 
-        mHighlightedPaint = new Paint();
-        mHighlightedPaint.setColor(HIGHLIGHTED_BORDER_COLOR);
-        mHighlightedPaint.setStyle(Paint.Style.STROKE);
-        mHighlightedPaint.setStrokeWidth(HIGHLIGHTED_BORDER_STROKE_WIDTH);
-
         mSliderPaint = new Paint();
-        mSliderPaint.setColor(HIGHLIGHTED_BORDER_COLOR);
+        TypedValue sliderColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.sliderColor, sliderColor, true)) {
+            mSliderPaint.setColor(sliderColor.data);
+        }
         mSliderPaint.setStyle(Paint.Style.FILL);
 
-        mBackgroundRectLeft = new RectF();
-        mBackgroundRectRight = new RectF();
-        mHighlightedRect = new RectF();
-        mSliderLeft = new RectF();
-        mSliderRight = new RectF();
-
-        mLeftSliderIsCaught = false;
-        mRightSliderIsCaught = false;
-        mHighlightedAreaIsCaught = false;
+        mChosenPaint = new Paint();
+        mChosenPaint.setColor(sliderColor.data);
+        mChosenPaint.setStyle(Paint.Style.STROKE);
+        mChosenPaint.setStrokeWidth(10);
     }
 
-    public void setChartParams(Chart chart, @Nullable int[] indexesOfLinesToInclude) {
-        mChart = chart;
-        mXPoints = chart.getXPoints();
-        mIndexesOfLinesToInclude = indexesOfLinesToInclude;
-        if (mIndexesOfLinesToInclude != null) {
-            mYPoints = new int[indexesOfLinesToInclude.length][chart.getSizeOfSingleArray()];
-            mColors = new String[indexesOfLinesToInclude.length];
-            for (int i = 0; i < indexesOfLinesToInclude.length; i++) {
-                mYPoints[i] = chart.getYPoints().get(indexesOfLinesToInclude[i]);
-                mColors[i] = chart.getColor(indexesOfLinesToInclude[i]);
-            }
+    private void calculateRects() {
+        float top = 0;
+        float bottom = mViewHeight;
+        float left;
+        float right;
 
+        left = 0;
+        right = mSliderPositionLeft;
+        mBackGroundLeft.set(left, top, right, bottom);
+
+        left = mSliderPositionRight;
+        right = mViewWidth;
+        mBackgroundRight.set(left, top, right, bottom);
+
+        left = mSliderPositionLeft;
+        right = left + mSliderWidth;
+        mSliderLeft.set(left, top, right, bottom);
+
+        left = mSliderPositionRight - mSliderWidth;
+        right = mSliderPositionRight;
+        mSliderRight.set(left, top, right, bottom);
+
+        left = mSliderPositionLeft + mSliderWidth;
+        right = mSliderPositionRight - mSliderWidth;
+        mChosenArea.set(left, top, right, bottom);
+    }
+
+    private void drawLine (ArrayList<Float> pointsX, ArrayList<Float> pointsY, int color, int alpha, Canvas canvas) {
+
+        int arraySize = pointsX.size();
+
+        mChartPaint.setColor(color);
+        mChartPaint.setAlpha(alpha);
+
+        for (int i = 0; i < arraySize - 1; i++){
+            canvas.drawLine(pointsX.get(i), pointsY.get(i), pointsX.get(i+1), pointsY.get(i+1), mChartPaint);
         }
-        notifyObservers();
-        invalidate();
     }
 
-    public void setChartParams(@Nullable int[] indexesOfLinesToInclude) {
-        if (mChart == null) return;
-        mIndexesOfLinesToInclude = indexesOfLinesToInclude;
-        if (mIndexesOfLinesToInclude != null) {
-            mYPoints = new int[indexesOfLinesToInclude.length][mChart.getSizeOfSingleArray()];
-            mColors = new String[indexesOfLinesToInclude.length];
-            for (int i = 0; i < indexesOfLinesToInclude.length; i++) {
-                mYPoints[i] = mChart.getYPoints().get(indexesOfLinesToInclude[i]);
-                mColors[i] = mChart.getColor(indexesOfLinesToInclude[i]);
-            }
-        }
-        notifyObservers();
-        invalidate();
-    }
-
-    public void setChartParams (Chart chart, @Nullable int[] indexesOfLinesToInclude, float start, float percentage) {
-        mChart = chart;
-        mXPoints = chart.getXPoints();
-        mIndexesOfLinesToInclude = indexesOfLinesToInclude;
-        if (mIndexesOfLinesToInclude != null) {
-            mYPoints = new int[indexesOfLinesToInclude.length][chart.getSizeOfSingleArray()];
-            mColors = new String[indexesOfLinesToInclude.length];
-            for (int i = 0; i < indexesOfLinesToInclude.length; i++) {
-                mYPoints[i] = chart.getYPoints().get(indexesOfLinesToInclude[i]);
-                mColors[i] = chart.getColor(indexesOfLinesToInclude[i]);
-            }
-
-        }
-        mHighlightedAreaLeftBorder = start * mDrawingAreaWidth;
-        mHighlightedAreaRightBorder = mHighlightedAreaLeftBorder + mDrawingAreaWidth * percentage;
-        notifyObservers();
-        invalidate();
-    }
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        mDrawingAreaWidth = getWidth();
-        mDrawingAreaHeight = getHeight();
-        mHighlightedAreaLeftBorder = mDrawingAreaWidth - (mDrawingAreaWidth * 0.3f);
-        mHighlightedAreaRightBorder = mDrawingAreaWidth;
-        mSliderWidth = mDrawingAreaWidth * 0.02f;
-        mHighlightedAreaMinimalWidth = mDrawingAreaWidth * 0.2f;
-        notifyObservers();
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-
-        if (mIndexesOfLinesToInclude != null && mIndexesOfLinesToInclude.length != 0) {
-            drawChart(canvas);
-        }
-        mBackgroundRectLeft.set(0f, 0f, mHighlightedAreaLeftBorder, mDrawingAreaHeight);
-        mBackgroundRectRight.set(mHighlightedAreaRightBorder, 0f, mDrawingAreaWidth, mDrawingAreaHeight);
-        mHighlightedRect.set(mHighlightedAreaLeftBorder + mSliderWidth, 0f, mHighlightedAreaRightBorder - mSliderWidth, mDrawingAreaHeight);
-        mSliderLeft.set(mHighlightedAreaLeftBorder, 0f, mHighlightedAreaLeftBorder + mSliderWidth, mDrawingAreaHeight);
-        mSliderRight.set(mHighlightedAreaRightBorder - mSliderWidth, 0f, mHighlightedAreaRightBorder, mDrawingAreaHeight);
-        canvas.drawRect(mBackgroundRectLeft, mBackgroundPaint);
-        canvas.drawRect(mBackgroundRectRight, mBackgroundPaint);
-        canvas.drawRect(mHighlightedRect, mHighlightedPaint);
+    private void drawRects(Canvas canvas) {
+        canvas.drawRect(mBackGroundLeft, mBackgroundPaint);
+        canvas.drawRect(mBackgroundRight, mBackgroundPaint);
         canvas.drawRect(mSliderLeft, mSliderPaint);
         canvas.drawRect(mSliderRight, mSliderPaint);
+        canvas.drawRect(mChosenArea, mChosenPaint);
     }
 
-    private void drawChart (Canvas canvas) {
-        if (mIndexesOfLinesToInclude == null) return;
+    private float[] mapYPoints (long[] points, long yMin, long yMax) {
+        long calculatedArea = yMax - yMin;
+        float[] mapped = new float[points.length];
 
-        mChartPaint.setColor(Color.RED);
-
-        long maxX = MathUtils.getMax(mXPoints);
-        long minX = MathUtils.getMin(mXPoints);
-        long maxY = MathUtils.getMax(mYPoints);
-        long minY = MathUtils.getMin(mYPoints);
-
-        float[] mappedX = mapXPoints(mXPoints, minX, maxX);
-
-        for (int i = 0; i < mYPoints.length; i++) {
-            float[] mappedY = mapYPoints(mYPoints[i], minY, maxY);
-            mChartPaint.setColor(Color.parseColor(mColors[i]));
-            for (int j = 0; j < mappedY.length - 1; j++){
-                canvas.drawLine(mappedX[j], mappedY[j], mappedX[j+1], mappedY[j+1], mChartPaint);
-            }
+        for (int i = 0; i < points.length; i++) {
+            float percentage = (float) (points[i] - yMin) / (float) calculatedArea;
+            mapped[i] = mViewHeight * percentage;
+            mapped[i] = mViewHeight - mapped[i];
         }
-    }
 
-    private float[] mapXPoints (long[] xPts, long min, long max) {
-        long calculatedArea = max - min;
-        float[] mapped = new float[xPts.length];
-        for (int i = 0; i < xPts.length; i++) {
-            float percentage = (float)(xPts[i] - min) / (float) calculatedArea;
-            mapped[i] = mDrawingAreaWidth * percentage;
-        }
         return mapped;
     }
 
-    private float[] mapYPoints (int[] yPts, long min, long max) {
-        long calculatedArea = max - min;
-        float[] mapped = new float[yPts.length];
-        for (int i = 0; i < yPts.length; i++) {
-            float percentage = (float) (yPts[i] - min) / (float) calculatedArea;
-            mapped[i] = mDrawingAreaHeight * percentage;
-            mapped[i] = mDrawingAreaHeight - mapped[i];
+    private float[] mapXPoints (long[] points) {
+        long xMax = MathUtils.getMax(mPosX);
+        long xMin = MathUtils.getMin(mPosX);
+        long calculatedArea = xMax - xMin;
+        float[] mapped = new float[points.length];
+        for (int i = 0; i < mapped.length; i++) {
+            float percentage = (float) (points[i] - xMin) / (float) calculatedArea;
+            mapped[i] = mViewWidth * percentage;
         }
+
         return mapped;
     }
 
-    void SetSlidersPos(float pos1, float pos2)
-    {
+    private void setSliderPositions (float pos1, float pos2) {
+        if (mSliderPositionLeft != pos1 || mSliderPositionRight != pos2)
+            invalidate();
 
+        mSliderPositionLeft = pos1;
+        mSliderPositionRight = pos2;
+        mCurrChosenAreaWidth = mSliderPositionRight - mSliderPositionLeft;
+
+        calculateRects();
+
+        notifyObservers();
     }
 
     @Override
@@ -243,38 +271,31 @@ public class ScrollChartView extends View implements WidthObservable {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 this.getParent().requestDisallowInterceptTouchEvent(true);
-                if ((x >= mHighlightedAreaLeftBorder - 3f * mSliderWidth) && (x <= mHighlightedAreaLeftBorder + 3f * mSliderWidth)) {
+                if ((x >= mSliderPositionLeft - 3f * mSliderWidth) && (x <= mSliderPositionLeft + mCurrChosenAreaWidth * 0.1f)) {
                     mLeftSliderIsCaught = true;
                 }
-                else if ((x >= mHighlightedAreaRightBorder - 3f * mSliderWidth) &&(x <= mHighlightedAreaRightBorder + 3f * mSliderWidth)) {
+                else if ((x >= mSliderPositionRight - mCurrChosenAreaWidth * 0.1f) &&(x <= mSliderPositionRight + 3f * mSliderWidth)) {
                     mRightSliderIsCaught = true;
                 }
-                else if (mHighlightedRect.contains(x, y)) {
-                    mHighlightedAreaIsCaught = true;
-                    mCurrentHighlightedAreaPosition = x;
-                    mCurrentHighlightedAreaWidth = mHighlightedAreaRightBorder - mHighlightedAreaLeftBorder;
+                else if (mChosenArea.contains(x, y)) {
+                    mChosenAreaIsCaught = true;
+                    mCurrChosenAreaPosition = x;
+                    mCurrChosenAreaWidth = mSliderPositionRight - mSliderPositionLeft;
                 }
                 return true;
 
             case MotionEvent.ACTION_MOVE:
                 this.getParent().requestDisallowInterceptTouchEvent(true);
                 if (mLeftSliderIsCaught){
-                    mHighlightedAreaLeftBorder = MathUtils.clamp(x,mHighlightedAreaRightBorder - mHighlightedAreaMinimalWidth, 0f);
-                    notifyObservers();
-                    invalidate();
+                    setSliderPositions(MathUtils.clamp(x, mSliderPositionRight - mChosenAreaMinimalWidth, 0f), mSliderPositionRight);
                 }
                 else if (mRightSliderIsCaught) {
-                    mHighlightedAreaRightBorder = MathUtils.clamp(x, mDrawingAreaWidth, mHighlightedAreaLeftBorder + mHighlightedAreaMinimalWidth);
-                    notifyObservers();
-                    invalidate();
+                    setSliderPositions(mSliderPositionLeft, MathUtils.clamp(x, mViewWidth, mSliderPositionLeft + mChosenAreaMinimalWidth));
                 }
-                else if (mHighlightedAreaIsCaught) {
-                    float deltaX = x - mCurrentHighlightedAreaPosition;
-                    mHighlightedAreaRightBorder = MathUtils.clamp(mHighlightedAreaRightBorder + deltaX, mDrawingAreaWidth, mCurrentHighlightedAreaWidth);
-                    mHighlightedAreaLeftBorder = MathUtils.clamp(mHighlightedAreaLeftBorder + deltaX, mDrawingAreaWidth - mCurrentHighlightedAreaWidth, 0f);
-                    mCurrentHighlightedAreaPosition = x;
-                    notifyObservers();
-                    invalidate();
+                else if (mChosenAreaIsCaught) {
+                    float deltaX = x - mCurrChosenAreaPosition;
+                    setSliderPositions(MathUtils.clamp(mSliderPositionLeft + deltaX, mViewWidth - mCurrChosenAreaWidth, 0f), MathUtils.clamp(mSliderPositionRight + deltaX, mViewWidth, mCurrChosenAreaWidth));
+                    mCurrChosenAreaPosition = x;
                 }
 
                 return true;
@@ -283,32 +304,34 @@ public class ScrollChartView extends View implements WidthObservable {
                 this.getParent().requestDisallowInterceptTouchEvent(true);
                 mRightSliderIsCaught = false;
                 mLeftSliderIsCaught = false;
-                mHighlightedAreaIsCaught = false;
+                mChosenAreaIsCaught = false;
                 return true;
         }
         return false;
     }
 
     @Override
-    public void registerObserver(WidthObserver widthObserver) {
-        mWidthObservers.add(widthObserver);
+    public void registerObserver(SliderObserver observer) {
+        mObservers.add(observer);
     }
 
     @Override
-    public void removeObserver(WidthObserver widthObserver) {
-        int i = mWidthObservers.indexOf(widthObserver);
+    public void removeObserver(SliderObserver observer) {
+        int i = mObservers.indexOf(observer);
         if (i >= 0) {
-            mWidthObservers.remove(i);
+            mObservers.remove(i);
         }
+
     }
 
     @Override
     public void notifyObservers() {
-        float start = mHighlightedAreaLeftBorder / mDrawingAreaWidth;
-        float percentage = (mHighlightedAreaRightBorder - mHighlightedAreaLeftBorder) / mDrawingAreaWidth;
-        for (int i = 0; i < mWidthObservers.size(); i++) {
-            WidthObserver widthObserver = mWidthObservers.get(i);
-            widthObserver.update(mChart, start, percentage, mIndexesOfLinesToInclude);
+        float normPos1 = mSliderPositionLeft / mViewWidth;
+        float normPos2 = mSliderPositionRight / mViewWidth;
+
+        for (int i = 0; i < mObservers.size(); i++) {
+            SliderObserver observer = mObservers.get(i);
+            observer.setBorders(normPos1, normPos2);
         }
     }
 }
