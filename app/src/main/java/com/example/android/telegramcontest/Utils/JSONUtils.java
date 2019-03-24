@@ -3,7 +3,6 @@ package com.example.android.telegramcontest.Utils;
 import android.graphics.Color;
 import android.util.Log;
 
-import com.example.android.telegramcontest.Chart;
 import com.example.android.telegramcontest.ChartData;
 import com.example.android.telegramcontest.LineData;
 

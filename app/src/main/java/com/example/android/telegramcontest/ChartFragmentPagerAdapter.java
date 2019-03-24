@@ -12,13 +12,11 @@ import java.util.List;
 
 public class ChartFragmentPagerAdapter extends FragmentPagerAdapter {
 
-    private Context mContext;
-    public List<Fragment> mFragments = new ArrayList<>();
+    private List<Fragment> mFragments = new ArrayList<>();
     private List<String> mTabTitles = new ArrayList<>();
 
     public ChartFragmentPagerAdapter (FragmentManager fm, Context context) {
         super(fm);
-        mContext = context;
     }
 
     @Override
