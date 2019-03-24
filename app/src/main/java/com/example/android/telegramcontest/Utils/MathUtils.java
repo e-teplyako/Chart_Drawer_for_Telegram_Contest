@@ -142,6 +142,35 @@ public class MathUtils {
         return max;
     }
 
+    public static float getEaseIn (float _t) {
+        return getEase(0.42f, 0, 1, 1, _t);
+    }
+
+    public static float getEaseOut (float _t) {
+        return getEase(0, 0, 0.58f, 1, _t);
+    }
+
+    public static float getEase (float m_A, float m_B, float m_C, float m_D, float _t) {
+        float A = 1.0f - 3.0f * m_C + 3.0f * m_A;
+        float B = 3.0f * m_C - 6.0f * m_A;
+        float C = 3.0f * m_A;
+
+        float E = 1.0f - 3.0f * m_D + 3.0f * m_B;
+        float F = 3.0f * m_D - 6.0f * m_B;
+        float G = 3.0f * m_B;
+
+        float t = _t;
+        for (int i=0; i < 5; i++)
+        {
+            float dt = A * (t * t * t) + B * (t * t) + C * t;
+
+            float s = 3.0f * A * t * t + 2.0f * B * t + C;
+            if (Math.abs(s) >= 0.0001f)
+                t = clamp(t - (dt - _t) / s, 1, 0);
+        }
+
+        return E * (t * t * t) + F * (t * t) + G * t;
+    }
 
     public static int[] add (int[] array, int element) {
         int[] result = new int[array.length + 1];
@@ -204,6 +233,18 @@ public class MathUtils {
         }
         if (array[index] - point < 0)
             return index < array.length - 1 ? index + 1 : array.length - 1;
+        return index;
+    }
+
+    public static int getIndexOfNearestElement (float[] array, float point) {
+        int index = 0;
+        float diff = Math.abs(array[0] - point);
+        for (int i = 0; i < array.length; i++) {
+            if (Math.abs(array[i] - point) < diff) {
+                diff = Math.abs(array[i] - point);
+                index = i;
+            }
+        }
         return index;
     }
 

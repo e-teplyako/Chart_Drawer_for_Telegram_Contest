@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -47,16 +49,31 @@ public class ChartView2 extends View implements SliderObserver{
     final int   TEXT_SIZE_DP           = 12;
     final int   TEXT_LABEL_WIDTH_DP    = 36;
     final int   TEXT_LABEL_DISTANCE_DP = 22;
+    final int PLATE_WIDTH_DP = 110;
+    final int PLATE_HEIGHT_DP = 56;
+    final int TEXT_SIZE_SMALL_DP = 8;
+    final int TEXT_SIZE_MEDIUM_DP = 12;
+    final int TEXT_SIZE_LARGE_DP = 14;
 
     private Resources.Theme mTheme;
 
     private Paint     mChartPaint;
     private Paint     mDividerPaint;
     private TextPaint mBaseLabelPaint;
+    private Paint mCirclePaint;
+    private Paint mPlatePaint;
+    private TextPaint mPlateXValuePaint;
+    private TextPaint mPlateYValuePaint;
+    private TextPaint mPlateNamePaint;
 
     final float mTextSizePx;
     final float mDateWidthPx;
     final float mDateDistancePx;
+    final float mPlateWidthPx;
+    final float mPlateHeightPx;
+    final float mTextSizeSmallPx;
+    final float mTextSizeMediumPx;
+    final float mTextSizeLargePx;
 
     private long[] mPosX;
     private long  mPos1 = -1;
@@ -84,7 +101,7 @@ public class ChartView2 extends View implements SliderObserver{
     private float mXLabelsYCoordinate;
 
     private boolean mPointIsChosen = false;
-    private float mXCoordinateOfChosenPoint;
+    private float mXCoordinateOfTouch;
     private int mPositionOfChosenPoint;
 
     private HashMap<Integer, Float> mXLabelsPeriodToMinChartWidthPx = new HashMap<>();
@@ -97,6 +114,11 @@ public class ChartView2 extends View implements SliderObserver{
         mTextSizePx     = MathUtils.dpToPixels(TEXT_SIZE_DP,           context);
         mDateWidthPx    = MathUtils.dpToPixels(TEXT_LABEL_WIDTH_DP,    context);
         mDateDistancePx = MathUtils.dpToPixels(TEXT_LABEL_DISTANCE_DP, context);
+        mPlateWidthPx = MathUtils.dpToPixels(PLATE_WIDTH_DP, context);
+        mPlateHeightPx = MathUtils.dpToPixels(PLATE_HEIGHT_DP, context);
+        mTextSizeSmallPx = MathUtils.dpToPixels(TEXT_SIZE_SMALL_DP, context);
+        mTextSizeMediumPx = MathUtils.dpToPixels(TEXT_SIZE_MEDIUM_DP, context);
+        mTextSizeLargePx = MathUtils.dpToPixels(TEXT_SIZE_LARGE_DP, context);
 
         setUpPaints();
     }
@@ -154,6 +176,26 @@ public class ChartView2 extends View implements SliderObserver{
         if (mTheme.resolveAttribute(R.attr.baseLabelColor, baseLabelColor, true)) {
             mBaseLabelPaint.setColor(baseLabelColor.data);
         }
+        mBaseLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+
+        mCirclePaint = new Paint();
+        mCirclePaint.setStrokeWidth(6);
+
+        mPlatePaint = new Paint();
+
+        mPlateXValuePaint = new TextPaint();
+        TypedValue textColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.labelTextColor, textColor, true)) {
+            mPlateXValuePaint.setColor(textColor.data);
+        }
+        mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
+        mPlateXValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+
+        mPlateYValuePaint = new TextPaint();
+        mPlateYValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+
+        mPlateNamePaint = new TextPaint();
+        mPlateNamePaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
     }
 
     @Override
@@ -300,34 +342,50 @@ public class ChartView2 extends View implements SliderObserver{
         mChartPaint.setColor(line.color);
         mChartPaint.setAlpha(alpha);
 
-        for (int i = mPointsMinIndex; i < mPointsMaxIndex; i++){
-            canvas.drawLine(mappedX[i], mappedY[i], mappedX[i+1], mappedY[i+1], mChartPaint);
+        for (int i = 0; i < mappedX.length - 1; i++) {
+            canvas.drawLine(mappedX[i], mappedY[i], mappedX[i + 1], mappedY[i + 1], mChartPaint);
+        }
+
+        if (mPointIsChosen) {
+            drawChosenPointCircle(mappedX, mappedY, line, canvas);
         }
     }
 
     private float[] mapYPoints (long[] points, long yMin, long yMax) {
         long calculatedArea = yMax - yMin;
-        float[] mapped = new float[points.length];
+        float[] mapped = new float[mPointsMaxIndex - mPointsMinIndex + 1];
 
-            for (int i = 0; i < points.length; i++) {
-                float percentage = (float) (points[i] - yMin) / (float) calculatedArea;
-                mapped[i] = mDrawingAreaHeight * percentage + mDrawingAreaStartY;
-                mapped[i] = mDrawingAreaEndY - mapped[i] + mDrawingAreaStartY;
-            }
+        for (int i = 0, j = mPointsMinIndex; i < mapped.length; i++, j++) {
+            float percentage = (float) (points[j] - yMin) / (float) calculatedArea;
+            mapped[i] = mDrawingAreaHeight * percentage + mDrawingAreaStartY;
+            mapped[i] = mDrawingAreaEndY - mapped[i] + mDrawingAreaStartY;
+        }
 
         return mapped;
     }
 
     private float[] mapXPoints (long[] points, long xMin, long xMax) {
         long calculatedArea = xMax - xMin;
-        float[] mapped = new float[points.length];
-            for (int i = 0; i < mapped.length; i++) {
-                float percentage = (float) (points[i] - xMin) / (float) calculatedArea;
-                mapped[i] = mDrawingAreaStartX + mDrawingAreaWidth * percentage;
-            }
+        float[] mapped = new float[mPointsMaxIndex - mPointsMinIndex + 1];
+        for (int i = 0, j = mPointsMinIndex; i < mapped.length; i++, j++) {
+            float percentage = (float) (points[j] - xMin) / (float) calculatedArea;
+            mapped[i] = mDrawingAreaStartX + mDrawingAreaWidth * percentage;
+        }
 
         return mapped;
     }
+
+    private int mapCoordinateToPoint(float[] mappedX, float xCoord) {
+        int position = MathUtils.getIndexOfNearestElement(mappedX, xCoord);
+        while (mPosX[position + mPointsMinIndex] < mPos1) {
+            position++;
+        }
+        while (mPosX[position + mPointsMinIndex] > mPos2) {
+            position--;
+        }
+        return position + mPointsMinIndex;
+    }
+
 
     private void cashMappedXPoints () {
 
@@ -354,9 +412,9 @@ public class ChartView2 extends View implements SliderObserver{
         mBaseLabelPaint.setAlpha(255);
         mBaseLabelPaint.setTextAlign(Paint.Align.CENTER);
 
-        for (int i = mPointsMinIndex; i <= mPointsMaxIndex; i++) {
+        for (int i = mPointsMinIndex, j = 0; i <= mPointsMaxIndex; i++, j++) {
             if ((mPosX.length - 1 - i) % mXLabelsPeriodCurrent == 0) {
-                canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[i], mXLabelsYCoordinate, mBaseLabelPaint);
+                canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[j], mXLabelsYCoordinate, mBaseLabelPaint);
             }
         }
 
@@ -372,7 +430,7 @@ public class ChartView2 extends View implements SliderObserver{
             alphaMultiplier = MathUtils.clamp(alphaMultiplier, 1, 0);
             mBaseLabelPaint.setAlpha((int) Math.floor(255 * alphaMultiplier));
 
-            for (int i = mPointsMinIndex; i <= mPointsMaxIndex; i++) {
+            for (int i = mPointsMinIndex, j = 0; i <= mPointsMaxIndex; i++, j++) {
                 if ((mPosX.length - 1 - i) % (mXLabelsPeriodCurrent / 2) == 0 && (mPosX.length - 1 - i) % mXLabelsPeriodCurrent != 0) {
 
                     if (i == mPosX.length - 1)
@@ -382,7 +440,7 @@ public class ChartView2 extends View implements SliderObserver{
                     else
                         mBaseLabelPaint.setTextAlign(Paint.Align.CENTER);
 
-                    canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[i], mXLabelsYCoordinate, mBaseLabelPaint);
+                    canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[j], mXLabelsYCoordinate, mBaseLabelPaint);
                 }
             }
         }
@@ -421,9 +479,101 @@ public class ChartView2 extends View implements SliderObserver{
 
     }
 
-    private void drawChosenPointValues(Canvas canvas) {
-        //vertical divider
-//        canvas.drawLine(mXCoordinateOfChosenPoint, mDrawingAreaStartY, mXCoordinateOfChosenPoint, mDrawingAreaEndY, mDividerPaint);
+    private void drawChosenPointCircle(float[] mappedX, float[] mappedY, LineData line, Canvas canvas) {
+        mCirclePaint.setColor(line.color);
+        canvas.drawCircle(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mappedY[mPositionOfChosenPoint - mPointsMinIndex], 16f, mCirclePaint);
+        TypedValue background = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.primaryBackgroundColor, background, true)) {
+            mCirclePaint.setColor(background.data);
+        }
+        canvas.drawCircle(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mappedY[mPositionOfChosenPoint - mPointsMinIndex], 8f, mCirclePaint);
+
+    }
+
+    private void drawVerticalDivider(float[] mappedX, Canvas canvas) {
+        mDividerPaint.setAlpha(255);
+        canvas.drawLine(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mDrawingAreaStartY, mappedX[mPositionOfChosenPoint - mPointsMinIndex], mDrawingAreaEndY, mDividerPaint);
+    }
+
+    private void drawChosenPointPlate(float[] mappedX, Canvas canvas) {
+        //plate
+        float top = mDrawingAreaHeight * 0.05f + mDrawingAreaWidth * 0.05f;
+        float bottom = top + mPlateHeightPx;
+        float left;
+        float right;
+        float offset = mDrawingAreaWidth * 0.05f;
+        if ((mappedX[mPositionOfChosenPoint - mPointsMinIndex] + offset + mPlateWidthPx) >= mDrawingAreaEndX) {
+            right = mappedX[mPositionOfChosenPoint - mPointsMinIndex] - offset;
+            left = right - mPlateWidthPx;
+        } else {
+            left = mappedX[mPositionOfChosenPoint - mPointsMinIndex] + offset;
+            right = left + mPlateWidthPx;
+        }
+        RectF rectF = new RectF(left, top, right, bottom);
+        int cornerRadius = 25;
+
+        TypedValue dividerColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.dividerColor, dividerColor, true)) {
+            mPlatePaint.setColor(dividerColor.data);
+        }
+        mPlatePaint.setStrokeWidth(2);
+        mPlatePaint.setStyle(Paint.Style.STROKE);
+
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
+
+        mPlatePaint.setStyle(Paint.Style.FILL);
+        TypedValue plateColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.plateBackgroundColor, plateColor, true)) {
+            mPlatePaint.setColor(plateColor.data);
+        }
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
+
+        //text
+        mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
+        canvas.drawText(DateTimeUtils.formatDateEEEMMMd(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.22f, mPlateXValuePaint);
+
+        switch (mLines.length) {
+            case 1:
+                mPlateYValuePaint.setTextSize(mTextSizeLargePx);
+                mPlateYValuePaint.setColor(mLines[0].color);
+                mPlateYValuePaint.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(String.valueOf(mLines[0].posY[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.6f, mPlateYValuePaint);
+                mPlateNamePaint.setColor(mLines[0].color);
+                mPlateNamePaint.setTextSize(mTextSizeMediumPx);
+                mPlateNamePaint.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText(mLines[0].name, left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.8f, mPlateNamePaint);
+                break;
+            case 2:
+                mPlateYValuePaint.setTextSize(mTextSizeMediumPx);
+                mPlateYValuePaint.setColor(mLines[0].color);
+                mPlateYValuePaint.setTextAlign(Paint.Align.LEFT);
+                canvas.drawText(String.valueOf(mLines[0].posY[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.6f, mPlateYValuePaint);
+                mPlateNamePaint.setColor(mLines[0].color);
+                mPlateNamePaint.setTextSize(mTextSizeSmallPx);
+                mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
+                canvas.drawText(mLines[0].name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.8f, mPlateNamePaint);
+                mPlateYValuePaint.setColor(mLines[1].color);
+                mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
+                canvas.drawText(String.valueOf(mLines[1].posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.6f, mPlateYValuePaint);
+                mPlateNamePaint.setColor(mLines[1].color);
+                mPlateNamePaint.setTextAlign(Paint.Align.RIGHT);
+                canvas.drawText(mLines[1].name, right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.8f, mPlateNamePaint);
+                break;
+            default:
+                mPlateYValuePaint.setTextSize(mTextSizeSmallPx);
+                mPlateNamePaint.setTextSize(mTextSizeSmallPx);
+                mPlateYValuePaint.setTextAlign(Paint.Align.LEFT);
+                mPlateNamePaint.setTextAlign(Paint.Align.RIGHT);
+                float heightOffset = 0.45f;
+                for (LineData line : mLines){
+                    mPlateYValuePaint.setColor(line.color);
+                    mPlateNamePaint.setColor(line.color);
+                    canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
+                    canvas.drawText(line.name, right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
+                    heightOffset += 0.16f;
+                }
+                break;
+        }
     }
 
     @Override
@@ -449,6 +599,10 @@ public class ChartView2 extends View implements SliderObserver{
         for (YScale yScale : mYScales)
             drawScaleY(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
 
+        if (mPointIsChosen) {
+            mPositionOfChosenPoint = mapCoordinateToPoint(mappedX, mXCoordinateOfTouch);
+            drawVerticalDivider(mappedX, canvas);
+        }
 
         for (LineData line : mLines)
             drawChartLine(line, 0, mMaxY, 255, mappedX, canvas);
@@ -457,9 +611,9 @@ public class ChartView2 extends View implements SliderObserver{
             drawYLabels(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
 
         if (mPointIsChosen) {
-            drawChosenPointValues(canvas);
-            mPointIsChosen = false;
+            drawChosenPointPlate(mappedX, canvas);
         }
+        mPointIsChosen = false;
     }
 
     @Override
@@ -472,7 +626,7 @@ public class ChartView2 extends View implements SliderObserver{
             case MotionEvent.ACTION_MOVE:
             case MotionEvent.ACTION_DOWN:
                 this.getParent().requestDisallowInterceptTouchEvent(true);
-                if (y >= mDrawingAreaEndY) {
+                if (y >= mDrawingAreaEndY || x <= mDrawingAreaStartX || x >= mDrawingAreaEndX) {
                     hidePointDetails();
                 }
                 else {
@@ -489,9 +643,8 @@ public class ChartView2 extends View implements SliderObserver{
     private void showPointDetails(float xCoord) {
         if (mLines == null || mLines.length == 0)
             return;
+        mXCoordinateOfTouch = xCoord;
         mPointIsChosen = true;
-//        mPositionOfChosenPoint = mapCoordinateToPoint(xCoord);
-//        mXCoordinateOfChosenPoint = mapXPoint(mPosX[mPositionOfChosenPoint]);
         invalidate();
     }
 
