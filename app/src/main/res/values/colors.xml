@@ -12,14 +12,14 @@
     <color name="chartScrollViewBackgroundColorNight">#BB19232e</color>
     <color name="labelTextColorDay">#232323</color>
     <color name="labelTextColorNight">#ffffff</color>
-    <color name="dividerColorDay">#9E9E9E</color>
-    <color name="dividerColorNight">#19232e</color>
+    <color name="dividerColorDay">#E9E9E9</color>
+    <color name="dividerColorNight">#101924</color>
     <color name="plateBackgroundColorDay">#ffffff</color>
     <color name="plateBackgroundColorNight">#202b38</color>
     <color name="colorPrimaryDarkDay">#426382</color>
     <color name="colorPrimaryDarkNight">#1a242e</color>
     <color name="sliderColorDay">#66BDBDBD</color>
     <color name="sliderColorNight">#66BDBDBD</color>
-    <color name="baseLabelColorDay">#9E9E9E</color>
+    <color name="baseLabelColorDay">#9B9B9B</color>
     <color name="baseLabelColorNight">#9E9E9E</color>
 </resources>

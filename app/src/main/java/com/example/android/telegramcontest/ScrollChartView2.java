@@ -111,11 +111,10 @@ public class ScrollChartView2 extends View implements SliderObservable{
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (mLines == null || mPosX == null || mLines.length == 0)
-            return;
-
-        for (LineData line : mLines)
-            drawLine(line, mDefaultYMin, mDefaultYMax, 255, canvas);
+        if (mLines != null && mPosX != null && mLines.length != 0) {
+            for (LineData line : mLines)
+                drawLine(line, mDefaultYMin, mDefaultYMax, 255, canvas);
+        }
 
         drawRects(canvas);
     }
@@ -222,6 +221,7 @@ public class ScrollChartView2 extends View implements SliderObservable{
 
         mSliderPositionLeft = pos1;
         mSliderPositionRight = pos2;
+        mCurrChosenAreaWidth = mSliderPositionRight - mSliderPositionLeft;
 
         calculateRects();
 
@@ -237,10 +237,10 @@ public class ScrollChartView2 extends View implements SliderObservable{
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 this.getParent().requestDisallowInterceptTouchEvent(true);
-                if ((x >= mSliderPositionLeft - 3f * mSliderWidth) && (x <= mSliderPositionLeft + 2f * mSliderWidth)) {
+                if ((x >= mSliderPositionLeft - 3f * mSliderWidth) && (x <= mSliderPositionLeft + mCurrChosenAreaWidth * 0.1f)) {
                     mLeftSliderIsCaught = true;
                 }
-                else if ((x >= mSliderPositionRight - 3f * mSliderWidth) &&(x <= mSliderPositionRight + 2f * mSliderWidth)) {
+                else if ((x >= mSliderPositionRight - mCurrChosenAreaWidth * 0.1f) &&(x <= mSliderPositionRight + 3f * mSliderWidth)) {
                     mRightSliderIsCaught = true;
                 }
                 else if (mChosenArea.contains(x, y)) {

@@ -1,15 +1,16 @@
 package com.example.android.telegramcontest;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,19 +20,43 @@ import com.example.android.telegramcontest.Interfaces.SliderObserver;
 import com.example.android.telegramcontest.Utils.DateTimeUtils;
 import com.example.android.telegramcontest.Utils.MathUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
 public class ChartView2 extends View implements SliderObserver{
 
-    private Context mContext;
+    class YScale
+    {
+        long Height;
+        long MaxY;
+        int  Alpha;
+
+        long HeightStart;
+        long HeightEnd;
+
+        long MaxYStart;
+        long MaxYEnd;
+
+        int  AlphaStart;
+        int  AlphaEnd;
+    }
+
+    final float DRAWING_AREA_OFFSET    = 0.05f;
+    final int   Y_DIVIDERS_COUNT       = 6;
+    final int   TEXT_SIZE_DP           = 12;
+    final int   TEXT_LABEL_WIDTH_DP    = 36;
+    final int   TEXT_LABEL_DISTANCE_DP = 22;
+
     private Resources.Theme mTheme;
 
-    final float DRAWING_AREA_OFFSET = 0.05f;
-    final int DIVIDERS_COUNT = 6;
-    final int TEXT_SIZE_DP = 12;
-    final int TEXT_LABEL_WIDTH_DP = 36;
-    final int TEXT_LABEL_DISTANCE_DP = 22;
+    private Paint     mChartPaint;
+    private Paint     mDividerPaint;
+    private TextPaint mBaseLabelPaint;
+
+    final float mTextSizePx;
+    final float mDateWidthPx;
+    final float mDateDistancePx;
 
     private long[] mPosX;
     private long  mPos1 = -1;
@@ -40,44 +65,38 @@ public class ChartView2 extends View implements SliderObserver{
     private int mPointsMinIndex;
     private int mPointsMaxIndex;
     private LineData[] mLines;
-    private long mYMin;
-    private long mYMax;
-    private long mMappedX;
+
+    private long[] mMappedX;
     private long[][] mMappedY;
 
-    private float mViewWidth;
-    private float mViewHeight;
-    private float mDrawingAreaWidthStart;
-    private float mDrawingAreaWidthEnd;
-    private float mDrawingAreaHeightStart;
-    private float mDrawingAreaHeightEnd;
+    private long          mMaxY       = -1;
+    private long          mTargetMaxY = -1;
+    private ValueAnimator mMaxYAnimator;
+
+    private ArrayList<YScale> mYScales = new ArrayList<YScale>();
+
+    private float mDrawingAreaStartX;
+    private float mDrawingAreaEndX;
+    private float mDrawingAreaStartY;
+    private float mDrawingAreaEndY;
     private float mDrawingAreaWidth;
     private float mDrawingAreaHeight;
     private float mXLabelsYCoordinate;
 
-    final private float mTextSizePx;
-    private float mDateWidthPx;
-    private float mDateDistancePx;
-
-    private boolean mSizeChanged = false;
     private boolean mPointIsChosen = false;
+    private float mXCoordinateOfChosenPoint;
+    private int mPositionOfChosenPoint;
 
-    private HashMap<Integer, Float> mXLabelPeriodicityToMinimalChartWidthPx = new HashMap<>();
-    private int mXLabelPeriodicity;
-
-    private Paint mChartPaint;
-    private Paint mDividerPaint;
-    private TextPaint mBaseLabelPaint;
+    private HashMap<Integer, Float> mXLabelsPeriodToMinChartWidthPx = new HashMap<>();
+    private int                     mXLabelsPeriodCurrent;
 
     public ChartView2(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        mContext = context;
-        mTheme = context.getTheme();
+        mTheme   = context.getTheme();
 
-        mTextSizePx = MathUtils.dpToPixels(TEXT_SIZE_DP, mContext);
-
-        mDateWidthPx = MathUtils.dpToPixels(TEXT_LABEL_WIDTH_DP, mContext);
-        mDateDistancePx = MathUtils.dpToPixels(TEXT_LABEL_DISTANCE_DP, mContext);
+        mTextSizePx     = MathUtils.dpToPixels(TEXT_SIZE_DP,           context);
+        mDateWidthPx    = MathUtils.dpToPixels(TEXT_LABEL_WIDTH_DP,    context);
+        mDateDistancePx = MathUtils.dpToPixels(TEXT_LABEL_DISTANCE_DP, context);
 
         setUpPaints();
     }
@@ -87,15 +106,15 @@ public class ChartView2 extends View implements SliderObserver{
         observable.registerObserver(this);
     }
 
-    public void setBorders (float normPos1, float normPos2) {
-        mNormWidth = normPos2 - normPos1;
+    public void setBorders (float normPosX1, float normPosX2) {
+        mNormWidth = normPosX2 - normPosX1;
         long pos1 = 0;
         long pos2 = 0;
         long xMin = MathUtils.getMin(mPosX);
         long xMax = MathUtils.getMax(mPosX);
         long width = xMax - xMin;
-        pos1 = (long) Math.floor(normPos1 * width) + xMin;
-        pos2 = (long) Math.ceil(normPos2 * width) + xMin;
+        pos1 = (long) Math.floor(normPosX1 * width) + xMin;
+        pos2 = (long) Math.ceil(normPosX2 * width) + xMin;
 
         if (mPos1 != pos1 || mPos2 != pos2)
             invalidate();
@@ -107,57 +126,15 @@ public class ChartView2 extends View implements SliderObserver{
 
         mPointsMinIndex = MathUtils.getIndexOfNearestLeftElement(mPosX, mPos1 - distanceToScreenBorder);
         mPointsMaxIndex = MathUtils.getIndexOfNearestRightElement(mPosX,  mPos2 + distanceToScreenBorder);
+
+        UpdateMaxY();
     }
 
     public void setLines (LineData[] lines) {
-        if (mLines == null || !Arrays.equals(mLines, lines)) 
-            invalidate();
-        
         mLines = lines;
+        UpdateMaxY();
 
-        if (mLines != null && mLines.length != 0) {
-            mYMin = MathUtils.getMin(mLines);
-            mYMax = MathUtils.getMax(mLines);
-        }
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-
-        mSizeChanged = true;
-
-        mViewWidth = getWidth();
-        mViewHeight = getHeight();
-        mDrawingAreaWidthStart = mViewWidth * DRAWING_AREA_OFFSET;
-        mDrawingAreaWidthEnd = mViewWidth * 0.95f;
-        mDrawingAreaWidth = mDrawingAreaWidthEnd - mDrawingAreaWidthStart;
-        mDrawingAreaHeightStart = mViewHeight * DRAWING_AREA_OFFSET;
-        mDrawingAreaHeightEnd = mViewHeight * 0.85f;
-        mDrawingAreaHeight = mDrawingAreaHeightEnd - mDrawingAreaHeightStart;
-
-        mXLabelsYCoordinate = mViewHeight * 0.9f;
-
-        float minChartWidth = mDrawingAreaWidth;
-        float maxChartWidth = minChartWidth / ScrollChartView2.MINIMAL_NORM_SLIDER_WIDTH;
-
-        int sizeOfArray = mPosX.length;
-        for (int i = 1; true; i = i * 2) {
-            // we take size - 1 cause first point should be labeled
-            int textElemsCount = sizeOfArray / i;
-            float chartWidth = mDateWidthPx * textElemsCount + mDateDistancePx * (textElemsCount - 1);
-            if (chartWidth >= minChartWidth && chartWidth <= maxChartWidth)
-                mXLabelPeriodicityToMinimalChartWidthPx.put(i, chartWidth);
-            else if (chartWidth < minChartWidth) {
-                mXLabelPeriodicityToMinimalChartWidthPx.put(i, chartWidth);
-                break;
-            }
-        }
+        invalidate();
     }
 
     private void setUpPaints() {
@@ -179,7 +156,145 @@ public class ChartView2 extends View implements SliderObserver{
         }
     }
 
-    private void drawLine (LineData line, long yMin, long yMax, int alpha, float[] mappedX, Canvas canvas) {
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+
+        int viewWidth  = getWidth();
+        int viewHeight = getHeight();
+
+        mDrawingAreaStartX = viewWidth * DRAWING_AREA_OFFSET;
+        mDrawingAreaEndX   = viewWidth * 0.95f;
+        mDrawingAreaWidth  = mDrawingAreaEndX - mDrawingAreaStartX;
+
+        mDrawingAreaStartY = viewHeight * DRAWING_AREA_OFFSET;
+        mDrawingAreaEndY   = viewHeight * 0.85f;
+        mDrawingAreaHeight = mDrawingAreaEndY - mDrawingAreaStartY;
+
+        mXLabelsYCoordinate = viewHeight * 0.9f;
+
+        float minChartWidth = mDrawingAreaWidth;
+        float maxChartWidth = minChartWidth / ScrollChartView2.MINIMAL_NORM_SLIDER_WIDTH;
+        int sizeOfArray = mPosX.length;
+        for (int i = 1; true; i = i * 2) {
+            // we take size - 1 cause first point should be labeled
+            int textElemsCount = sizeOfArray / i;
+            float chartWidth = mDateWidthPx * textElemsCount + mDateDistancePx * (textElemsCount - 1);
+            if (chartWidth >= minChartWidth && chartWidth <= maxChartWidth)
+                mXLabelsPeriodToMinChartWidthPx.put(i, chartWidth);
+            else if (chartWidth < minChartWidth) {
+                mXLabelsPeriodToMinChartWidthPx.put(i, minChartWidth);
+                break;
+            }
+        }
+    }
+
+    private void UpdateMaxY() {
+        if (mLines != null && mLines.length != 0 && mPos1 >= 0 && mPos2 >= 0)
+        {
+            long newYMax = MathUtils.getMaxY(mLines, mPointsMinIndex, mPointsMaxIndex);
+            newYMax = newYMax / Y_DIVIDERS_COUNT * (Y_DIVIDERS_COUNT + 1);
+
+            if (newYMax != mTargetMaxY)
+            {
+                boolean firstTime = mTargetMaxY < 0;
+                mTargetMaxY = newYMax;
+
+                if (firstTime)
+                {
+                    mMaxY = mTargetMaxY;
+
+                    YScale yScale = new YScale();
+                    yScale.Height = mMaxY;
+                    yScale.MaxY   = mMaxY;
+                    yScale.Alpha  = 255;
+                    mYScales.add(yScale);
+                }
+                else {
+                    StartAnimationYMax();
+                }
+            }
+        }
+    }
+
+    private void StartAnimationYMax() {
+        if (mMaxYAnimator != null)
+        {
+            mMaxYAnimator.cancel();
+            mMaxYAnimator = null;
+        }
+
+        for (YScale yScale : mYScales)
+        {
+            yScale.HeightStart = yScale.Height;
+            yScale.HeightEnd   = mTargetMaxY;
+            yScale.MaxYStart   = yScale.MaxY;
+            yScale.MaxYEnd     = yScale.MaxY;
+            yScale.AlphaStart  = yScale.Alpha;
+            yScale.AlphaEnd    = 0;
+        }
+
+        final YScale newScale = new YScale();
+        newScale.Height      = mMaxY;
+        newScale.HeightStart = mMaxY;
+        newScale.HeightEnd   = mTargetMaxY;
+        newScale.MaxY        = mTargetMaxY;
+        newScale.MaxYStart   = mTargetMaxY;
+        newScale.MaxYEnd     = mTargetMaxY;
+        newScale.Alpha       = 0;
+        newScale.AlphaStart  = 0;
+        newScale.AlphaEnd    = 255;
+        mYScales.add(newScale);
+
+        final long startY = mMaxY;
+        final long endY   = mTargetMaxY;
+
+        final String KEY_PHASE = "phase";
+
+        mMaxYAnimator = new ValueAnimator();
+        mMaxYAnimator.setValues(PropertyValuesHolder.ofFloat(KEY_PHASE, 0, 1));
+        mMaxYAnimator.setDuration(400);
+
+        mMaxYAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                float t = (float) animator.getAnimatedValue(KEY_PHASE);
+
+                mMaxY = (long)MathUtils.lerp(startY, endY, t);
+
+                for (YScale yScale : mYScales)
+                {
+                    yScale.Height = (long)MathUtils.lerp(yScale.HeightStart, yScale.HeightEnd, t);
+                    yScale.MaxY   = (long)MathUtils.lerp(yScale.MaxYStart,   yScale.MaxYEnd,   t);
+
+                    if (yScale.AlphaEnd == 255)
+                        yScale.Alpha  = (int) MathUtils.lerp(yScale.AlphaStart,  yScale.AlphaEnd,  MathUtils.clamp(t / 0.45f - 1, 1, 0)); //t * 4 - 3
+                    else
+                        yScale.Alpha  = (int) MathUtils.lerp(yScale.AlphaStart,  yScale.AlphaEnd,  MathUtils.clamp(t / 0.55f, 1, 0)); // t / 0.75
+                }
+
+                invalidate();
+            }
+        });
+
+        mMaxYAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animator)
+            {
+                ArrayList<YScale> nonZeroScales = new ArrayList<>();
+
+                for (YScale yScale : mYScales)
+                    if (yScale.Alpha > 0)
+                        nonZeroScales.add(yScale);
+
+                mYScales = nonZeroScales;
+            }
+        });
+
+        mMaxYAnimator.start();
+    }
+
+    private void drawChartLine (LineData line, long yMin, long yMax, int alpha, float[] mappedX, Canvas canvas) {
         float[] mappedY = mapYPoints(line.posY, yMin, yMax);
 
         mChartPaint.setColor(line.color);
@@ -191,13 +306,13 @@ public class ChartView2 extends View implements SliderObserver{
     }
 
     private float[] mapYPoints (long[] points, long yMin, long yMax) {
-        long calculatedArea = MathUtils.getNearestSixDivider(yMax - yMin);
+        long calculatedArea = yMax - yMin;
         float[] mapped = new float[points.length];
 
             for (int i = 0; i < points.length; i++) {
                 float percentage = (float) (points[i] - yMin) / (float) calculatedArea;
-                mapped[i] = mDrawingAreaHeight * percentage + mDrawingAreaHeightStart;
-                mapped[i] = mDrawingAreaHeightEnd - mapped[i] + mDrawingAreaHeightStart;
+                mapped[i] = mDrawingAreaHeight * percentage + mDrawingAreaStartY;
+                mapped[i] = mDrawingAreaEndY - mapped[i] + mDrawingAreaStartY;
             }
 
         return mapped;
@@ -208,7 +323,7 @@ public class ChartView2 extends View implements SliderObserver{
         float[] mapped = new float[points.length];
             for (int i = 0; i < mapped.length; i++) {
                 float percentage = (float) (points[i] - xMin) / (float) calculatedArea;
-                mapped[i] = mDrawingAreaWidthStart + mDrawingAreaWidth * percentage;
+                mapped[i] = mDrawingAreaStartX + mDrawingAreaWidth * percentage;
             }
 
         return mapped;
@@ -228,37 +343,37 @@ public class ChartView2 extends View implements SliderObserver{
         int xLabelPeriodicity = 0;
 
         for (xLabelPeriodicity = 1; true; xLabelPeriodicity = xLabelPeriodicity * 2) {
-            if (!mXLabelPeriodicityToMinimalChartWidthPx.containsKey(xLabelPeriodicity))
+            if (!mXLabelsPeriodToMinChartWidthPx.containsKey(xLabelPeriodicity))
                 continue;
 
-            if (mXLabelPeriodicityToMinimalChartWidthPx.get(xLabelPeriodicity) <= chartWidthPx)
+            if (mXLabelsPeriodToMinChartWidthPx.get(xLabelPeriodicity) <= chartWidthPx)
                 break;
         }
-        mXLabelPeriodicity = xLabelPeriodicity;
+        mXLabelsPeriodCurrent = xLabelPeriodicity;
 
         mBaseLabelPaint.setAlpha(255);
         mBaseLabelPaint.setTextAlign(Paint.Align.CENTER);
 
         for (int i = mPointsMinIndex; i <= mPointsMaxIndex; i++) {
-            if ((mPosX.length - 1 - i) % mXLabelPeriodicity == 0) {
+            if ((mPosX.length - 1 - i) % mXLabelsPeriodCurrent == 0) {
                 canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[i], mXLabelsYCoordinate, mBaseLabelPaint);
             }
         }
 
         //if there are no inbetween labels
-        if (mXLabelPeriodicityToMinimalChartWidthPx.get(mXLabelPeriodicity) == chartWidthPx)
+        if (mXLabelsPeriodToMinChartWidthPx.get(mXLabelsPeriodCurrent) == chartWidthPx)
             return;
 
-        if (mXLabelPeriodicityToMinimalChartWidthPx.containsKey(mXLabelPeriodicity / 2)) {
-            float alphaMultiplier = MathUtils.inverseLerp(mXLabelPeriodicityToMinimalChartWidthPx.get(mXLabelPeriodicity),
-                                                          mXLabelPeriodicityToMinimalChartWidthPx.get(mXLabelPeriodicity / 2),
+        if (mXLabelsPeriodToMinChartWidthPx.containsKey(mXLabelsPeriodCurrent / 2)) {
+            float alphaMultiplier = MathUtils.inverseLerp(mXLabelsPeriodToMinChartWidthPx.get(mXLabelsPeriodCurrent),
+                                                          mXLabelsPeriodToMinChartWidthPx.get(mXLabelsPeriodCurrent / 2),
                                                           chartWidthPx);
             alphaMultiplier = (alphaMultiplier - 0.334f) * 3;
             alphaMultiplier = MathUtils.clamp(alphaMultiplier, 1, 0);
             mBaseLabelPaint.setAlpha((int) Math.floor(255 * alphaMultiplier));
 
             for (int i = mPointsMinIndex; i <= mPointsMaxIndex; i++) {
-                if ((mPosX.length - 1 - i) % (mXLabelPeriodicity / 2) == 0 && (mPosX.length - 1 - i) % mXLabelPeriodicity != 0) {
+                if ((mPosX.length - 1 - i) % (mXLabelsPeriodCurrent / 2) == 0 && (mPosX.length - 1 - i) % mXLabelsPeriodCurrent != 0) {
 
                     if (i == mPosX.length - 1)
                         mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
@@ -273,86 +388,115 @@ public class ChartView2 extends View implements SliderObserver{
         }
     }
 
-    /*Right now only draws fixed dividers*/
-    private void drawScaleY (long yMin, long yMax, int alpha, Canvas canvas) {
-        long diff = MathUtils.getNearestSixDivider(yMax - yMin);
-        long step = diff / DIVIDERS_COUNT;
+    private void drawScaleY (long height, long yMax, int alpha, Canvas canvas)
+    {
+        float spaceBetweenDividers = (float)yMax / height * mDrawingAreaHeight / Y_DIVIDERS_COUNT;
 
-        float spaceBetweenDividers = mDrawingAreaHeight / DIVIDERS_COUNT;
-
-        float startX = mDrawingAreaWidthStart;
-        float stopX = mDrawingAreaWidthEnd;
-        float startY = mDrawingAreaHeightStart + spaceBetweenDividers;
+        float startY = mDrawingAreaEndY - spaceBetweenDividers;
         float stopY = startY;
 
         mDividerPaint.setAlpha(alpha);
 
-        for (int i = 0; i < DIVIDERS_COUNT; i++) {
-            canvas.drawLine(startX, startY, stopX, stopY, mDividerPaint);
-            startY += spaceBetweenDividers;
+        for (int i = 0; i < Y_DIVIDERS_COUNT - 1; i++) {
+            canvas.drawLine(mDrawingAreaStartX, startY, mDrawingAreaEndX, stopY, mDividerPaint);
+            startY -= spaceBetweenDividers;
             stopY = startY;
         }
+    }
+
+    private void drawYLabels (long height, long yMax, int alpha, Canvas canvas) {
+        float spaceBetweenDividers = (float)yMax / height * mDrawingAreaHeight / Y_DIVIDERS_COUNT;
+
+        long step = 0;
+        float yLabelCoord = mDrawingAreaEndY * 0.99f;
+
+        mBaseLabelPaint.setAlpha(alpha);
+        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
+
+        for (int i = 0; i < Y_DIVIDERS_COUNT; i++) {
+            canvas.drawText(MathUtils.getFriendlyNumber(step), mDrawingAreaStartX, yLabelCoord, mBaseLabelPaint);
+            yLabelCoord -= spaceBetweenDividers;
+            step += yMax / Y_DIVIDERS_COUNT;
+        }
+
+    }
+
+    private void drawChosenPointValues(Canvas canvas) {
+        //vertical divider
+//        canvas.drawLine(mXCoordinateOfChosenPoint, mDrawingAreaStartY, mXCoordinateOfChosenPoint, mDrawingAreaEndY, mDividerPaint);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        
+
+        mDividerPaint.setAlpha(255);
+        canvas.drawLine(mDrawingAreaStartX, mDrawingAreaEndY, mDrawingAreaEndX, mDrawingAreaEndY, mDividerPaint);
+
+        float[] mappedX = null;
+
+        if (mPosX != null && mPos1 >= 0 && mPos2 >= 0) {
+            mappedX = mapXPoints(mPosX, mPos1, mPos2);
+            drawScaleX(mappedX, canvas);
+        }
+
         if (mPosX == null || mLines == null || mLines.length == 0 || mPos1 < 0 || mPos2 < 0)
+        {
+            drawScaleY(100, 100, 255, canvas);
             return;
+        }
 
+        for (YScale yScale : mYScales)
+            drawScaleY(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
 
-        float[] mappedX = mapXPoints(mPosX, mPos1, mPos2);
-
-        drawScaleX(mappedX, canvas);
-        drawScaleY(mYMin, mYMax, 255, canvas);
 
         for (LineData line : mLines)
-            drawLine(line, mYMin, mYMax, 255, mappedX, canvas);
+            drawChartLine(line, 0, mMaxY, 255, mappedX, canvas);
+
+        for (YScale yScale : mYScales)
+            drawYLabels(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
+
+        if (mPointIsChosen) {
+            drawChosenPointValues(canvas);
+            mPointIsChosen = false;
+        }
     }
 
-//    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        super.onTouchEvent(event);
-//        float x = event.getX();
-//        float y = event.getY();
-//
-//        switch (event.getAction()) {
-//            case MotionEvent.ACTION_MOVE:
-//            case MotionEvent.ACTION_DOWN:
-//                this.getParent().requestDisallowInterceptTouchEvent(true);
-//                if (y >= mDrawingAreaHeight) {
-//                    hideVerticalDivider();
-//                }
-//                else {
-//                    showPointDetails(x);
-//                }
-//                return true;
-//            case MotionEvent.ACTION_UP:
-//                this.getParent().requestDisallowInterceptTouchEvent(true);
-//                return true;
-//        }
-//        return true;
-//    }
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
+        float x = event.getX();
+        float y = event.getY();
 
-//    private void showPointDetails(float xCoord) {
-//        if (mLines == null || mLines.length == 0)
-//            return;
-//        int pointPosition = mapCoordinateToPoint(xCoord);
-//        float pointCoordinate = mapXPoint(mXPointsPart[pointPosition]);
-//        showVerticalDivider(pointCoordinate, pointPosition);
-//    }
-//
-//
-//    private void showVerticalDivider(float xCoord, int position) {
-//        mPointIsChosen = true;
-//        mXCoordinateOfChosenPoint = xCoord;
-//        mPositionOfChosenPoint = position;
-//        invalidate();
-//    }
-//
-//    private void hideVerticalDivider() {
-//        mPointIsChosen = false;
-//        invalidate();
-//    }
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_MOVE:
+            case MotionEvent.ACTION_DOWN:
+                this.getParent().requestDisallowInterceptTouchEvent(true);
+                if (y >= mDrawingAreaEndY) {
+                    hidePointDetails();
+                }
+                else {
+                    showPointDetails(x);
+                }
+                return true;
+            case MotionEvent.ACTION_UP:
+                this.getParent().requestDisallowInterceptTouchEvent(true);
+                return true;
+        }
+        return true;
+    }
+
+    private void showPointDetails(float xCoord) {
+        if (mLines == null || mLines.length == 0)
+            return;
+        mPointIsChosen = true;
+//        mPositionOfChosenPoint = mapCoordinateToPoint(xCoord);
+//        mXCoordinateOfChosenPoint = mapXPoint(mPosX[mPositionOfChosenPoint]);
+        invalidate();
+    }
+
+    private void hidePointDetails() {
+        mPointIsChosen = false;
+        invalidate();
+    }
 }

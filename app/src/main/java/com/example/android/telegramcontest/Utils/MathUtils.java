@@ -55,7 +55,6 @@ public class MathUtils {
         return min;
     }
 
-
     public static long getMax(long[] array) {
         long max = array[0];
 
@@ -98,6 +97,51 @@ public class MathUtils {
         }
         return min;
     }
+
+    public static long getMaxY (LineData[] lines, int minIndex, int maxIndex) {
+        long max = lines[0].posY[minIndex];
+
+        for (LineData line : lines) {
+            long maxInLine = getMax(line.posY, minIndex, maxIndex);
+            if (maxInLine > max)
+                max = maxInLine;
+        }
+        return max;
+    }
+
+    public static long getMin (LineData[] lines, int minIndex, int maxIndex) {
+        long min = lines[0].posY[minIndex];
+
+        for (LineData line : lines) {
+            long minInLine = getMin(line.posY, minIndex, maxIndex);
+            if (minInLine < min)
+                min = minInLine;
+        }
+        return min;
+    }
+
+    public static long getMin (long[] array, int minIndex, int maxIndex) {
+        long min = array[minIndex];
+
+        for (int i = minIndex; i < maxIndex; i++) {
+            if (array[i] < min) {
+                min = array[i];
+            }
+        }
+        return min;
+    }
+
+    public static long getMax (long[] array, int minIndex, int maxIndex) {
+        long max = array[minIndex];
+
+        for (int i = minIndex; i < maxIndex; i++) {
+            if (array[i] > max) {
+                max = array[i];
+            }
+        }
+        return max;
+    }
+
 
     public static int[] add (int[] array, int element) {
         int[] result = new int[array.length + 1];
@@ -177,8 +221,10 @@ public class MathUtils {
             return String.valueOf(num);
         else if (div < 1000)
             return String.valueOf(div) + "K";
-        else if (div < 10000)
+        else if (div < 100000)
             return String.valueOf(div / 1000) + "M";
+        else if (div < 100000000)
+            return String.valueOf(div / 1000000) + "B";
         return String.valueOf(num);
     }
 

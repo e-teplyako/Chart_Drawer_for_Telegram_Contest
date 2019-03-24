@@ -13,7 +13,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatCheckBox;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,15 +25,12 @@ import com.example.android.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
 
-public class ChartActivity extends AppCompatActivity implements WidthObserver {
+public class ChartActivity extends AppCompatActivity{
 
     private ScrollChartView2 mScrollChartView2;
     private ChartView2 mChartView2;
     private ArrayList<LineData> mLines = new ArrayList<>();
-    private ChartView mChartView;
-    private ScrollChartView mScrollChartView;
-    private Chart mChart;
-    private int[] mIncludedLines;
+
     private Resources.Theme mAppTheme;
     private boolean mNightModeIsEnabled = false;
     private final String NIGHT_MODE_ENABLED_KEY = "night_mode";
@@ -50,21 +46,9 @@ public class ChartActivity extends AppCompatActivity implements WidthObserver {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true);
 
-
-        mChartView = findViewById(R.id.chartview);
-        mScrollChartView = findViewById(R.id.scrollchartview);
-
-
-
-        mScrollChartView.registerObserver(this);
-
         Intent intent = getIntent();
         int index = intent.getIntExtra(Intent.EXTRA_TEXT, 0);
-        mChart = ChartsManager.getChart(index);
-        mIncludedLines = mChart.getIndexesOfFullYArray();
-        mScrollChartView.setChartParams(mChart, mIncludedLines);
 
-        //TEST
         ChartData chartData = ChartsManager.loadData2(this).get(index);
 
         mScrollChartView2 = findViewById(R.id.scrollchartview2);
@@ -72,17 +56,13 @@ public class ChartActivity extends AppCompatActivity implements WidthObserver {
 
         mChartView2 = findViewById(R.id.chartview2);
         mChartView2.init(chartData, mScrollChartView2);
-        //TEST
 
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.charts_linear_layout);
         for (int i = 0; i < chartData.lines.length; i++) {
             mLines.add(chartData.lines[i]);
             LinearLayout row = new LinearLayout(this);
             row.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            String name = mChart.getName(i);
-            String color = mChart.getColor(i);
-            createCheckbox(mIncludedLines[i], name, color, row);
-            createCheckbox2(chartData.lines[i], row);
+            createCheckbox(chartData.lines[i], row);
             linearLayout.addView(row);
         }
         setLines();
@@ -97,42 +77,9 @@ public class ChartActivity extends AppCompatActivity implements WidthObserver {
         }
     }
 
-    @SuppressLint("RestrictedApi")
-    private void createCheckbox (final int index, String name, String color, LinearLayout row) {
-        final AppCompatCheckBox checkBox = new AppCompatCheckBox(this);
-        checkBox.setTag(index);
-        TypedValue textColor = new TypedValue();
-        if (mAppTheme.resolveAttribute(R.attr.labelTextColor, textColor, true)) {
-            checkBox.setTextColor(textColor.data);
-        }
-        checkBox.setText(name);
-        int uncheckedColor = Color.WHITE;
-        int checkedColor = Color.parseColor(color);
-        int[] colors = {uncheckedColor, checkedColor};
-        ColorStateList colorStateList = new ColorStateList(
-                new int[][] {
-                        new int[] { -android.R.attr.state_checked },
-                        new int[] {  android.R.attr.state_checked }
-                },
-                new int[] {
-                        uncheckedColor,
-                        checkedColor
-                });
-        checkBox.setSupportButtonTintList(colorStateList);
-        checkBox.setChecked(true);
-        checkBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                updateIncludedLines(index, checkBox.isChecked());
-                setLines();
-            }
-        });
-        row.addView(checkBox);
-
-    }
 
     @SuppressLint("RestrictedApi")
-    private void createCheckbox2 (final LineData line, LinearLayout row) {
+    private void createCheckbox(final LineData line, LinearLayout row) {
         final AppCompatCheckBox checkBox = new AppCompatCheckBox(this);
         checkBox.setTag(line.id);
         TypedValue textColor = new TypedValue();
@@ -140,7 +87,7 @@ public class ChartActivity extends AppCompatActivity implements WidthObserver {
             checkBox.setTextColor(textColor.data);
         }
         checkBox.setText(line.name);
-        int uncheckedColor = Color.WHITE;
+        int uncheckedColor = line.color;
         int checkedColor = line.color;
         int[] colors = {uncheckedColor, checkedColor};
         ColorStateList colorStateList = new ColorStateList(
@@ -168,21 +115,9 @@ public class ChartActivity extends AppCompatActivity implements WidthObserver {
 
     }
 
-    private void updateIncludedLines(int index, boolean include) {
-        if (include) mIncludedLines = MathUtils.add(mIncludedLines, index);
-        else mIncludedLines = MathUtils.remove(mIncludedLines, index);
-
-        mScrollChartView.setChartParams(mIncludedLines);
-    }
-
     private void setLines() {
         mChartView2.setLines(mLines.toArray(new LineData[mLines.size()]));
         mScrollChartView2.setLines(mLines.toArray(new LineData[mLines.size()]));
-    }
-
-    @Override
-    public void update(Chart chart, float start, float percentage, int[] indexesToInclude) {
-        mChartView.setChartParams(chart, start, percentage, indexesToInclude);
     }
 
     @Override
