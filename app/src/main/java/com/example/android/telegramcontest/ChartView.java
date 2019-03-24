@@ -13,6 +13,7 @@ import android.graphics.Typeface;
 import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -348,7 +349,7 @@ public class ChartView extends View implements SliderObserver{
         mDrawingAreaEndY   = viewHeight * 0.85f;
         mDrawingAreaHeight = mDrawingAreaEndY - mDrawingAreaStartY;
 
-        mXLabelsYCoordinate = viewHeight * 0.9f;
+        mXLabelsYCoordinate = mDrawingAreaEndY + MathUtils.dpToPixels(15, mContext);
 
         float minChartWidth = mDrawingAreaWidth;
         float maxChartWidth = minChartWidth / ScrollChartView.MINIMAL_NORM_SLIDER_WIDTH;
