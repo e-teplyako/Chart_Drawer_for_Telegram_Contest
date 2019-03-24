@@ -19,10 +19,13 @@ import com.example.android.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class ScrollChartView2 extends View implements SliderObservable{
 
     public final static float MINIMAL_NORM_SLIDER_WIDTH = 0.2f;
+
+    private final float mOptimizeTolerancePx;
 
     ArrayList<SliderObserver> mObservers;
 
@@ -59,6 +62,11 @@ public class ScrollChartView2 extends View implements SliderObservable{
     private Paint mSliderPaint;
     private Paint mChosenPaint;
 
+    private boolean mSizesChanged;
+
+    private HashMap<LineData, ArrayList<Float>> mLineDataToPointsX = new HashMap<>();
+    private HashMap<LineData, ArrayList<Float>> mLineDataToPointsY = new HashMap<>();
+
     public ScrollChartView2(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
@@ -73,6 +81,8 @@ public class ScrollChartView2 extends View implements SliderObservable{
         mSliderLeft = new RectF();
         mSliderRight = new RectF();
         mChosenArea = new RectF();
+
+        mOptimizeTolerancePx = MathUtils.dpToPixels(4, context);
     }
 
     public void init (ChartData chartData) {
@@ -89,11 +99,34 @@ public class ScrollChartView2 extends View implements SliderObservable{
             mDefaultYMax = MathUtils.getMax(lines);
             mDefaultYMin = MathUtils.getMin(lines);
         }
+
+        CalculatePoints();
+    }
+
+    void CalculatePoints() {
+        if (mLines == null || mLines.length == 0 || !mSizesChanged)
+            return;
+
+        float[] mappedX = mapXPoints(mPosX);
+
+        for (LineData line : mLines)
+        {
+            float[] mappedY = mapYPoints(line.posY, mDefaultYMin, mDefaultYMax);
+            ArrayList<Float> optimizedX = new ArrayList<Float>();
+            ArrayList<Float> optimizedY = new ArrayList<Float>();
+
+            MathUtils.optimizePoints(mappedX, mappedY, mOptimizeTolerancePx, optimizedX, optimizedY);
+
+            mLineDataToPointsX.put(line, optimizedX);
+            mLineDataToPointsY.put(line, optimizedY);
+        }
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        mSizesChanged = true;
+
         mViewWidth = getWidth();
         mViewHeight = getHeight();
 
@@ -105,6 +138,7 @@ public class ScrollChartView2 extends View implements SliderObservable{
         setSliderPositions(defaultSliderPosLeft, defaultSliderPosRight);
 
         calculateRects();
+        CalculatePoints();
     }
 
     @Override
@@ -113,7 +147,8 @@ public class ScrollChartView2 extends View implements SliderObservable{
 
         if (mLines != null && mPosX != null && mLines.length != 0) {
             for (LineData line : mLines)
-                drawLine(line, mDefaultYMin, mDefaultYMax, 255, canvas);
+                if (mLineDataToPointsX.containsKey(line))
+                    drawLine(mLineDataToPointsX.get(line), mLineDataToPointsY.get(line), line.color, 255, canvas);
         }
 
         drawRects(canvas);
@@ -121,6 +156,8 @@ public class ScrollChartView2 extends View implements SliderObservable{
 
     private void setUpPaints() {
         mChartPaint = new Paint();
+        mChartPaint.setStyle(Paint.Style.STROKE);
+        mChartPaint.setAntiAlias(true);
         mChartPaint.setStrokeWidth(4);
 
         mBackgroundPaint = new Paint();
@@ -169,15 +206,15 @@ public class ScrollChartView2 extends View implements SliderObservable{
         mChosenArea.set(left, top, right, bottom);
     }
 
-    private void drawLine (LineData line, long yMin, long yMax, int alpha, Canvas canvas) {
-        float[] mappedX = mapXPoints(mPosX);
-        float[] mappedY = mapYPoints(line.posY, yMin, yMax);
+    private void drawLine (ArrayList<Float> pointsX, ArrayList<Float> pointsY, int color, int alpha, Canvas canvas) {
 
-        mChartPaint.setColor(line.color);
+        int arraySize = pointsX.size();
+
+        mChartPaint.setColor(color);
         mChartPaint.setAlpha(alpha);
 
-        for (int i = 0; i < line.posY.length - 1; i++){
-            canvas.drawLine(mappedX[i], mappedY[i], mappedX[i+1], mappedY[i+1], mChartPaint);
+        for (int i = 0; i < arraySize - 1; i++){
+            canvas.drawLine(pointsX.get(i), pointsY.get(i), pointsX.get(i+1), pointsY.get(i+1), mChartPaint);
         }
     }
 

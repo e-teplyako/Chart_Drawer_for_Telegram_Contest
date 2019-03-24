@@ -5,6 +5,8 @@ import android.util.TypedValue;
 
 import com.example.android.telegramcontest.LineData;
 
+import java.util.ArrayList;
+
 public class MathUtils {
 
     public static float clamp (float num, float max, float min) {
@@ -279,5 +281,51 @@ public class MathUtils {
         else if (div < 10000)
             return String.valueOf(div / 1000) + "M";
         return String.valueOf(num);
+    }
+
+    public static void optimizePoints(float[] pointsX, float[] pointsY, float tolerance, ArrayList<Float> optimizedPointsX, ArrayList<Float> optimizedPointsY)
+    {
+        if (optimizedPointsX == null || optimizedPointsY == null)
+            return;
+
+        optimizedPointsX.clear();
+        optimizedPointsY.clear();
+
+        float sqTolerance = tolerance * tolerance;
+
+        float prevPointX = pointsX[0];
+        float prevPointY = pointsY[0];
+
+        float pointX = 0;
+        float pointY = 0;
+
+        int arraySize = pointsX.length;
+
+        for (int i = 1; i < arraySize; i++) {
+            pointX = pointsX[i];
+            pointY = pointsY[i];
+
+            if (getSqDist(pointX, pointY, prevPointX, prevPointY) > sqTolerance) {
+                optimizedPointsX.add(pointX);
+                optimizedPointsY.add(pointY);
+
+                prevPointX = pointX;
+                prevPointY = pointY;
+            }
+        }
+
+        if (Math.abs(prevPointX - pointX) > 0.001 || Math.abs(prevPointY - pointY) > 0.001)
+        {
+            optimizedPointsX.add(pointX);
+            optimizedPointsY.add(pointY);
+        }
+    }
+
+
+    static float getSqDist(float p1X, float p1Y, float p2X, float p2Y) {
+        float dx = p1X - p2X;
+        float dy = p1Y - p2Y;
+
+        return dx * dx + dy * dy;
     }
 }

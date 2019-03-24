@@ -262,6 +262,8 @@ public class ChartView2 extends View implements SliderObserver{
 
     private void setUpPaints() {
         mChartPaint = new Paint();
+        mChartPaint.setStyle(Paint.Style.STROKE);
+        mChartPaint.setAntiAlias(true);
         mChartPaint.setStrokeWidth(6);
 
         mDividerPaint = new Paint();
