@@ -14,7 +14,6 @@ import android.view.View;
 
 import com.example.android.telegramcontest.Interfaces.SliderObservable;
 import com.example.android.telegramcontest.Interfaces.SliderObserver;
-import com.example.android.telegramcontest.Interfaces.WidthObserver;
 import com.example.android.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
@@ -94,8 +93,8 @@ public class ScrollChartView extends View implements SliderObservable{
         invalidate();
 
         if (mLines != null && mLines.length != 0) {
-            mDefaultYMax = MathUtils.getMax(lines);
-            mDefaultYMin = MathUtils.getMin(lines);
+            mDefaultYMax = MathUtils.getMaxY(lines);
+            mDefaultYMin = MathUtils.getMinY(lines);
         }
 
         CalculatePoints();

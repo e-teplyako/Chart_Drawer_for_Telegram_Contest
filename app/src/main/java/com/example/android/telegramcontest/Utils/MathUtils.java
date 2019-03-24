@@ -31,32 +31,6 @@ public class MathUtils {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
     }
 
-    public static int getMax(int[][] array) {
-        int max = array[0][0];
-
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[i].length; j++) {
-                if (array[i][j] > max) {
-                    max = array[i][j];
-                }
-            }
-        }
-        return max;
-    }
-
-    public static int getMin(int[][] array) {
-        int min = array[0][0];
-
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[i].length; j++) {
-                if (array[i][j] < min) {
-                    min = array[i][j];
-                }
-            }
-        }
-        return min;
-    }
-
     public static long getMax(long[] array) {
         long max = array[0];
 
@@ -78,7 +52,7 @@ public class MathUtils {
         return min;
     }
 
-    public static long getMax (LineData[] lines) {
+    public static long getMaxY (LineData[] lines) {
         long max = lines[0].posY[0];
 
         for (LineData line : lines) {
@@ -89,7 +63,7 @@ public class MathUtils {
         return max;
     }
 
-    public static long getMin (LineData[] lines) {
+    public static long getMinY (LineData[] lines) {
         long min = lines[0].posY[0];
 
         for (LineData line : lines) {
@@ -109,28 +83,6 @@ public class MathUtils {
                 max = maxInLine;
         }
         return max;
-    }
-
-    public static long getMin (LineData[] lines, int minIndex, int maxIndex) {
-        long min = lines[0].posY[minIndex];
-
-        for (LineData line : lines) {
-            long minInLine = getMin(line.posY, minIndex, maxIndex);
-            if (minInLine < min)
-                min = minInLine;
-        }
-        return min;
-    }
-
-    public static long getMin (long[] array, int minIndex, int maxIndex) {
-        long min = array[minIndex];
-
-        for (int i = minIndex; i < maxIndex; i++) {
-            if (array[i] < min) {
-                min = array[i];
-            }
-        }
-        return min;
     }
 
     public static long getMax (long[] array, int minIndex, int maxIndex) {
@@ -174,42 +126,6 @@ public class MathUtils {
         return E * (t * t * t) + F * (t * t) + G * t;
     }
 
-    public static int[] add (int[] array, int element) {
-        int[] result = new int[array.length + 1];
-        for (int i = 0; i < result.length - 1; i++) {
-            result[i] = array[i];
-        }
-        result[result.length - 1] = element;
-        return result;
-    }
-
-    public static int[] remove (int[] array, int element) {
-        int[] result = new int[array.length - 1];
-        for (int i = 0, j = 0; i < array.length; i++) {
-            if (array[i] != element) {
-                result[j] = array[i];
-                j++;
-            }
-        }
-        return result;
-    }
-
-    public static long[] removeFirst (long[] array) {
-        long[] removed = new long[array.length - 1];
-        for (int i = 0, j = 1; i < removed.length; i++, j++) {
-            removed[i] = array[j];
-        }
-        return removed;
-    }
-
-    public static long[] removeLast (long[] array) {
-        long[] removed = new long[array.length - 1];
-        for (int i = 0; i < removed.length; i++) {
-            removed[i] = array[i];
-        }
-        return removed;
-    }
-
     public static int getIndexOfNearestLeftElement (long[] array, long point) {
         int index = 0;
         long diff = Math.abs(array[0] - point);
@@ -250,13 +166,6 @@ public class MathUtils {
         return index;
     }
 
-
-    public static long getNearestSixDivider(long num) {
-        if (num % 6 == 0)
-            return (num + 6);
-        return (num + (6 - num % 6));
-    }
-
     public static String getFriendlyNumber (long num) {
         String result = "";
         long div = num / 1000;
@@ -268,18 +177,6 @@ public class MathUtils {
             return String.valueOf(div / 1000) + "M";
         else if (div < 100000000)
             return String.valueOf(div / 1000000) + "B";
-        return String.valueOf(num);
-    }
-
-    public static String getFriendlyNumber (int num) {
-        String result = "";
-        int div = num / 1000;
-        if (div < 10)
-            return String.valueOf(num);
-        else if (div < 1000)
-            return String.valueOf(div) + "K";
-        else if (div < 10000)
-            return String.valueOf(div / 1000) + "M";
         return String.valueOf(num);
     }
 

@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mAppTheme = getTheme();
 
-        mChartData = ChartsManager.loadData2(this);
+        mChartData = ChartsManager.getCharts(this);
 
         mAdapter = new ChartFragmentPagerAdapter(getSupportFragmentManager(), this); //TabsPagerAdapter = whatever you named the PagerAdapter
         addFragments();

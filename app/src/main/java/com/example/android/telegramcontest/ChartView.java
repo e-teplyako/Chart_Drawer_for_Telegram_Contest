@@ -449,13 +449,23 @@ public class ChartView extends View implements SliderObserver{
 
                 for (YScale yScale : mYScales)
                 {
-                    yScale.Height = (long)MathUtils.lerp(yScale.HeightStart, yScale.HeightEnd, t);
                     yScale.MaxY   = (long)MathUtils.lerp(yScale.MaxYStart,   yScale.MaxYEnd,   t);
 
                     if (yScale.AlphaEnd == 255)
-                        yScale.Alpha  = (int) MathUtils.lerp(yScale.AlphaStart,  yScale.AlphaEnd,  MathUtils.clamp(t / 0.45f - 1, 1, 0)); //t * 4 - 3
+                    {
+                        if (yScale.Height < yScale.MaxY)
+                            yScale.Height = (long)MathUtils.lerp(yScale.HeightStart, yScale.HeightEnd, MathUtils.getEaseOut(t));
+                        else
+                            yScale.Height = (long)MathUtils.lerp(yScale.HeightStart, yScale.HeightEnd, MathUtils.getEaseIn(t));
+
+                        yScale.Alpha  = (int) MathUtils.lerp(yScale.AlphaStart,  yScale.AlphaEnd,  MathUtils.clamp(t / 0.45f - 1, 1, 0));
+                    }
                     else
-                        yScale.Alpha  = (int) MathUtils.lerp(yScale.AlphaStart,  yScale.AlphaEnd,  MathUtils.clamp(t / 0.55f, 1, 0)); // t / 0.75
+                    {
+                        yScale.Height = (long)MathUtils.lerp(yScale.HeightStart, yScale.HeightEnd, t);
+
+                        yScale.Alpha  = (int) MathUtils.lerp(yScale.AlphaStart,  yScale.AlphaEnd,  MathUtils.clamp(t / 0.55f, 1, 0));
+                    }
                 }
 
                 invalidate();

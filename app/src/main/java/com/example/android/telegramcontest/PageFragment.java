@@ -53,7 +53,7 @@ public class PageFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_page, container, false);
         view.setBackgroundColor(mBackgroundColor);
-        ChartData chartData = ChartsManager.loadData2(getContext()).get(mIndex);
+        ChartData chartData = ChartsManager.getCharts(getContext()).get(mIndex);
 
         mScrollChartView = view.findViewById(R.id.scrollchartview2);
         mScrollChartView.init(chartData);
