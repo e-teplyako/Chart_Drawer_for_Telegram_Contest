@@ -1,6 +1,7 @@
 package com.example.android.telegramcontest;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
@@ -8,9 +9,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatCheckBox;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
 import com.example.android.telegramcontest.Utils.MathUtils;
@@ -21,11 +24,11 @@ public class PageFragment extends Fragment {
 
     public static final String INDEX = "index";
 
-    private int mIndex;
-
+    private ChartData mChartData;
     private ScrollChartView mScrollChartView;
     private ChartView mChartView;
     private ArrayList<LineData> mLines = new ArrayList<>();
+    private ArrayList<CheckBox> mCheckboxes = new ArrayList<>();
 
     private static int mBackgroundColor;
     private static int mLabelColor;
@@ -45,7 +48,12 @@ public class PageFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mIndex = getArguments().getInt(INDEX);
+
+        mChartData = ChartsManager.getCharts(getContext()).get(getArguments().getInt(INDEX));
+        mLines.clear();
+        for (int i = 0; i < mChartData.lines.length; i++) {
+            mLines.add(mChartData.lines[i]);
+        }
     }
 
     @Nullable
@@ -53,20 +61,19 @@ public class PageFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_page, container, false);
         view.setBackgroundColor(mBackgroundColor);
-        ChartData chartData = ChartsManager.getCharts(getContext()).get(mIndex);
 
         mScrollChartView = view.findViewById(R.id.scrollchartview2);
-        mScrollChartView.init(chartData);
+        mScrollChartView.init(mChartData);
 
         mChartView = view.findViewById(R.id.chartview2);
-        mChartView.init(chartData, mScrollChartView);
+        mChartView.init(mChartData, mScrollChartView);
 
+        mCheckboxes.clear();
         LinearLayout linearLayout = (LinearLayout) view.findViewById(R.id.checkboxes_layout);
-        for (int i = 0; i < chartData.lines.length; i++) {
-            mLines.add(chartData.lines[i]);
+        for (int i = 0; i < mChartData.lines.length; i++) {
             LinearLayout row = new LinearLayout(getContext());
             row.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            createCheckbox(chartData.lines[i], row);
+            createCheckbox(mChartData.lines[i], row);
             linearLayout.addView(row);
         }
         setLines();
@@ -83,7 +90,6 @@ public class PageFragment extends Fragment {
         checkBox.setText(line.name);
         int uncheckedColor = line.color;
         int checkedColor = line.color;
-        int[] colors = {uncheckedColor, checkedColor};
         ColorStateList colorStateList = new ColorStateList(
                 new int[][] {
                         new int[] { -android.R.attr.state_checked },
@@ -98,20 +104,22 @@ public class PageFragment extends Fragment {
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (checkBox.isChecked())
-                    mLines.add(line);
-                else
-                    mLines.remove(line);
                 setLines();
             }
         });
+        mCheckboxes.add(checkBox);
         row.addView(checkBox, params);
-
-
     }
 
     private void setLines() {
-        mChartView.setLines(mLines.toArray(new LineData[mLines.size()]));
-        mScrollChartView.setLines(mLines.toArray(new LineData[mLines.size()]));
+        ArrayList<LineData> lines = new ArrayList<>();
+        for (int i = 0; i < mCheckboxes.size(); i++) {
+            if (mCheckboxes.get(i).isChecked()) {
+                lines.add(mLines.get(i));
+            }
+        }
+        LineData[] linesArray = lines.toArray(new LineData[lines.size()]);
+        mChartView.setLines(linesArray);
+        mScrollChartView.setLines(linesArray);
     }
 }
