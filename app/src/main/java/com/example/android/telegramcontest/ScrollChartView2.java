@@ -90,10 +90,8 @@ public class ScrollChartView2 extends View implements SliderObservable{
     }
 
     public void setLines (LineData[] lines) {
-        if (mLines == null || !Arrays.equals(mLines, lines))
-            invalidate();
-
         mLines = lines;
+        invalidate();
 
         if (mLines != null && mLines.length != 0) {
             mDefaultYMax = MathUtils.getMax(lines);

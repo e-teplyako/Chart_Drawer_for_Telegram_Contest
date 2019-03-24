@@ -13,6 +13,7 @@ import android.graphics.Typeface;
 import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -52,11 +53,14 @@ public class ChartView2 extends View implements SliderObserver{
         int      AlphaStart;
         int      AlphaEnd;
 
-        float[]  mMappedPointsY;
+        float[] mMappedPointsY;
+
+        ArrayList<Float> optimizedPointsX = new ArrayList<Float>();
+        ArrayList<Float> optimizedPointsY = new ArrayList<Float>();
 
         private boolean IsVisible()
         {
-            return Alpha > 0.001f;
+            return Alpha > 0;
         }
     }
 
@@ -72,6 +76,7 @@ public class ChartView2 extends View implements SliderObserver{
     final int   TEXT_SIZE_LARGE_DP     = 14;
 
     private Resources.Theme mTheme;
+    private Context         mContext;
 
     private Paint     mChartPaint;
     private Paint     mDividerPaint;
@@ -124,8 +129,13 @@ public class ChartView2 extends View implements SliderObserver{
     private HashMap<Integer, Float> mXLabelsPeriodToMinChartWidthPx = new HashMap<>();
     private int                     mXLabelsPeriodCurrent;
 
+    private float mOptimTolerancePx;
+
+    private boolean mSizesChanged;
+
     public ChartView2(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
         mTheme   = context.getTheme();
 
         mTextSizePx     = MathUtils.dpToPixels(TEXT_SIZE_DP,           context);
@@ -151,6 +161,7 @@ public class ChartView2 extends View implements SliderObserver{
         }
 
         mPosX = chartData.posX;
+        mOptimTolerancePx = mPosX.length >= 150 ? MathUtils.dpToPixels(4, mContext) : 0;
         observable.registerObserver(this);
     }
 
@@ -177,10 +188,9 @@ public class ChartView2 extends View implements SliderObserver{
         mPointsMinIndex = MathUtils.getIndexOfNearestLeftElement(mPosX, mPos1 - distanceToScreenBorder);
         mPointsMaxIndex = MathUtils.getIndexOfNearestRightElement(mPosX,  mPos2 + distanceToScreenBorder);
 
-        mMappedPointsX = mapXPoints(mPosX, mPos1, mPos2);
+        mapXPoints();
 
         UpdateMaxY();
-        mapYPoints();
 
         hidePointDetails();
     }
@@ -199,7 +209,6 @@ public class ChartView2 extends View implements SliderObserver{
             StartSetLinesAnimation();
 
         UpdateMaxY();
-        mapYPoints();
 
         hidePointDetails();
 
@@ -249,12 +258,12 @@ public class ChartView2 extends View implements SliderObserver{
         return false;
     }
 
-    LineData[] GetVisibleChartLines()
+    LineData[] GetActiveChartLines()
     {
         ArrayList<LineData> arrayList = new ArrayList<>();
 
         for (ChartLine line : mLines)
-            if (line.IsVisible())
+            if (line.AlphaEnd > 0)
                 arrayList.add(line.Data);
 
         return arrayList.toArray(new LineData[arrayList.size()]);
@@ -301,13 +310,26 @@ public class ChartView2 extends View implements SliderObserver{
         mPlateNamePaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
     }
 
-    private void mapYPoints()
+    private void mapXPoints()
     {
-        if (mBordersSet)
-        {
-            for (ChartLine line : mLines) {
-                if (line.IsVisible())
-                    line.mMappedPointsY = mapYPoints(line.Data.posY, 0, mMaxY);
+        if (!mSizesChanged || !mBordersSet)
+            return;
+
+        mMappedPointsX = mapXPoints(mPosX, mPos1, mPos2);
+    }
+
+    private void mapPoints()
+    {
+        if (!mSizesChanged || !mBordersSet || !ShowChartLines())
+            return;
+
+        for (ChartLine line : mLines) {
+            if (line.IsVisible()) {
+                line.mMappedPointsY = mapYPoints(line.Data.posY, 0, mMaxY);
+                line.optimizedPointsX = new ArrayList<Float>();
+                line.optimizedPointsY = new ArrayList<Float>();
+
+                MathUtils.optimizePoints(mMappedPointsX, line.mMappedPointsY, mOptimTolerancePx, line.optimizedPointsX, line.optimizedPointsY);
             }
         }
     }
@@ -315,6 +337,7 @@ public class ChartView2 extends View implements SliderObserver{
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        mSizesChanged = true;
 
         int viewWidth  = getWidth();
         int viewHeight = getHeight();
@@ -343,13 +366,18 @@ public class ChartView2 extends View implements SliderObserver{
                 break;
             }
         }
+
+        mapXPoints();
+        mapPoints();
     }
 
     private void UpdateMaxY() {
-        if (!ShowChartLines() || !mBordersSet)
+        LineData[] activeLines = GetActiveChartLines();
+
+        if (!ShowChartLines() || !mBordersSet || activeLines.length == 0)
             return;
 
-        long newYMax = MathUtils.getMaxY(GetVisibleChartLines(), mPointsMinIndex, mPointsMaxIndex);
+        long newYMax = MathUtils.getMaxY(activeLines, mPointsMinIndex, mPointsMaxIndex);
         newYMax = newYMax / Y_DIVIDERS_COUNT * (Y_DIVIDERS_COUNT + 1);
 
         if (newYMax != mTargetMaxY)
@@ -371,6 +399,8 @@ public class ChartView2 extends View implements SliderObserver{
                 StartAnimationYMax();
             }
         }
+
+        mapPoints();
     }
 
     private void StartAnimationYMax() {
@@ -417,7 +447,7 @@ public class ChartView2 extends View implements SliderObserver{
                 float t = (float) animator.getAnimatedValue(KEY_PHASE);
 
                 mMaxY = (long)MathUtils.lerp(startY, endY, t);
-                mapYPoints();
+                mapPoints();
 
                 for (YScale yScale : mYScales)
                 {
@@ -451,16 +481,24 @@ public class ChartView2 extends View implements SliderObserver{
         mMaxYAnimator.start();
     }
 
-    private void drawChartLine (float[] mappedY, int color, int alpha, float[] mappedX, Canvas canvas) {
-        mChartPaint.setColor(color);
-        mChartPaint.setAlpha(alpha);
+    private void drawChartLine (ChartLine line, Canvas canvas){
+        mChartPaint.setColor(line.Data.color);
+        mChartPaint.setAlpha(line.Alpha);
 
-        for (int i = 0; i < mappedX.length - 1; i++) {
-            canvas.drawLine(mappedX[i], mappedY[i], mappedX[i + 1], mappedY[i + 1], mChartPaint);
+        int arraySize = line.optimizedPointsX.size();
+
+        for (int i = 0; i < arraySize - 1; i++) {
+            canvas.drawLine(
+                line.optimizedPointsX.get(i),
+                line.optimizedPointsY.get(i),
+                line.optimizedPointsX.get(i + 1),
+                line.optimizedPointsY.get(i + 1),
+                mChartPaint
+            );
         }
 
         if (mPointIsChosen)
-            drawChosenPointCircle(mappedX, mappedY, color, canvas);
+            drawChosenPointCircle(mMappedPointsX, line.mMappedPointsY, line.Data.color, canvas);
     }
 
     private float[] mapYPoints (long[] points, long yMin, long yMax) {
@@ -634,7 +672,7 @@ public class ChartView2 extends View implements SliderObserver{
         mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
         canvas.drawText(DateTimeUtils.formatDateEEEMMMd(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.22f, mPlateXValuePaint);
 
-        LineData[] lines = GetVisibleChartLines();
+        LineData[] lines = GetActiveChartLines();
         switch (lines.length) {
             case 1:
                 mPlateYValuePaint.setTextSize(mTextSizeLargePx);
@@ -703,9 +741,10 @@ public class ChartView2 extends View implements SliderObserver{
             drawVerticalDivider(mMappedPointsX, canvas);
         }
 
-        for (ChartLine line : mLines)
+        for (ChartLine line : mLines) {
             if (line.IsVisible())
-                drawChartLine(line.mMappedPointsY, line.Data.color, line.Alpha, mMappedPointsX, canvas);
+                drawChartLine(line, canvas);
+        }
 
         for (YScale yScale : mYScales)
             drawYLabels(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
