@@ -85,6 +85,7 @@ public class PageFragment extends Fragment {
         final AppCompatCheckBox checkBox = new AppCompatCheckBox(getContext());
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.rightMargin = (int) MathUtils.dpToPixels(8, getContext());
+        params.leftMargin = (int) MathUtils.dpToPixels(8, getContext());
         checkBox.setTag(line.id);
         checkBox.setTextColor(mLabelColor);
         checkBox.setText(line.name);

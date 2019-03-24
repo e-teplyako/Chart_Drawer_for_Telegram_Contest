@@ -64,7 +64,7 @@ public class ChartView extends View implements SliderObserver{
         }
     }
 
-    final float DRAWING_AREA_OFFSET    = 0.05f;
+    final int   DRAWING_AREA_OFFSET_X_DP = 8;
     final int   Y_DIVIDERS_COUNT       = 6;
     final int   TEXT_SIZE_DP           = 12;
     final int   TEXT_LABEL_WIDTH_DP    = 36;
@@ -95,6 +95,7 @@ public class ChartView extends View implements SliderObserver{
     final float mTextSizeSmallPx;
     final float mTextSizeMediumPx;
     final float mTextSizeLargePx;
+    final float mDrawingAreaOffsetPx;
 
     private long[] mPosX;
     private long  mPos1 = -1;
@@ -146,6 +147,7 @@ public class ChartView extends View implements SliderObserver{
         mTextSizeSmallPx = MathUtils.dpToPixels(TEXT_SIZE_SMALL_DP, context);
         mTextSizeMediumPx = MathUtils.dpToPixels(TEXT_SIZE_MEDIUM_DP, context);
         mTextSizeLargePx = MathUtils.dpToPixels(TEXT_SIZE_LARGE_DP, context);
+        mDrawingAreaOffsetPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_X_DP, context);
 
         setUpPaints();
     }
@@ -183,7 +185,7 @@ public class ChartView extends View implements SliderObserver{
         mPos1 = pos1;
         mPos2 = pos2;
 
-        long distanceToScreenBorder = (long) Math.ceil (((mPos2 - mPos1) * DRAWING_AREA_OFFSET) / (1 - 2 * DRAWING_AREA_OFFSET));
+        long distanceToScreenBorder = (long) Math.ceil (((mPos2 - mPos1) * mDrawingAreaOffsetPx) / mDrawingAreaWidth);
 
         mPointsMinIndex = MathUtils.getIndexOfNearestLeftElement(mPosX, mPos1 - distanceToScreenBorder);
         mPointsMaxIndex = MathUtils.getIndexOfNearestRightElement(mPosX,  mPos2 + distanceToScreenBorder);
@@ -341,11 +343,11 @@ public class ChartView extends View implements SliderObserver{
         int viewWidth  = getWidth();
         int viewHeight = getHeight();
 
-        mDrawingAreaStartX = viewWidth * DRAWING_AREA_OFFSET;
-        mDrawingAreaEndX   = viewWidth * 0.95f;
+        mDrawingAreaStartX = mDrawingAreaOffsetPx;
+        mDrawingAreaEndX   = viewWidth - mDrawingAreaOffsetPx;
         mDrawingAreaWidth  = mDrawingAreaEndX - mDrawingAreaStartX;
 
-        mDrawingAreaStartY = viewHeight * DRAWING_AREA_OFFSET;
+        mDrawingAreaStartY = viewHeight * 0.05f;
         mDrawingAreaEndY   = viewHeight * 0.85f;
         mDrawingAreaHeight = mDrawingAreaEndY - mDrawingAreaStartY;
 
@@ -570,7 +572,12 @@ public class ChartView extends View implements SliderObserver{
 
         for (int i = mPointsMinIndex, j = 0; i <= mPointsMaxIndex; i++, j++) {
             if ((mPosX.length - 1 - i) % mXLabelsPeriodCurrent == 0) {
-                canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[j], mXLabelsYCoordinate, mBaseLabelPaint);
+                if (i == mPosX.length - 1) {
+                    canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[j]- MathUtils.dpToPixels(9, mContext), mXLabelsYCoordinate, mBaseLabelPaint);
+                }
+                else {
+                    canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[j], mXLabelsYCoordinate, mBaseLabelPaint);
+                }
             }
         }
 
@@ -588,13 +595,13 @@ public class ChartView extends View implements SliderObserver{
 
             for (int i = mPointsMinIndex, j = 0; i <= mPointsMaxIndex; i++, j++) {
                 if ((mPosX.length - 1 - i) % (mXLabelsPeriodCurrent / 2) == 0 && (mPosX.length - 1 - i) % mXLabelsPeriodCurrent != 0) {
-
-                    if (i == mPosX.length - 1)
-                        mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
-                    else if (i == 0)
-                        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
-                    else
-                        mBaseLabelPaint.setTextAlign(Paint.Align.CENTER);
+//
+//                    if (i == mPosX.length - 1)
+//                        mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
+//                    else if (i == 0)
+//                        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
+//                    else
+//                        mBaseLabelPaint.setTextAlign(Paint.Align.CENTER);
 
                     canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[j], mXLabelsYCoordinate, mBaseLabelPaint);
                 }
