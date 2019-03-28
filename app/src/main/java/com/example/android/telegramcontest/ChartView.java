@@ -127,6 +127,8 @@ public class ChartView extends View implements SliderObserver{
     private float mXCoordinateOfTouch;
     private int mPositionOfChosenPoint;
 
+    private boolean mSetLinesFirstTime = true;
+
     private HashMap<Integer, Float> mXLabelsPeriodToMinChartWidthPx = new HashMap<>();
     private int                     mXLabelsPeriodCurrent;
 
@@ -200,11 +202,17 @@ public class ChartView extends View implements SliderObserver{
     public void setLines (LineData[] lines) {
         boolean animate = false;
 
+
         for (ChartLine line : mLines) {
             line.AlphaEnd = Arrays.asList(lines).contains(line.Data) ? 255 : 0;
 
             if (line.AlphaEnd != line.Alpha)
                 animate = true;
+
+            if (mSetLinesFirstTime) {
+                line.Alpha = line.AlphaEnd;
+                animate = false;
+            }
         }
 
         if (animate)
@@ -213,6 +221,8 @@ public class ChartView extends View implements SliderObserver{
         UpdateMaxY();
 
         hidePointDetails();
+
+        mSetLinesFirstTime = false;
 
         invalidate();
     }
@@ -254,7 +264,7 @@ public class ChartView extends View implements SliderObserver{
     boolean ShowChartLines()
     {
         for (ChartLine line : mLines)
-            if (line.IsVisible())
+            if (line.IsVisible() || line.AlphaEnd > 0)
                 return true;
 
         return false;
@@ -325,7 +335,7 @@ public class ChartView extends View implements SliderObserver{
             return;
 
         for (ChartLine line : mLines) {
-            if (line.IsVisible()){
+            if (line.IsVisible() || line.AlphaEnd > 0){
                 line.mMappedPointsY = mapYPoints(line.Data.posY, 0, mMaxY);
                 //line.optimizedPointsX = new ArrayList<Float>();
                 //line.optimizedPointsY = new ArrayList<Float>();

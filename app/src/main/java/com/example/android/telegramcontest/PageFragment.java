@@ -23,12 +23,14 @@ import java.util.ArrayList;
 public class PageFragment extends Fragment {
 
     public static final String INDEX = "index";
+    public static final String CHECKBOXES_KEY = "checkboxes";
 
     private ChartData mChartData;
     private ScrollChartView mScrollChartView;
     private ChartView mChartView;
     private ArrayList<LineData> mLines = new ArrayList<>();
     private ArrayList<CheckBox> mCheckboxes = new ArrayList<>();
+    private boolean[] mCheckboxesState = null;
 
     private static int mBackgroundColor;
     private static int mLabelColor;
@@ -50,9 +52,14 @@ public class PageFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mChartData = ChartsManager.getCharts(getContext()).get(getArguments().getInt(INDEX));
+
         mLines.clear();
         for (int i = 0; i < mChartData.lines.length; i++) {
             mLines.add(mChartData.lines[i]);
+        }
+
+        if (savedInstanceState != null) {
+            mCheckboxesState = savedInstanceState.getBooleanArray(CHECKBOXES_KEY);
         }
     }
 
@@ -64,7 +71,6 @@ public class PageFragment extends Fragment {
 
         mScrollChartView = view.findViewById(R.id.scrollchartview2);
         mScrollChartView.init(mChartData);
-
         mChartView = view.findViewById(R.id.chartview2);
         mChartView.init(mChartData, mScrollChartView);
 
@@ -73,15 +79,21 @@ public class PageFragment extends Fragment {
         for (int i = 0; i < mChartData.lines.length; i++) {
             LinearLayout row = new LinearLayout(getContext());
             row.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            createCheckbox(mChartData.lines[i], row);
+            if (mCheckboxesState == null) {
+                createCheckbox(mChartData.lines[i], row, true);
+            }
+            else {
+                createCheckbox(mChartData.lines[i], row, mCheckboxesState[i]);
+            }
             linearLayout.addView(row);
         }
+
         setLines();
         return view;
     }
 
     @SuppressLint("RestrictedApi")
-    private void createCheckbox(final LineData line, LinearLayout row) {
+    private void createCheckbox(final LineData line, LinearLayout row, boolean isChecked) {
         final AppCompatCheckBox checkBox = new AppCompatCheckBox(getContext());
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.rightMargin = (int) MathUtils.dpToPixels(8, getContext());
@@ -101,7 +113,7 @@ public class PageFragment extends Fragment {
                         checkedColor
                 });
         checkBox.setSupportButtonTintList(colorStateList);
-        checkBox.setChecked(true);
+        checkBox.setChecked(isChecked);
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,5 +134,15 @@ public class PageFragment extends Fragment {
         LineData[] linesArray = lines.toArray(new LineData[lines.size()]);
         mChartView.setLines(linesArray);
         mScrollChartView.setLines(linesArray);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        boolean[] checkboxesState = new boolean[ mCheckboxes.size()];
+        for (int i = 0; i < mCheckboxes.size(); i++) {
+            checkboxesState[i] = mCheckboxes.get(i).isChecked();
+        }
+        outState.putBooleanArray(CHECKBOXES_KEY, checkboxesState);
     }
 }
