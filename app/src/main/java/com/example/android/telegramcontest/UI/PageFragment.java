@@ -1,7 +1,6 @@
-package com.example.android.telegramcontest;
+package com.example.android.telegramcontest.UI;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
@@ -9,13 +8,18 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatCheckBox;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
+import com.example.android.telegramcontest.ChartData;
+import com.example.android.telegramcontest.ChartView;
+import com.example.android.telegramcontest.ChartsManager;
+import com.example.android.telegramcontest.LineData;
+import com.example.android.telegramcontest.R;
+import com.example.android.telegramcontest.ScrollChartView;
 import com.example.android.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
@@ -57,10 +61,6 @@ public class PageFragment extends Fragment {
         for (int i = 0; i < mChartData.lines.length; i++) {
             mLines.add(mChartData.lines[i]);
         }
-
-        if (savedInstanceState != null) {
-            mCheckboxesState = savedInstanceState.getBooleanArray(CHECKBOXES_KEY);
-        }
     }
 
     @Nullable
@@ -74,12 +74,17 @@ public class PageFragment extends Fragment {
         mChartView = view.findViewById(R.id.chartview2);
         mChartView.init(mChartData, mScrollChartView);
 
+        mCheckboxesState = null;
+        if (savedInstanceState != null) {
+            mCheckboxesState = savedInstanceState.getBooleanArray(CHECKBOXES_KEY);
+        }
+
         mCheckboxes.clear();
         LinearLayout linearLayout = (LinearLayout) view.findViewById(R.id.checkboxes_layout);
         for (int i = 0; i < mChartData.lines.length; i++) {
             LinearLayout row = new LinearLayout(getContext());
             row.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            if (mCheckboxesState == null) {
+            if (mCheckboxesState == null || mCheckboxesState.length == 0) {
                 createCheckbox(mChartData.lines[i], row, true);
             }
             else {

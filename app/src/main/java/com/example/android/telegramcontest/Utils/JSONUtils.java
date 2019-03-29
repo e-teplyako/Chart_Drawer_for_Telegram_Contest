@@ -15,6 +15,10 @@ import java.util.ArrayList;
 public class JSONUtils {
 
     public static ArrayList<ChartData> parseJSON (String jsonString) {
+        if (jsonString.equals("") || jsonString == null) {
+            return null;
+        }
+
         ArrayList<ChartData> charts = new ArrayList<>();
         try {
             JSONArray jsonRootArray = new JSONArray(jsonString);

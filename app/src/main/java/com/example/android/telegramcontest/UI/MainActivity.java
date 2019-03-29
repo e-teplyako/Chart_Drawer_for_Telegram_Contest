@@ -1,4 +1,4 @@
-package com.example.android.telegramcontest;
+package com.example.android.telegramcontest.UI;
 
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -13,6 +13,10 @@ import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+
+import com.example.android.telegramcontest.ChartData;
+import com.example.android.telegramcontest.ChartsManager;
+import com.example.android.telegramcontest.R;
 
 import java.util.ArrayList;
 
@@ -38,11 +42,10 @@ public class MainActivity extends AppCompatActivity {
 
         mChartData = ChartsManager.getCharts(this);
 
-        mAdapter = new ChartFragmentPagerAdapter(getSupportFragmentManager(), this); //TabsPagerAdapter = whatever you named the PagerAdapter
+        mAdapter = new ChartFragmentPagerAdapter(getSupportFragmentManager(), this);
         addFragments();
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
-        mViewPager.setAdapter(mAdapter); //viewpager = ViewPager view instance
-       // strip.setViewPager(viewpager); //strip = PagerSlidingTabStrip view instance
+        mViewPager.setAdapter(mAdapter);
         mTabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
         mTabLayout.setupWithViewPager(mViewPager);
 

@@ -5,6 +5,8 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -17,16 +19,17 @@ import com.example.android.telegramcontest.Interfaces.SliderObserver;
 import com.example.android.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 public class ScrollChartView extends View implements SliderObservable{
 
     public final static float MINIMAL_NORM_SLIDER_WIDTH = 0.2f;
 
+    private final static int SLIDER_WIDTH_DP = 6;
+
     private final float mOptimizeTolerancePx;
 
-    ArrayList<SliderObserver> mObservers;
+    private ArrayList<SliderObserver> mObservers;
 
     private Context mContext;
     private Resources.Theme mTheme;
@@ -38,13 +41,15 @@ public class ScrollChartView extends View implements SliderObservable{
 
     private float mSliderPositionLeft;
     private float mSliderPositionRight;
+    private float mNormSliderPosLeft = -1;
+    private float mNormSliderPosRight = -1;
 
     private RectF mBackGroundLeft;
     private RectF mBackgroundRight;
     private RectF mSliderLeft;
     private RectF mSliderRight;
     private RectF mChosenArea;
-    private float mSliderWidth;
+    private final float mSliderWidthPx;
 
     private boolean mLeftSliderIsCaught = false;
     private boolean mRightSliderIsCaught = false;
@@ -81,6 +86,8 @@ public class ScrollChartView extends View implements SliderObservable{
         mSliderRight = new RectF();
         mChosenArea = new RectF();
 
+        mSliderWidthPx = MathUtils.dpToPixels(SLIDER_WIDTH_DP, context);
+
         mOptimizeTolerancePx = MathUtils.dpToPixels(4, context);
     }
 
@@ -97,10 +104,10 @@ public class ScrollChartView extends View implements SliderObservable{
             mDefaultYMin = MathUtils.getMinY(lines);
         }
 
-        CalculatePoints();
+        calculatePoints();
     }
 
-    void CalculatePoints() {
+    private void calculatePoints() {
         if (mLines == null || mLines.length == 0 || !mSizesChanged)
             return;
 
@@ -127,15 +134,20 @@ public class ScrollChartView extends View implements SliderObservable{
         mViewWidth = getWidth();
         mViewHeight = getHeight();
 
-        mSliderWidth = mViewWidth * 0.02f;
         mChosenAreaMinimalWidth = mViewWidth * MINIMAL_NORM_SLIDER_WIDTH;
 
-        float defaultSliderPosLeft = mViewWidth * (1 - MINIMAL_NORM_SLIDER_WIDTH);
-        float defaultSliderPosRight = mViewWidth;
-        setSliderPositions(defaultSliderPosLeft, defaultSliderPosRight);
+        if (mNormSliderPosLeft == -1 || mNormSliderPosRight == -1) {
+            float defaultSliderPosLeft = mViewWidth * (1 - MINIMAL_NORM_SLIDER_WIDTH);
+            float defaultSliderPosRight = mViewWidth;
+            setSliderPositions(defaultSliderPosLeft, defaultSliderPosRight);
+        }
+        else {
+            float pos1 = mNormSliderPosLeft * mViewWidth;
+            float pos2 = mNormSliderPosRight * mViewWidth;
+            setSliderPositions(pos1, pos2);
+        }
 
-        calculateRects();
-        CalculatePoints();
+        calculatePoints();
     }
 
     @Override
@@ -190,15 +202,15 @@ public class ScrollChartView extends View implements SliderObservable{
         mBackgroundRight.set(left, top, right, bottom);
 
         left = mSliderPositionLeft;
-        right = left + mSliderWidth;
+        right = left + mSliderWidthPx;
         mSliderLeft.set(left, top, right, bottom);
 
-        left = mSliderPositionRight - mSliderWidth;
+        left = mSliderPositionRight - mSliderWidthPx;
         right = mSliderPositionRight;
         mSliderRight.set(left, top, right, bottom);
 
-        left = mSliderPositionLeft + mSliderWidth;
-        right = mSliderPositionRight - mSliderWidth;
+        left = mSliderPositionLeft + mSliderWidthPx;
+        right = mSliderPositionRight - mSliderWidthPx;
         mChosenArea.set(left, top, right, bottom);
     }
 
@@ -249,8 +261,9 @@ public class ScrollChartView extends View implements SliderObservable{
     }
 
     private void setSliderPositions (float pos1, float pos2) {
-        if (mSliderPositionLeft != pos1 || mSliderPositionRight != pos2)
+        if (mSliderPositionLeft != pos1 || mSliderPositionRight != pos2) {
             invalidate();
+        }
 
         mSliderPositionLeft = pos1;
         mSliderPositionRight = pos2;
@@ -258,7 +271,11 @@ public class ScrollChartView extends View implements SliderObservable{
 
         calculateRects();
 
-        notifyObservers();
+        if (mSizesChanged) {
+            mNormSliderPosLeft = mSliderPositionLeft / mViewWidth;
+            mNormSliderPosRight = mSliderPositionRight / mViewWidth;
+            notifyObservers();
+        }
     }
 
     @Override
@@ -270,10 +287,10 @@ public class ScrollChartView extends View implements SliderObservable{
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 this.getParent().requestDisallowInterceptTouchEvent(true);
-                if ((x >= mSliderPositionLeft - 3f * mSliderWidth) && (x <= mSliderPositionLeft + mCurrChosenAreaWidth * 0.1f)) {
+                if ((x >= mSliderPositionLeft - 3f * mSliderWidthPx) && (x <= mSliderPositionLeft + mCurrChosenAreaWidth * 0.1f)) {
                     mLeftSliderIsCaught = true;
                 }
-                else if ((x >= mSliderPositionRight - mCurrChosenAreaWidth * 0.1f) &&(x <= mSliderPositionRight + 3f * mSliderWidth)) {
+                else if ((x >= mSliderPositionRight - mCurrChosenAreaWidth * 0.1f) &&(x <= mSliderPositionRight + 3f * mSliderWidthPx)) {
                     mRightSliderIsCaught = true;
                 }
                 else if (mChosenArea.contains(x, y)) {
@@ -332,5 +349,58 @@ public class ScrollChartView extends View implements SliderObservable{
             SliderObserver observer = mObservers.get(i);
             observer.setBorders(normPos1, normPos2);
         }
+    }
+
+    @Nullable
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable outState = super.onSaveInstanceState();
+        SavedState ss = new SavedState(outState);
+        if (mSizesChanged) {
+            ss.normPos1 = mNormSliderPosLeft;
+            ss.normPos2 = mNormSliderPosRight;
+        }
+        return ss;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+        mNormSliderPosLeft = ss.normPos1;
+        mNormSliderPosRight = ss.normPos2;
+    }
+
+    private static class SavedState extends BaseSavedState {
+        float normPos1;
+        float normPos2;
+
+        private SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        private SavedState(Parcel in) {
+            super(in);
+            normPos1 = in.readFloat();
+            normPos2 = in.readFloat();
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeFloat(normPos1);
+            out.writeFloat(normPos2);
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR
+                = new Parcelable.Creator<SavedState>() {
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
     }
 }

@@ -22,7 +22,7 @@ public class FileIOUtils {
             InputStream inputStream = assetManager.open(FILE_NAME);
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder sb = new StringBuilder();
-            String data = null;
+            String data;
             while ((data = reader.readLine()) != null) {
                 sb.append(data);
             }
