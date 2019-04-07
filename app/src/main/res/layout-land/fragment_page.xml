@@ -13,12 +13,12 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <com.example.android.telegramcontest.ChartView
+        <com.teplyakova.april.telegramcontest.ChartView
             android:id="@+id/chartview2"
             android:layout_width="match_parent"
             android:layout_height="150dp"/>
 
-        <com.example.android.telegramcontest.ScrollChartView
+        <com.teplyakova.april.telegramcontest.ScrollChartView
             android:id="@+id/scrollchartview2"
             android:layout_width="match_parent"
             android:layout_height="35dp"
