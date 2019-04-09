@@ -182,17 +182,10 @@ public class MathUtils {
     }
 
     public static float[] concatArraysForDrawing(float[] array1, float[] array2) {
-        if (array1.length < 2 || array2.length < 2 || array1 == null || array2 == null)
+        if ( array1 == null || array2 == null || array1.length < 2 || array2.length < 2)
             return null;
         if (array1.length != array2.length)
             return null;
-        Log.e("Concat Arrays: ",  " " + '\n');
-        for (int i = 0; i < array1.length; i++) {
-            Log.e ("Array1 point ", String.valueOf(i) + ": " + String.valueOf(array1[i]));
-        }
-        for (int i = 0; i < array2.length; i++) {
-            Log.e ("Array2 point ", String.valueOf(i) + ": " + String.valueOf(array2[i]));
-        }
         int length = array1.length;
         float[] result = new float[4 * length - 4];
         result[0] = array1[0];

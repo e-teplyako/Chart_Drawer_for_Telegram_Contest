@@ -17,6 +17,9 @@ import android.widget.LinearLayout;
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartView;
 import com.teplyakova.april.telegramcontest.ChartsManager;
+import com.teplyakova.april.telegramcontest.Drawing.LineChart2YAxisDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.StandardLineChartDrawer;
+import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.ScrollChartView;
@@ -35,6 +38,7 @@ public class PageFragment extends Fragment {
     private ArrayList<LineData> mLines = new ArrayList<>();
     private ArrayList<CheckBox> mCheckboxes = new ArrayList<>();
     private boolean[] mCheckboxesState = null;
+    private ChartDrawer mChartDrawer;
 
     private static int mBackgroundColor;
     private static int mLabelColor;
@@ -54,8 +58,13 @@ public class PageFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mChartData = ChartsManager.getCharts(getContext()).get(getArguments().getInt(INDEX));
+        //DELETE THIS TEST
+        if (getArguments().getInt(INDEX) == 4) {
+            mChartData = ChartsManager.getCharts(getContext()).get(3);
+        }
+        else{
+            mChartData = ChartsManager.getCharts(getContext()).get(getArguments().getInt(INDEX));
+        }
 
         mLines.clear();
         for (int i = 0; i < mChartData.lines.length; i++) {
@@ -69,10 +78,12 @@ public class PageFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_page, container, false);
         view.setBackgroundColor(mBackgroundColor);
 
-        mScrollChartView = view.findViewById(R.id.scrollchartview2);
+        mScrollChartView = view.findViewById(R.id.scrollchartview);
         mScrollChartView.init(mChartData);
-        mChartView = view.findViewById(R.id.chartview2);
-        mChartView.init(mChartData, mScrollChartView);
+        mChartView = view.findViewById(R.id.chartview);
+        mChartDrawer = new LineChart2YAxisDrawer(getContext(), mChartData, mScrollChartView);
+        mChartView.init(mChartDrawer, mScrollChartView);
+
 
         mCheckboxesState = null;
         if (savedInstanceState != null) {

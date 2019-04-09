@@ -135,7 +135,7 @@ public class ScrollChartView extends View implements SliderObservable{
         mViewHeight = getHeight();
 
         mChosenAreaMinimalWidth = mViewWidth * MINIMAL_NORM_SLIDER_WIDTH;
-        
+
         if (mNormSliderPosLeft <=0 && mNormSliderPosRight <= 0) {
             mNormSliderPosLeft = 0.8f;
             mNormSliderPosRight = 1;
@@ -271,9 +271,6 @@ public class ScrollChartView extends View implements SliderObservable{
             mNormSliderPosRight = mSliderPositionRight / mViewWidth;
             notifyObservers();
         }
-
-        Log.e("Slider positions: ", "left - " + String.valueOf(mSliderPositionLeft) + " right: " +String.valueOf(mSliderPositionRight));
-        Log.e("Norm positions: ", "left - " + String.valueOf(mNormSliderPosLeft) + " right - " + String.valueOf(mNormSliderPosRight));
     }
 
     @Override
