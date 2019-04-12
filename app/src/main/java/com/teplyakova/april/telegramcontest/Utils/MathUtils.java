@@ -86,6 +86,22 @@ public class MathUtils {
         return max;
     }
 
+    public static long getMaxYForStackedChart(LineData[] lines, int minIndex, int maxIndex) {
+        if (lines == null || lines.length == 0)
+            return -1;
+        int oneArrayLength = maxIndex - minIndex + 1;
+        long[] wholeArray = new long[oneArrayLength];
+        int m = 0;
+        for (int i = minIndex; i <= maxIndex; i++) {
+            for (int j = 0; j < lines.length; j++) {
+                wholeArray[m] = wholeArray[m] + lines[j].posY[i];
+            }
+            m++;
+        }
+        long max = getMax(wholeArray);
+        return max;
+    }
+
     public static long getMax (long[] array, int minIndex, int maxIndex) {
         long max = array[minIndex];
 
@@ -95,6 +111,24 @@ public class MathUtils {
             }
         }
         return max;
+    }
+
+    public static boolean equals(LineData[] array1, LineData[] array2) {
+        if (array1.length != array2.length)
+            return false;
+        for (int i = 0; i < array1.length; i++) {
+            String id = array1[i].id;
+            boolean contains = false;
+            for (int j = 0; j < array2.length; j++) {
+                if (array2[j].id == id) {
+                    contains = true;
+                    break;
+                }
+            }
+            if (contains == false)
+                return false;
+        }
+        return true;
     }
 
     public static float getEaseIn (float _t) {
@@ -265,6 +299,9 @@ public class MathUtils {
         }
     }
 
+    public static long nearestSixDivider(long num) {
+        return (num % 6 == 0) ? num + 6 : (num + 6 - (num % 6));
+    }
 
     static float getSqDist(float p1X, float p1Y, float p2X, float p2Y) {
         float dx = p1X - p2X;

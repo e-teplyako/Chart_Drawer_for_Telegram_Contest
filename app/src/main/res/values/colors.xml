@@ -22,4 +22,6 @@
     <color name="sliderColorNight">#66BDBDBD</color>
     <color name="baseLabelColorDay">#9B9B9B</color>
     <color name="baseLabelColorNight">#9E9E9E</color>
+    <color name="opaqueBackgroundDay">#88FFFFFF</color>
+    <color name="opaqueBackgroundNight">#88242F3E</color>
 </resources>

@@ -9,5 +9,6 @@
         <attr name="plateBackgroundColor" format="reference"/>
         <attr name="sliderColor" format="reference"/>
         <attr name="baseLabelColor" format="reference"/>
+        <attr name="opaqueBackground" format="reference"/>
     </declare-styleable>
 </resources>

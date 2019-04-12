@@ -24,4 +24,10 @@ public class DateTimeUtils {
         return dateFormat.format(date);
     }
 
+    public static String formatDateEEEdMMMYYYY(long timestamp) {
+        Date date = fromTimestamp(timestamp);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy", Locale.getDefault());
+        return dateFormat.format(date);
+    }
+
 }

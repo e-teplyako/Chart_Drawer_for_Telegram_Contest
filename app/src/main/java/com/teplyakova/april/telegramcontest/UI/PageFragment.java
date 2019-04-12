@@ -17,8 +17,7 @@ import android.widget.LinearLayout;
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartView;
 import com.teplyakova.april.telegramcontest.ChartsManager;
-import com.teplyakova.april.telegramcontest.Drawing.LineChart2YAxisDrawer;
-import com.teplyakova.april.telegramcontest.Drawing.StandardLineChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.R;
@@ -59,12 +58,12 @@ public class PageFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //DELETE THIS TEST
-        if (getArguments().getInt(INDEX) == 4) {
+        /*if (getArguments().getInt(INDEX) == 4) {
             mChartData = ChartsManager.getCharts(getContext()).get(3);
         }
-        else{
+        else{*/
             mChartData = ChartsManager.getCharts(getContext()).get(getArguments().getInt(INDEX));
-        }
+        //}
 
         mLines.clear();
         for (int i = 0; i < mChartData.lines.length; i++) {
@@ -81,9 +80,8 @@ public class PageFragment extends Fragment {
         mScrollChartView = view.findViewById(R.id.scrollchartview);
         mScrollChartView.init(mChartData);
         mChartView = view.findViewById(R.id.chartview);
-        mChartDrawer = new LineChart2YAxisDrawer(getContext(), mChartData, mScrollChartView);
+        mChartDrawer = new BarChartDrawer(getContext(), mChartData);
         mChartView.init(mChartDrawer, mScrollChartView);
-
 
         mCheckboxesState = null;
         if (savedInstanceState != null) {

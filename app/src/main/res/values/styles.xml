@@ -19,6 +19,7 @@
         <item name="sliderColor">@color/sliderColorDay</item>
         <item name="baseLabelColor">@color/baseLabelColorDay</item>
         <item name="primaryBackgroundColor">@color/primaryBackgroundColorDay</item>
+        <item name="opaqueBackground">@color/opaqueBackgroundDay</item>
     </style>
 
     <style name="NightMode" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -32,6 +33,7 @@
         <item name="sliderColor">@color/sliderColorNight</item>
         <item name="baseLabelColor">@color/baseLabelColorNight</item>
         <item name="primaryBackgroundColor">@color/primaryBackgroundColorNight</item>
+        <item name="opaqueBackground">@color/opaqueBackgroundNight</item>
     </style>
 
 
