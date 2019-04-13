@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartView;
 import com.teplyakova.april.telegramcontest.ChartsManager;
+import com.teplyakova.april.telegramcontest.DrawerFactory;
 import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.StackedAreaChartDrawer;
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
@@ -58,13 +59,7 @@ public class PageFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //DELETE THIS TEST
-        /*if (getArguments().getInt(INDEX) == 4) {
-            mChartData = ChartsManager.getCharts(getContext()).get(3);
-        }
-        else{*/
-            mChartData = ChartsManager.getCharts(getContext()).get(getArguments().getInt(INDEX));
-        //}
+        mChartData = ChartsManager.getCharts(getContext()).get(getArguments().getInt(INDEX));
 
         mLines.clear();
         for (int i = 0; i < mChartData.lines.length; i++) {
@@ -81,7 +76,7 @@ public class PageFragment extends Fragment {
         mScrollChartView = view.findViewById(R.id.scrollchartview);
         mScrollChartView.init(mChartData);
         mChartView = view.findViewById(R.id.chartview);
-        mChartDrawer = new StackedAreaChartDrawer(getContext(), mChartData);
+        mChartDrawer = DrawerFactory.getChartDrawer(getContext(), mChartData);
         mChartView.init(mChartDrawer, mScrollChartView);
 
         mCheckboxesState = null;

@@ -57,7 +57,34 @@ public class JSONUtils {
                 }
 
                 chartData.lines = lines.toArray(new LineData[lines.size()]);
-        }
+
+                JSONObject jsonTypes = jsonRootObject.optJSONObject("types");
+                String type = jsonTypes.optString(lines.get(0).id);
+                switch (type){
+                    case "line":
+                        if (jsonRootObject.optBoolean("y_scaled")) {
+                            chartData.type = "LineChart2OrdAxis";
+                        }
+                        else {
+                            chartData.type = "LineChartStandard";
+                        }
+                        break;
+                    case "bar":
+                        if (jsonRootObject.optBoolean("stacked")) {
+                            chartData.type = "StackedBarChart";
+                        }
+                        else {
+                            chartData.type = "BarChart";
+                        }
+                        break;
+                    case "area":
+                        chartData.type = "StackedAreaChart";
+                        break;
+                    default:
+                        chartData.type = "LineChartStandard";
+                }
+
+            }
         catch (JSONException e) {
             e.printStackTrace();
         }

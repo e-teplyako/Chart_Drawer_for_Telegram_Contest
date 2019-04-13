@@ -429,6 +429,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mChartPaint = new Paint();
         mChartPaint.setStyle(Paint.Style.STROKE);
         mChartPaint.setStrokeWidth(6);
+        mChartPaint.setAntiAlias(true);
 
         mDividerPaint = new Paint();
         TypedValue dividerColor = new TypedValue();
