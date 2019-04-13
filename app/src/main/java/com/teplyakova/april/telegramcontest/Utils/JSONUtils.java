@@ -14,21 +14,17 @@ import java.util.ArrayList;
 
 public class JSONUtils {
 
-    public static ArrayList<ChartData> parseJSON (String jsonString) {
+    public static ChartData parseJSON (String jsonString) {
         if (jsonString.equals("") || jsonString == null) {
             return null;
         }
 
-        ArrayList<ChartData> charts = new ArrayList<>();
+       ChartData chartData = new ChartData();
         try {
-            JSONArray jsonRootArray = new JSONArray(jsonString);
-            for (int i = 0; i < jsonRootArray.length(); i++) {
-                JSONObject jsonChart = jsonRootArray.optJSONObject(i);
+            JSONObject jsonRootObject = new JSONObject(jsonString);
 
-                ChartData chartData = new ChartData();
                 ArrayList<LineData> lines = new ArrayList<>();
-
-                JSONArray columns = jsonChart.optJSONArray("columns");
+                JSONArray columns = jsonRootObject.optJSONArray("columns");
                 if (columns == null)
                     return null;
 
@@ -53,20 +49,18 @@ public class JSONUtils {
                     }
                 }
 
-                JSONObject jsonNames = jsonChart.optJSONObject("names");
-                JSONObject jsonColors = jsonChart.getJSONObject("colors");
+                JSONObject jsonNames = jsonRootObject.optJSONObject("names");
+                JSONObject jsonColors = jsonRootObject.getJSONObject("colors");
                 for (LineData line : lines) {
                     line.name = jsonNames.optString(line.id);
                     line.color = Color.parseColor(jsonColors.optString(line.id));
                 }
 
                 chartData.lines = lines.toArray(new LineData[lines.size()]);
-                charts.add(chartData);
-            }
         }
         catch (JSONException e) {
             e.printStackTrace();
         }
-        return charts;
+        return chartData;
     }
 }

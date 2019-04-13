@@ -14,8 +14,11 @@ public class ChartsManager {
     public static ArrayList<ChartData> getCharts(Context context){
         if (mCharts == null)
         {
-            String data = FileIOUtils.readFileToString(context);
-            mCharts = JSONUtils.parseJSON(data);
+            mCharts = new ArrayList<>();
+            for (String fileName : FileIOUtils.FILE_NAMES) {
+                String data = FileIOUtils.readFileToString(context, fileName);
+                mCharts.add(JSONUtils.parseJSON(data));
+            }
         }
 
         return mCharts;

@@ -14,12 +14,12 @@ import java.io.InputStreamReader;
 
 public class FileIOUtils {
 
-    private static final String FILE_NAME = "chart_data.json";
+    public static final String[] FILE_NAMES = {"chart_data_1.json", "chart_data_2.json", "chart_data_3.json", "chart_data_4.json", "chart_data_5.json"};
 
-    public static String readFileToString(Context context) {
+    public static String readFileToString(Context context, String fileName) {
         AssetManager assetManager = context.getAssets();
         try {
-            InputStream inputStream = assetManager.open(FILE_NAME);
+            InputStream inputStream = assetManager.open(fileName);
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder sb = new StringBuilder();
             String data;

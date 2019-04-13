@@ -18,6 +18,7 @@ import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartView;
 import com.teplyakova.april.telegramcontest.ChartsManager;
 import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.StackedAreaChartDrawer;
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.R;
@@ -80,7 +81,7 @@ public class PageFragment extends Fragment {
         mScrollChartView = view.findViewById(R.id.scrollchartview);
         mScrollChartView.init(mChartData);
         mChartView = view.findViewById(R.id.chartview);
-        mChartDrawer = new BarChartDrawer(getContext(), mChartData);
+        mChartDrawer = new StackedAreaChartDrawer(getContext(), mChartData);
         mChartView.init(mChartDrawer, mScrollChartView);
 
         mCheckboxesState = null;

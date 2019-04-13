@@ -299,8 +299,14 @@ public class MathUtils {
         }
     }
 
-    public static long nearestSixDivider(long num) {
-        return (num % 6 == 0) ? num + 6 : (num + 6 - (num % 6));
+    public static int getMaxIndex(float[] array) {
+        int max = 0;
+
+        for (int i = 0; i < array.length; i++)
+            if (array[i] > array[max]) {
+                max = i;
+            }
+        return max;
     }
 
     static float getSqDist(float p1X, float p1Y, float p2X, float p2Y) {
