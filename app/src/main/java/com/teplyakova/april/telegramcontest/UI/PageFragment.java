@@ -18,8 +18,8 @@ import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartView;
 import com.teplyakova.april.telegramcontest.ChartsManager;
 import com.teplyakova.april.telegramcontest.DrawerFactory;
-import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
-import com.teplyakova.april.telegramcontest.Drawing.StackedAreaChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.LineChart2YAxisDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.StandardLineChartDrawer;
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.R;
@@ -34,7 +34,6 @@ public class PageFragment extends Fragment {
     public static final String CHECKBOXES_KEY = "checkboxes";
 
     private ChartData mChartData;
-    private ScrollChartView mScrollChartView;
     private ChartView mChartView;
     private ArrayList<LineData> mLines = new ArrayList<>();
     private ArrayList<CheckBox> mCheckboxes = new ArrayList<>();
@@ -73,11 +72,9 @@ public class PageFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_page, container, false);
         view.setBackgroundColor(mBackgroundColor);
 
-        mScrollChartView = view.findViewById(R.id.scrollchartview);
-        mScrollChartView.init(mChartData);
         mChartView = view.findViewById(R.id.chartview);
         mChartDrawer = DrawerFactory.getChartDrawer(getContext(), mChartData);
-        mChartView.init(mChartDrawer, mScrollChartView);
+        mChartView.init(mChartDrawer);
 
         mCheckboxesState = null;
         if (savedInstanceState != null) {
@@ -143,7 +140,6 @@ public class PageFragment extends Fragment {
         }
         LineData[] linesArray = lines.toArray(new LineData[lines.size()]);
         mChartView.setLines(linesArray);
-        mScrollChartView.setLines(linesArray);
     }
 
     @Override

@@ -29,7 +29,7 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
                 return;
 
             long newYMax = MathUtils.getMaxY(activeLines, mPointsMinIndex, mPointsMaxIndex);
-            newYMax = newYMax / Y_DIVIDERS_COUNT * (Y_DIVIDERS_COUNT + 1);
+            newYMax = (newYMax / Y_DIVIDERS_COUNT + 1) * Y_DIVIDERS_COUNT;
 
             if (newYMax != mTargetMaxY)
             {
@@ -51,7 +51,7 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
                 }
             }
 
-            mapPoints();
+            mapYPointsForChartView();
         }
     }
 
@@ -71,11 +71,12 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
 
     public void draw(Canvas canvas) {
         if (mBordersSet)
-            drawScaleX(mMappedPointsX, canvas);
+            drawScaleX(mChartMappedPointsX, canvas);
 
         if (!showChartLines() || !mBordersSet)
         {
             drawScaleY(100, 100, 255, canvas);
+            drawRects(canvas);
             return;
         }
 
@@ -86,14 +87,25 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         }
 
         if (mPointIsChosen) {
-            mPositionOfChosenPoint = mapCoordinateToPoint(mMappedPointsX, mXCoordinateOfTouch);
-            drawVerticalDivider(mMappedPointsX, canvas);
+            mPositionOfChosenPoint = mapCoordinateToPoint(mChartMappedPointsX, mXCoordinateOfTouch);
+            drawVerticalDivider(mChartMappedPointsX, canvas);
         }
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
-            if (line.IsVisible())
-                drawChartLine(line, canvas);
+            if (line.IsVisible()) {
+                mChartPaint.setStrokeWidth(6);
+                drawChartLine(line, canvas, mChartMappedPointsX, line.mChartMappedPointsY);
+                mChartPaint.setStrokeWidth(4);
+                drawChartLine(line, canvas, line.mScrollOptimizedPointsX, line.mScrollOptimizedPointsY);
+            }
         }
+
+        if (mPointIsChosen)
+            for (BaseLineChartDrawer.ChartLine line : mLines) {
+                if (line.IsVisible())
+                    drawChosenPointCircle(mChartMappedPointsX, line.mChartMappedPointsY, line.Data.color, canvas);
+            }
+
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
             if (line.IsVisible()) {
@@ -104,24 +116,26 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         }
 
         if (mPointIsChosen) {
-            drawChosenPointPlate(mMappedPointsX, canvas);
+            drawChosenPointPlate(mChartMappedPointsX, canvas);
         }
+
+        drawRects(canvas);
     }
 
     private void drawYLabels (long height, long yMax, int alpha, boolean left, Canvas canvas) {
         float xCoord;
         if (left) {
             mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
-            xCoord = mDrawingAreaStartX;
+            xCoord = mChartDrawingAreaStartX;
         }
         else {
             mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
-            xCoord = mDrawingAreaEndX;
+            xCoord = mChartDrawingAreaEndX;
         }
-        float spaceBetweenDividers = (float)yMax / height * mDrawingAreaHeight / Y_DIVIDERS_COUNT;
+        float spaceBetweenDividers = (float)yMax / height * mChartDrawingAreaHeight / Y_DIVIDERS_COUNT;
 
         long step = 0;
-        float yLabelCoord = mDrawingAreaEndY * 0.99f;
+        float yLabelCoord = mChartDrawingAreaEndY * 0.99f;
 
         mBaseLabelPaint.setAlpha(alpha);
         mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);

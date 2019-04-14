@@ -3,35 +3,41 @@ package com.teplyakova.april.telegramcontest;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
-import com.teplyakova.april.telegramcontest.Interfaces.SliderObservable;
-import com.teplyakova.april.telegramcontest.Interfaces.SliderObserver;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
-public class ChartView extends View implements SliderObserver, ValueAnimator.AnimatorUpdateListener {
+public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener{
 
     private final int   DRAWING_AREA_OFFSET_X_DP = 8;
     private final int   DRAWING_AREA_OFFSET_Y_DP = 16;
+    private final int   SCROLL_DRAWING_AREA_HEIGHT_DP = 50;
+
     private final float mDrawingAreaOffsetXPx;
     private final float mDrawingAreaOffsetYPx;
+    private final float mScrollDrawingAreaHeightPx;
 
     private ChartDrawer mDrawer;
+
+    private float mNormSliderPosLeft = 0.8f;
+    private float mNormSliderPosRight = 1;
 
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         mDrawingAreaOffsetXPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_X_DP, context);
         mDrawingAreaOffsetYPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_Y_DP, context);
+        mScrollDrawingAreaHeightPx = MathUtils.dpToPixels(SCROLL_DRAWING_AREA_HEIGHT_DP, context);
     }
 
-    public void init(ChartDrawer drawer, SliderObservable observable) {
+    public void init(ChartDrawer drawer) {
         mDrawer = drawer;
-        observable.registerObserver(this);
         mDrawer.setAnimatorUpdateListener(this);
     }
 
@@ -41,12 +47,19 @@ public class ChartView extends View implements SliderObserver, ValueAnimator.Ani
 
         int viewWidth  = getWidth();
         int viewHeight = getHeight();
-        float drawingAreaStartX = mDrawingAreaOffsetXPx;
-        float drawingAreaEndX   = viewWidth - mDrawingAreaOffsetXPx;
-        float drawingAreaStartY = mDrawingAreaOffsetYPx;
-        float drawingAreaEndY   = viewHeight - mDrawingAreaOffsetYPx;
 
-        mDrawer.setViewDimens(viewWidth, viewHeight, drawingAreaStartX, drawingAreaEndX, drawingAreaStartY, drawingAreaEndY);
+        float chartDrawingAreaStartX = mDrawingAreaOffsetXPx;
+        float chartDrawingAreaEndX   = viewWidth - mDrawingAreaOffsetXPx;
+        float chartDrawingAreaStartY = mDrawingAreaOffsetYPx;
+        float chartDrawingAreaEndY   = viewHeight - mScrollDrawingAreaHeightPx - 2 * mDrawingAreaOffsetYPx;
+
+        float scrollDrawingAreaStartX = mDrawingAreaOffsetXPx;
+        float scrollDrawingAreaEndX   = viewWidth - mDrawingAreaOffsetXPx;
+        float scrollDrawingAreaStartY = chartDrawingAreaEndY + 2 * mDrawingAreaOffsetYPx;
+        float scrollDrawingAreaEndY   = scrollDrawingAreaStartY + mScrollDrawingAreaHeightPx;
+
+        mDrawer.setViewDimens(viewWidth, viewHeight, chartDrawingAreaStartX, chartDrawingAreaEndX, chartDrawingAreaStartY, chartDrawingAreaEndY, scrollDrawingAreaStartX, scrollDrawingAreaEndX, scrollDrawingAreaStartY, scrollDrawingAreaEndY);
+        mDrawer.setSliderPositions(mNormSliderPosLeft, mNormSliderPosRight);
     }
 
     @Override
@@ -72,12 +85,6 @@ public class ChartView extends View implements SliderObserver, ValueAnimator.Ani
         return true;
     }
 
-    @Override
-    public void setBorders(float normPos1, float normPos2) {
-        if (mDrawer.setBorders(normPos1, normPos2))
-            invalidate();
-    }
-
     public void setLines(LineData[] lines) {
         mDrawer.setLines(lines);
         invalidate();
@@ -86,5 +93,59 @@ public class ChartView extends View implements SliderObserver, ValueAnimator.Ani
     @Override
     public void onAnimationUpdate(ValueAnimator animation) {
         invalidate();
+    }
+
+    @Nullable
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable outState = super.onSaveInstanceState();
+        SavedState ss = new SavedState(outState);
+        if (mDrawer != null) {
+            float[] positions = mDrawer.getSliderPositions();
+            ss.normPos1 = positions[0];
+            ss.normPos2 = positions[1];
+        }
+        return ss;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+        mNormSliderPosLeft = ss.normPos1;
+        mNormSliderPosRight = ss.normPos2;
+    }
+
+    private static class SavedState extends BaseSavedState {
+        float normPos1;
+        float normPos2;
+
+        private SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        private SavedState(Parcel in) {
+            super(in);
+            normPos1 = in.readFloat();
+            normPos2 = in.readFloat();
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeFloat(normPos1);
+            out.writeFloat(normPos2);
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR
+                = new Parcelable.Creator<SavedState>() {
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
     }
 }

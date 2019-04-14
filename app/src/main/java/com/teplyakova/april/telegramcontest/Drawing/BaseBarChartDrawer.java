@@ -8,10 +8,10 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.text.TextPaint;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 
@@ -19,6 +19,7 @@ import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.R;
+import com.teplyakova.april.telegramcontest.ScrollChartView;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
@@ -26,8 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public abstract class BaseLineChartDrawer implements ChartDrawer {
-
+public abstract class BaseBarChartDrawer implements ChartDrawer{
     public class YScale
     {
         public long Height;
@@ -44,18 +44,19 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         public int  AlphaEnd;
     }
 
-    public class ChartLine
+    public class ChartBar
     {
-        public LineData Data;
+        public LineData[] Data;
+
+        public Path[] ChartPaths;
+        public Path[] ScrollPaths;
 
         public int      Alpha;
         public int      AlphaStart;
         public int      AlphaEnd;
 
-        public float[] mChartMappedPointsY;
-        public float[] mScrollMappedPointsY;
-        public float[] mScrollOptimizedPointsY;
-        public float[] mScrollOptimizedPointsX;
+        public float[][] mChartMappedPointsY;
+        public float[][] mScrollMappedPointsY;
 
         public YMaxAnimator mYMaxAnimator;
 
@@ -65,20 +66,49 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         }
     }
 
-    public abstract class YMaxAnimator {
-        public ChartLine mLine;
+    public class YMaxAnimator {
+        public ChartBar mBar;
         public long mMaxY = -1;
         public long mTargetMaxY = -1;
         public ValueAnimator mMaxYAnimator;
         public ArrayList<YScale> mYScales = new ArrayList<YScale>();
         public boolean mLeft;
 
-        public YMaxAnimator(ChartLine line, boolean left) {
-            mLine = line;
+        public YMaxAnimator(ChartBar bar, boolean left) {
+            mBar = bar;
             mLeft = left;
         }
 
-        public abstract void updateMaxY();
+        public void updateMaxY() {
+
+            if (!mBordersSet || mBar.Data == null || mBar.Data.length == 0)
+                return;
+
+            long newYMax = MathUtils.getMaxYForStackedChart(mBar.Data, mPointsMinIndex, mPointsMaxIndex);
+            newYMax = (newYMax / Y_DIVIDERS_COUNT + 1) * Y_DIVIDERS_COUNT;
+
+            if (newYMax != mTargetMaxY)
+            {
+                boolean firstTime = mTargetMaxY < 0;
+                mTargetMaxY = newYMax;
+
+                if (firstTime)
+                {
+                    mMaxY = mTargetMaxY;
+
+                    YScale yScale = new YScale();
+                    yScale.Height = mMaxY;
+                    yScale.MaxY   = mMaxY;
+                    yScale.Alpha  = 255;
+                    mYScales.add(yScale);
+                }
+                else {
+                    startAnimationYMax();
+                }
+            }
+
+            mapYPointsForChartView(mBar);
+        }
 
         public void startAnimationYMax() {
             if (mMaxYAnimator != null)
@@ -124,7 +154,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
                     float t = (float) animator.getAnimatedValue(KEY_PHASE);
 
                     mMaxY = (long)MathUtils.lerp(startY, endY, t);
-                    mapYPointsForChartView();
+                    mapYPointsForChartView(mBar);
 
                     for (YScale yScale : mYScales)
                     {
@@ -169,17 +199,17 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         }
     }
 
-    protected final int   DRAWING_AREA_OFFSET_X_DP          = 8;
-    protected final int   DRAWING_AREA_OFFSET_Y_DP          = 16;
-    protected final int   Y_DIVIDERS_COUNT                  = 6;
-    protected final int   TEXT_SIZE_DP                      = 12;
-    protected final int   TEXT_LABEL_WIDTH_DP               = 36;
-    protected final int   TEXT_LABEL_DISTANCE_DP            = 22;
-    protected final int   PLATE_WIDTH_DP                    = 110;
-    protected final int   PLATE_HEIGHT_DP                   = 56;
-    protected final int   TEXT_SIZE_SMALL_DP                = 8;
-    protected final int   TEXT_SIZE_MEDIUM_DP               = 12;
-    protected final int   TEXT_SIZE_LARGE_DP                = 14;
+    protected final int   DRAWING_AREA_OFFSET_X_DP = 8;
+    protected final int   DRAWING_AREA_OFFSET_Y_DP = 16;
+    protected final int   Y_DIVIDERS_COUNT         = 6;
+    protected final int   TEXT_SIZE_DP             = 12;
+    protected final int   TEXT_LABEL_WIDTH_DP      = 36;
+    protected final int   TEXT_LABEL_DISTANCE_DP   = 22;
+    protected final int   PLATE_WIDTH_DP           = 120;
+    protected final int   PLATE_HEIGHT_DP          = 180;
+    protected final int   TEXT_SIZE_SMALL_DP       = 8;
+    protected final int   TEXT_SIZE_MEDIUM_DP      = 12;
+    protected final int   TEXT_SIZE_LARGE_DP       = 14;
     protected final int   SLIDER_WIDTH_DP                   = 6;
     protected final float MINIMAL_NORM_SLIDER_WIDTH         = 0.2f;
 
@@ -194,22 +224,21 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
     protected final float mDrawingAreaOffsetXPx;
     protected final float mDrawingAreaOffsetYPx;
     protected final float mSliderWidthPx;
-    protected final float mOptimTolerancePx;
 
     protected Resources.Theme mTheme;
     protected Context mContext;
 
-    protected Paint mChartPaint;
-    protected   Paint mBackgroundPaint;
-    protected   Paint mSliderPaint;
-    protected   Paint mChosenAreaPaint;
+    protected Paint mBarPaint;
     protected Paint     mDividerPaint;
     protected TextPaint mBaseLabelPaint;
-    protected Paint     mCirclePaint;
     protected Paint     mPlatePaint;
     protected TextPaint mPlateXValuePaint;
     protected TextPaint mPlateYValuePaint;
     protected TextPaint mPlateNamePaint;
+    protected Paint mOpaquePaint;
+    protected Paint mBackgroundPaint;
+    protected Paint mSliderPaint;
+    protected Paint mChosenAreaPaint;
 
     protected long[] mPosX;
     protected long  mPos1 = -1;
@@ -221,7 +250,11 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
     protected int mPointsMinIndex;
     protected int mPointsMaxIndex;
 
-    protected ArrayList<ChartLine> mLines = new ArrayList<>();
+    protected ChartBar mCurrentBar;
+    protected ChartBar mOldBar;
+    protected LineData[] mLines;
+    protected RectF mBarRect;
+    protected RectF mOpaqueRect;
     protected ValueAnimator        mSetLinesAnimator;
     protected ValueAnimator.AnimatorUpdateListener mViewAnimatorListener;
 
@@ -270,11 +303,10 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
 
     protected boolean mSliderPositionsSet = false;
 
-    public BaseLineChartDrawer(Context context, ChartData chartData) {
+
+    public BaseBarChartDrawer(Context context, ChartData chartData) {
         mContext = context;
         mTheme = context.getTheme();
-
-        mPosX = chartData.posX;
 
         mTextSizePx     = MathUtils.dpToPixels(TEXT_SIZE_DP,           context);
         mDateWidthPx    = MathUtils.dpToPixels(TEXT_LABEL_WIDTH_DP,    context);
@@ -287,10 +319,20 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mDrawingAreaOffsetXPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_X_DP, context);
         mDrawingAreaOffsetYPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_Y_DP, context);
         mSliderWidthPx = MathUtils.dpToPixels(SLIDER_WIDTH_DP, context);
-        mOptimTolerancePx = mPosX.length >= 150 ? MathUtils.dpToPixels(6, mContext) : 1;
 
         setUpPaints();
 
+        mLines = chartData.lines;
+        mPosX = chartData.posX;
+
+        mCurrentBar = new ChartBar();
+        mCurrentBar.Data = chartData.lines;
+        mCurrentBar.Alpha = 255;
+        mCurrentBar.AlphaEnd = 255;
+        mCurrentBar.mYMaxAnimator = new YMaxAnimator(mCurrentBar, true);
+
+        mBarRect = new RectF();
+        mOpaqueRect = new RectF();
         mBackGroundLeft = new RectF();
         mBackgroundRight = new RectF();
         mSliderLeft = new RectF();
@@ -298,7 +340,42 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mChosenArea = new RectF();
     }
 
-    public abstract void draw(Canvas canvas);
+    @Override
+    public void draw(Canvas canvas) {
+
+        if (mBordersSet)
+            drawScaleX(mChartMappedPointsX, canvas);
+
+        if (!mBordersSet || (!mCurrentBar.IsVisible() && !mOldBar.IsVisible()) || mLines == null || mLines.length == 0) {
+            drawScaleY(100, 100, 255, canvas);
+            drawRects(canvas);
+            return;
+        }
+
+        if (mCurrentBar != null && mCurrentBar.IsVisible() && mCurrentBar.Data != null && mCurrentBar.Data.length > 0) {
+            drawBars(mCurrentBar, canvas, mChartMappedPointsX, mCurrentBar.mChartMappedPointsY, mChartDrawingAreaEndY);
+            drawBars(mCurrentBar, canvas, mScrollMappedPointsX, mCurrentBar.mScrollMappedPointsY, mScrollDrawingAreaEndY);
+        }
+        if (mOldBar != null && mOldBar.IsVisible() && mOldBar.Data != null && mOldBar.Data.length > 0) {
+            drawBars(mOldBar, canvas, mChartMappedPointsX, mOldBar.mChartMappedPointsY, mChartDrawingAreaEndY);
+            drawBars(mOldBar, canvas, mScrollMappedPointsX, mOldBar.mScrollMappedPointsY, mScrollDrawingAreaEndY);
+        }
+
+        if (mCurrentBar != null) {
+            for (YScale yScale : mCurrentBar.mYMaxAnimator.mYScales) {
+                drawScaleY(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
+                drawYLabels(yScale.Height, yScale.MaxY, yScale.Alpha, true, canvas);
+            }
+        }
+
+        if (mPointIsChosen) {
+            mPositionOfChosenPoint = mapCoordinateToPoint(mChartMappedPointsX, mXCoordinateOfTouch);
+            drawOpaqueRects(canvas);
+            drawChosenPointPlate(canvas);
+        }
+
+        drawRects(canvas);
+    }
 
     @Override
     public void setViewDimens(float width, float height, float drawingAreaStartX, float drawingAreaEndX, float drawingAreaStartY, float drawingAreaEndY, float scrollDrawingAreaStartX, float scrollDrawingAreaEndX, float scrollDrawingAreaStartY, float scrollDrawingAreaEndY) {
@@ -319,18 +396,12 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mScrollDrawingAreaWidth = mScrollDrawingAreaEndX - mScrollDrawingAreaStartX;
         mScrollDrawingAreaHeight = mScrollDrawingAreaEndY - mScrollDrawingAreaStartY;
 
-        mChosenAreaMinimalWidth = mScrollDrawingAreaWidth * MINIMAL_NORM_SLIDER_WIDTH;
-
-        if (!mSliderPositionsSet) {
-            mNormSliderPosLeft = 0.8f;
-            mNormSliderPosRight = 1;
-        }
-        setSliderPositions(mNormSliderPosLeft, mNormSliderPosRight);
-
         mXLabelsYCoordinate = mChartDrawingAreaEndY + MathUtils.dpToPixels(13, mContext);
 
+        mChosenAreaMinimalWidth = mScrollDrawingAreaWidth * MINIMAL_NORM_SLIDER_WIDTH;
+
         float minChartWidth = mChartDrawingAreaWidth;
-        float maxChartWidth = minChartWidth / MINIMAL_NORM_SLIDER_WIDTH;
+        float maxChartWidth = minChartWidth / ScrollChartView.MINIMAL_NORM_SLIDER_WIDTH;
         int sizeOfArray = mPosX.length;
         for (int i = 1; true; i = i * 2) {
             int textElemsCount = sizeOfArray / i;
@@ -345,12 +416,10 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
 
         mapXPointsForChartView();
         mapXPointsForScrollView();
-        mapYPointsForChartView();
-        mapYPointsForScrollView();
-    }
-
-    public void setAnimatorUpdateListener (ValueAnimator.AnimatorUpdateListener listener) {
-        mViewAnimatorListener = listener;
+        mapYPointsForChartView(mCurrentBar);
+        mapYPointsForScrollView(mCurrentBar);
+        mapYPointsForChartView(mOldBar);
+        mapYPointsForScrollView(mOldBar);
     }
 
     @Override
@@ -410,21 +479,74 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         return true;
     }
 
-    public boolean setBorders (float normPosX1, float normPosX2) {
+    @Override
+    public void setLines(LineData[] lines) {
+        boolean animate = false;
+
+        if (mSetLinesFirstTime) {
+            animate = false;
+        }
+
+        if (!MathUtils.equals(lines, mLines)) {
+            if (!mSetLinesFirstTime) {
+                animate = true;
+                mOldBar = new ChartBar();
+                mOldBar.Data = mCurrentBar.Data;
+                mOldBar.Alpha = mCurrentBar.Alpha;
+                mOldBar.AlphaEnd = 0;
+                mOldBar.AlphaStart = mOldBar.Alpha;
+                mOldBar.mYMaxAnimator = new YMaxAnimator(mOldBar, true);
+                mCurrentBar = new ChartBar();
+                mCurrentBar.Data = lines;
+                mCurrentBar.Alpha = 0;
+                mCurrentBar.AlphaEnd = 255;
+                mCurrentBar.mYMaxAnimator = new YMaxAnimator(mCurrentBar, true);
+            }
+            else {
+                mCurrentBar.Data = lines;
+            }
+        }
+
+        if (animate)
+            startChartBarAnimation();
+
+        if (mCurrentBar != null) {
+            mCurrentBar.mYMaxAnimator.updateMaxY();
+        }
+        if (mOldBar != null) {
+            mOldBar.mYMaxAnimator.updateMaxY();
+        }
+
+
+        mLines = lines;
+        mapXPointsForChartView();
+        mapYPointsForChartView(mCurrentBar);
+        mapYPointsForChartView(mOldBar);
+        mapXPointsForScrollView();
+        mapYPointsForScrollView(mCurrentBar);
+        mapYPointsForScrollView(mOldBar);
+
+        hidePointDetails();
+
+        mSetLinesFirstTime = false;
+    }
+
+    public boolean setBorders(float normPos1, float normPos2) {
         mBordersSet = true;
 
-        mNormWidth = normPosX2 - normPosX1;
+        mNormWidth = normPos2 - normPos1;
         long pos1;
         long pos2;
         long xMin = MathUtils.getMin(mPosX);
         long xMax = MathUtils.getMax(mPosX);
         long width = xMax - xMin;
-        pos1 = (long) Math.floor(normPosX1 * width) + xMin;
-        pos2 = (long) Math.ceil(normPosX2 * width) + xMin;
+        pos1 = (long) Math.floor(normPos1 * width) + xMin;
+        pos2 = (long) Math.ceil(normPos2 * width) + xMin;
 
         boolean result = false;
-        if (mPos1 != pos1 || mPos2 != pos2)
+        if (mPos1 != pos1 || mPos2 != pos2) {
             result = true;
+        }
 
         mPos1 = pos1;
         mPos2 = pos2;
@@ -435,9 +557,13 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mPointsMaxIndex = MathUtils.getIndexOfNearestRightElement(mPosX,  mPos2 + distanceToScreenBorder);
 
         mapXPointsForChartView();
+        mapYPointsForChartView(mCurrentBar);
 
-        for (ChartLine line : mLines) {
-            line.mYMaxAnimator.updateMaxY();
+        if (mCurrentBar != null) {
+            mCurrentBar.mYMaxAnimator.updateMaxY();
+        }
+        if (mOldBar != null) {
+            mOldBar.mYMaxAnimator.updateMaxY();
         }
 
         hidePointDetails();
@@ -445,36 +571,12 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         return result;
     }
 
-    public void setLines (LineData[] lines) {
-        boolean animate = false;
-
-        for (ChartLine line : mLines) {
-            line.AlphaEnd = Arrays.asList(lines).contains(line.Data) ? 255 : 0;
-
-            if (line.AlphaEnd != line.Alpha)
-                animate = true;
-
-            if (mSetLinesFirstTime) {
-                line.Alpha = line.AlphaEnd;
-                animate = false;
-            }
-        }
-
-        if (animate)
-            startSetLinesAnimation();
-
-        for (ChartLine line : mLines) {
-            line.mYMaxAnimator.updateMaxY();
-        }
-
-        hidePointDetails();
-
-        mapYPointsForScrollView();
-
-        mSetLinesFirstTime = false;
+    @Override
+    public void setAnimatorUpdateListener(ValueAnimator.AnimatorUpdateListener listener) {
+        mViewAnimatorListener = listener;
     }
 
-    protected void startSetLinesAnimation()
+    protected void startChartBarAnimation()
     {
         if (mSetLinesAnimator != null)
         {
@@ -482,8 +584,12 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
             mSetLinesAnimator = null;
         }
 
-        for (ChartLine line : mLines)
-            line.AlphaStart = line.Alpha;
+        if (mCurrentBar != null) {
+            mCurrentBar.AlphaStart = mCurrentBar.Alpha;
+        }
+        if (mOldBar != null) {
+            mOldBar.AlphaStart = mOldBar.Alpha;
+        }
 
         final String KEY_PHASE = "phase";
 
@@ -496,9 +602,17 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
             public void onAnimationUpdate(ValueAnimator animator) {
                 float t = (float) animator.getAnimatedValue(KEY_PHASE);
 
-                for (ChartLine line : mLines) {
-                    if (line.Alpha != line.AlphaEnd)
-                        line.Alpha = (int)MathUtils.lerp(line.AlphaStart,   line.AlphaEnd,   t);
+                if (mCurrentBar != null) {
+                    if (mCurrentBar.Alpha != mCurrentBar.AlphaEnd)
+                        mCurrentBar.Alpha = (int)MathUtils.lerp(mCurrentBar.AlphaStart,   mCurrentBar.AlphaEnd,   t);
+                }
+                if (mOldBar != null) {
+                    if (mOldBar.Alpha != mOldBar.AlphaEnd) {
+                        mOldBar.Alpha = (int) MathUtils.lerp(mOldBar.AlphaStart, mOldBar.AlphaEnd, t);
+                    }
+                    else {
+                        mOldBar = null;
+                    }
                 }
             }
         });
@@ -507,30 +621,9 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mSetLinesAnimator.start();
     }
 
-    protected boolean showChartLines()
-    {
-        for (ChartLine line : mLines)
-            if (line.IsVisible())
-                return true;
-
-        return false;
-    }
-
-    protected LineData[] getActiveChartLines()
-    {
-        ArrayList<LineData> arrayList = new ArrayList<>();
-
-        for (ChartLine line : mLines)
-            if (line.AlphaEnd > 0)
-                arrayList.add(line.Data);
-
-        return arrayList.toArray(new LineData[arrayList.size()]);
-    }
-
     protected void setUpPaints() {
-        mChartPaint = new Paint();
-        mChartPaint.setStyle(Paint.Style.STROKE);
-        mChartPaint.setAntiAlias(true);
+        mBarPaint = new Paint();
+        mBarPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 
         mDividerPaint = new Paint();
         TypedValue dividerColor = new TypedValue();
@@ -547,9 +640,6 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         }
         mBaseLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
 
-        mCirclePaint = new Paint();
-        mCirclePaint.setStrokeWidth(6);
-
         mPlatePaint = new Paint();
 
         mPlateXValuePaint = new TextPaint();
@@ -565,6 +655,13 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
 
         mPlateNamePaint = new TextPaint();
         mPlateNamePaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+
+        mOpaquePaint = new Paint();
+        TypedValue opaqueColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.opaqueBackground, opaqueColor, true)) {
+            mOpaquePaint.setColor(opaqueColor.data);
+        }
+        mOpaquePaint.setStyle(Paint.Style.FILL);
 
         mBackgroundPaint = new Paint();
         TypedValue backgroundColor = new TypedValue();
@@ -613,65 +710,6 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mChosenArea.set(left, top, right, bottom);
     }
 
-    protected void mapXPointsForChartView()
-    {
-        if (!mBordersSet)
-            return;
-
-        mChartMappedPointsX = mapXPointsForChartView(mPosX, mPos1, mPos2);
-    }
-
-    protected void mapXPointsForScrollView()
-    {
-        if (!mBordersSet)
-            return;
-
-        mScrollMappedPointsX = mapXPointsForScrollView(mPosX);
-    }
-
-    protected void mapYPointsForChartView()
-    {
-        if (!mBordersSet || !showChartLines())
-            return;
-
-        for (ChartLine line : mLines) {
-            if (line.IsVisible()){
-                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, 0, line.mYMaxAnimator.mMaxY);
-            }
-        }
-    }
-
-    protected void mapYPointsForScrollView()
-    {
-        if (!mBordersSet || !showChartLines())
-            return;
-
-        for (ChartLine line : mLines) {
-            if (line.IsVisible()){
-                line.mScrollMappedPointsY = mapYPointsForScrollView(line.Data.posY);
-                optimizeScrollPoints(line);
-            }
-        }
-    }
-
-    protected void drawChartLine (ChartLine line, Canvas canvas, float[] mappedX, float[] mappedY){
-        mChartPaint.setColor(line.Data.color);
-        mChartPaint.setAlpha(line.Alpha);
-
-        float[] drawingPoints = MathUtils.concatArraysForDrawing(mappedX, mappedY);
-        if (drawingPoints != null) {
-            canvas.drawLines(drawingPoints, mChartPaint);
-        }
-    }
-
-    protected void drawRects(Canvas canvas) {
-        canvas.drawRect(mBackGroundLeft, mBackgroundPaint);
-        canvas.drawRect(mBackgroundRight, mBackgroundPaint);
-        canvas.drawRect(mSliderLeft, mSliderPaint);
-        canvas.drawRect(mSliderRight, mSliderPaint);
-        canvas.drawRect(mChosenArea, mChosenAreaPaint);
-    }
-
     public void setSliderPositions (float normPos1, float normPos2) {
         mSliderPositionLeft = normPos1 * mScrollDrawingAreaWidth + mScrollDrawingAreaStartX;
         mSliderPositionRight = normPos2 * mScrollDrawingAreaWidth + mScrollDrawingAreaStartX;
@@ -697,46 +735,17 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         return (position - mScrollDrawingAreaStartX) / mScrollDrawingAreaWidth;
     }
 
-    protected float[] mapYPointsForChartView(long[] points, long yMin, long yMax) {
-        long calculatedArea = yMax - yMin;
-        float[] mapped = new float[mPointsMaxIndex - mPointsMinIndex + 1];
-
-        for (int i = 0, j = mPointsMinIndex; i < mapped.length; i++, j++) {
-            float percentage = (float) (points[j] - yMin) / (float) calculatedArea;
-            mapped[i] = mChartDrawingAreaHeight * percentage + mChartDrawingAreaStartY;
-            mapped[i] = mChartDrawingAreaEndY - mapped[i] + mChartDrawingAreaStartY;
-        }
-
-        return mapped;
-    }
-
-    protected float[] mapYPointsForScrollView(long[] points) {
-        long calculatedArea = MathUtils.getMax(points);
-        float[] mapped = new float[points.length];
-
-        for (int i = 0; i < mapped.length; i++) {
-            float percentage = (float) points[i] / (float) calculatedArea;
-            mapped[i] = mScrollDrawingAreaHeight * percentage + mScrollDrawingAreaStartY;
-            mapped[i] = mScrollDrawingAreaEndY - mapped[i] + mScrollDrawingAreaStartY;
-        }
-
-        return mapped;
-    }
-
-    protected void optimizeScrollPoints(ChartLine line) {
-        if (mScrollMappedPointsX == null)
+    protected void mapXPointsForChartView()
+    {
+        if (!mBordersSet)
             return;
-        ArrayList<Float> optimizedX = new ArrayList<>();
-        ArrayList<Float> optimizedY = new ArrayList<>();
-        MathUtils.optimizePoints(mScrollMappedPointsX, line.mScrollMappedPointsY, mOptimTolerancePx, optimizedX, optimizedY);
-        line.mScrollOptimizedPointsX = new float[optimizedX.size()];
-        for (int i = 0; i < line.mScrollOptimizedPointsX.length; i++) {
-            line.mScrollOptimizedPointsX[i] = optimizedX.get(i);
-        }
-        line.mScrollOptimizedPointsY = new float[optimizedY.size()];
-        for (int i = 0; i < line.mScrollOptimizedPointsY.length; i++) {
-            line.mScrollOptimizedPointsY[i] = optimizedY.get(i);
-        }
+
+        mChartMappedPointsX = mapXPointsForChartView(mPosX, mPos1, mPos2);
+    }
+
+    protected void mapXPointsForScrollView()
+    {
+        mScrollMappedPointsX = mapXPointsForScrollView(mPosX);
     }
 
     protected float[] mapXPointsForChartView(long[] points, long xMin, long xMax) {
@@ -759,6 +768,59 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
             mapped[i] = mScrollDrawingAreaStartX + mScrollDrawingAreaWidth * percentage;
         }
 
+        return mapped;
+    }
+
+    protected void mapYPointsForChartView(ChartBar bar)
+    {
+        if (!mBordersSet)
+            return;
+
+
+        if (bar != null && bar.IsVisible()){
+            bar.mChartMappedPointsY = mapYPointsForChartView(bar.Data, 0, bar.mYMaxAnimator.mMaxY);
+            preparePaths(bar, mChartMappedPointsX, bar.mChartMappedPointsY, mChartDrawingAreaEndY, true);
+        }
+    }
+
+    protected void mapYPointsForScrollView(ChartBar bar)
+    {
+        if (bar != null && bar.IsVisible() && bar.Data != null && bar.Data.length > 0){
+            bar.mScrollMappedPointsY = mapYPointsForScrollView(bar.Data);
+            preparePaths(bar, mScrollMappedPointsX, bar.mScrollMappedPointsY, mScrollDrawingAreaEndY, false);
+        }
+    }
+
+    protected float[][] mapYPointsForChartView(LineData[] lines, long yMin, long yMax) {
+        long calculatedArea = yMax - yMin;
+        float[][] mapped = new float[mPointsMaxIndex - mPointsMinIndex + 1][lines.length];
+        float startY;
+
+        for (int i = 0; i < mapped.length; i++) {
+            startY = mChartDrawingAreaEndY;
+            for (int j = 0; j < lines.length; j++) {
+                float percentage = (float) (lines[j].posY[i + mPointsMinIndex] - yMin) / (float) calculatedArea;
+                mapped[i][j] = startY - mChartDrawingAreaHeight * percentage;
+                startY = mapped[i][j];
+            }
+        }
+        return mapped;
+    }
+
+    protected float[][] mapYPointsForScrollView(LineData[] lines) {
+        long yMax = MathUtils.getMaxYForStackedChart(lines, 0, lines[0].posY.length - 1);
+        long calculatedArea = yMax;
+        float[][] mapped = new float[mScrollMappedPointsX.length][lines.length];
+        float startY;
+
+        for (int i = 0; i < mapped.length; i++) {
+            startY = mScrollDrawingAreaEndY;
+            for (int j = 0; j < lines.length; j++) {
+                float percentage = (float) (lines[j].posY[i]) / (float) calculatedArea;
+                mapped[i][j] = startY - mScrollDrawingAreaHeight * percentage;
+                startY = mapped[i][j];
+            }
+        }
         return mapped;
     }
 
@@ -844,105 +906,98 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         }
     }
 
-    protected void drawChosenPointCircle(float[] mappedX, float[] mappedY, int color, Canvas canvas) {
-        mCirclePaint.setColor(color);
-        canvas.drawCircle(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mappedY[mPositionOfChosenPoint - mPointsMinIndex], 16f, mCirclePaint);
-        TypedValue background = new TypedValue();
-        if (mTheme.resolveAttribute(R.attr.primaryBackgroundColor, background, true)) {
-            mCirclePaint.setColor(background.data);
+    private void drawYLabels (long height, long yMax, int alpha, boolean left, Canvas canvas) {
+        float xCoord;
+        if (left) {
+            mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
+            xCoord = mChartDrawingAreaStartX;
         }
-        canvas.drawCircle(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mappedY[mPositionOfChosenPoint - mPointsMinIndex], 8f, mCirclePaint);
+        else {
+            mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
+            xCoord = mChartDrawingAreaEndX;
+        }
+        float spaceBetweenDividers = (float)yMax / height * mChartDrawingAreaHeight / Y_DIVIDERS_COUNT;
+
+        long step = 0;
+        float yLabelCoord = mChartDrawingAreaEndY * 0.99f;
+
+        mBaseLabelPaint.setAlpha(alpha);
+        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
+
+        for (int i = 0; i < Y_DIVIDERS_COUNT; i++) {
+            canvas.drawText(MathUtils.getFriendlyNumber(step), xCoord, yLabelCoord, mBaseLabelPaint);
+            yLabelCoord -= spaceBetweenDividers;
+            step += yMax / Y_DIVIDERS_COUNT;
+        }
+
     }
 
-    protected void drawVerticalDivider(float[] mappedX, Canvas canvas) {
-        mDividerPaint.setAlpha(255);
-        canvas.drawLine(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mChartDrawingAreaStartY, mappedX[mPositionOfChosenPoint - mPointsMinIndex], mChartDrawingAreaEndY, mDividerPaint);
+    protected void preparePaths(ChartBar bar, float[] mappedX, float[][] mappedY, float startDrawingPointY, boolean chartPaths) {
+        float halfBarWidth = (mappedX[mappedX.length - 1] - mappedX[0]) / (mappedX.length - 1) / 2;
+        float startX = mappedX[0] - halfBarWidth;
+        float startY = startDrawingPointY;
+        if (chartPaths) {
+            bar.ChartPaths = new Path[bar.Data.length];
+        }
+        else {
+            bar.ScrollPaths = new Path[bar.Data.length];
+        }
+
+        float[] previous = new float[mappedY.length];
+        Arrays.fill(previous, startDrawingPointY);
+        Path path = new Path();
+        path.moveTo(startX, startY);
+        for (int i = 0; i < bar.Data.length; i ++) {
+            for (int j = 0; j < mappedY.length; j++) {
+                path.lineTo(mappedX[j] - halfBarWidth, mappedY[j][i]);
+                path.lineTo(mappedX[j] + halfBarWidth, mappedY[j][i]);
+            }
+            for (int n = previous.length - 1; n >= 0 ; n--) {
+                path.lineTo(mappedX[n] + halfBarWidth, previous[n]);
+                path.lineTo(mappedX[n] - halfBarWidth, previous[n]);
+                previous[n] = mappedY[n][i];
+            }
+            if (chartPaths) {
+                bar.ChartPaths[i] = path;
+            }
+            else{
+                bar.ScrollPaths[i] = path;
+            }
+            path = new Path();
+            path.moveTo(mappedX[0] - halfBarWidth, mappedY[0][i]);
+        }
+
     }
 
-    protected void drawChosenPointPlate(float[] mappedX, Canvas canvas) {
-        //plate
-        float top = mChartDrawingAreaHeight * 0.05f + mChartDrawingAreaWidth * 0.05f;
-        float bottom = top + mPlateHeightPx;
-        float left;
-        float right;
-        float offset = mChartDrawingAreaWidth * 0.05f;
-        if ((mappedX[mPositionOfChosenPoint - mPointsMinIndex] + offset + mPlateWidthPx) >= mChartDrawingAreaEndX) {
-            right = mappedX[mPositionOfChosenPoint - mPointsMinIndex] - offset;
-            left = right - mPlateWidthPx;
-        } else {
-            left = mappedX[mPositionOfChosenPoint - mPointsMinIndex] + offset;
-            right = left + mPlateWidthPx;
-        }
-        RectF rectF = new RectF(left, top, right, bottom);
-        int cornerRadius = 25;
-
-        TypedValue dividerColor = new TypedValue();
-        if (mTheme.resolveAttribute(R.attr.dividerColor, dividerColor, true)) {
-            mPlatePaint.setColor(dividerColor.data);
-        }
-        mPlatePaint.setStrokeWidth(2);
-        mPlatePaint.setStyle(Paint.Style.STROKE);
-
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
-
-        mPlatePaint.setStyle(Paint.Style.FILL);
-        TypedValue plateColor = new TypedValue();
-        if (mTheme.resolveAttribute(R.attr.plateBackgroundColor, plateColor, true)) {
-            mPlatePaint.setColor(plateColor.data);
-        }
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
-
-        //text
-        mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
-        canvas.drawText(DateTimeUtils.formatDateEEEMMMd(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.22f, mPlateXValuePaint);
-
-        LineData[] lines = getActiveChartLines();
-        switch (lines.length) {
-            case 1:
-                mPlateYValuePaint.setTextSize(mTextSizeLargePx);
-                mPlateYValuePaint.setColor(lines[0].color);
-                mPlateYValuePaint.setTextAlign(Paint.Align.CENTER);
-                canvas.drawText(String.valueOf(lines[0].posY[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.6f, mPlateYValuePaint);
-                mPlateNamePaint.setColor(lines[0].color);
-                mPlateNamePaint.setTextSize(mTextSizeMediumPx);
-                mPlateNamePaint.setTextAlign(Paint.Align.CENTER);
-                canvas.drawText(lines[0].name, left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.8f, mPlateNamePaint);
-                break;
-            case 2:
-                mPlateYValuePaint.setTextSize(mTextSizeMediumPx);
-                mPlateYValuePaint.setColor(lines[0].color);
-                mPlateYValuePaint.setTextAlign(Paint.Align.LEFT);
-                canvas.drawText(String.valueOf(lines[0].posY[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.6f, mPlateYValuePaint);
-                mPlateNamePaint.setColor(lines[0].color);
-                mPlateNamePaint.setTextSize(mTextSizeSmallPx);
-                mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
-                canvas.drawText(lines[0].name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.8f, mPlateNamePaint);
-                mPlateYValuePaint.setColor(lines[1].color);
-                mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
-                canvas.drawText(String.valueOf(lines[1].posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.6f, mPlateYValuePaint);
-                mPlateNamePaint.setColor(lines[1].color);
-                mPlateNamePaint.setTextAlign(Paint.Align.RIGHT);
-                canvas.drawText(lines[1].name, right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.8f, mPlateNamePaint);
-                break;
-            default:
-                mPlateYValuePaint.setTextSize(mTextSizeSmallPx);
-                mPlateNamePaint.setTextSize(mTextSizeSmallPx);
-                mPlateYValuePaint.setTextAlign(Paint.Align.LEFT);
-                mPlateNamePaint.setTextAlign(Paint.Align.RIGHT);
-                float heightOffset = 0.45f;
-                for (LineData line : lines){
-                    mPlateYValuePaint.setColor(line.color);
-                    mPlateNamePaint.setColor(line.color);
-                    canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
-                    canvas.drawText(line.name, right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
-                    heightOffset += 0.16f;
-                }
-                break;
+    protected void drawBars(ChartBar bar, Canvas canvas, float[] mappedX, float[][] mappedY, float startDrawingPoint) {
+        for (int i = 0; i < bar.ChartPaths.length; i++) {
+            mBarPaint.setColor(bar.Data[i].color);
+            mBarPaint.setAlpha(bar.Alpha);
+            canvas.drawPath(bar.ChartPaths[i], mBarPaint);
+            canvas.drawPath(bar.ScrollPaths[i], mBarPaint);
         }
     }
+
+    protected void drawOpaqueRects (Canvas canvas) {
+        float halfBarWidth = (mChartMappedPointsX[mChartMappedPointsX.length - 1] - mChartMappedPointsX[0]) / (mChartMappedPointsX.length - 1) / 2;
+        mOpaqueRect.set(0f, mChartDrawingAreaStartY, mChartMappedPointsX[mPositionOfChosenPoint - mPointsMinIndex] - halfBarWidth, mChartDrawingAreaEndY);
+        canvas.drawRect(mOpaqueRect, mOpaquePaint);
+        mOpaqueRect.set(mChartMappedPointsX[mPositionOfChosenPoint - mPointsMinIndex] + halfBarWidth, mChartDrawingAreaStartY, mViewWidth, mChartDrawingAreaEndY);
+        canvas.drawRect(mOpaqueRect, mOpaquePaint);
+    }
+
+    protected void drawRects(Canvas canvas) {
+        canvas.drawRect(mBackGroundLeft, mBackgroundPaint);
+        canvas.drawRect(mBackgroundRight, mBackgroundPaint);
+        canvas.drawRect(mSliderLeft, mSliderPaint);
+        canvas.drawRect(mSliderRight, mSliderPaint);
+        canvas.drawRect(mChosenArea, mChosenAreaPaint);
+    }
+
+    protected abstract void drawChosenPointPlate(Canvas canvas);
 
     protected void showPointDetails(float xCoord) {
-        if (!showChartLines())
+        if (mLines == null || mLines.length == 0)
             return;
         mXCoordinateOfTouch = xCoord;
         mPointIsChosen = true;

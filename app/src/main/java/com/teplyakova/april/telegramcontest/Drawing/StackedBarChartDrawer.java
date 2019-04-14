@@ -2,6 +2,7 @@ package com.teplyakova.april.telegramcontest.Drawing;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.TypedValue;
@@ -12,7 +13,7 @@ import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
-public class BarChartDrawer extends BaseBarChartDrawer {
+public class StackedBarChartDrawer extends BaseBarChartDrawer {
     public class YScale extends BaseBarChartDrawer.YScale {
     }
 
@@ -26,10 +27,10 @@ public class BarChartDrawer extends BaseBarChartDrawer {
         }
     }
 
-    protected final int   PLATE_HEIGHT_DP          = 40;
+    protected final int   PLATE_HEIGHT_DP          = 180;
     protected final float mPlateHeightPx;
 
-    public BarChartDrawer(Context context, ChartData chartData) {
+    public StackedBarChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
 
         mPlateHeightPx = MathUtils.dpToPixels(PLATE_HEIGHT_DP, context);
@@ -77,13 +78,19 @@ public class BarChartDrawer extends BaseBarChartDrawer {
         mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
         mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
         float heightOffset = 0.2f;
+        long sumOfChosenValues = 0;
         for (LineData line : mLines){
             mPlateYValuePaint.setColor(line.color);
             mPlateNamePaint.setColor(line.color);
             canvas.drawText(line.name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
             canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
             heightOffset += 0.1f;
+            sumOfChosenValues += line.posY[mPositionOfChosenPoint];
         }
+        mPlateNamePaint.setColor(Color.BLACK);
+        mPlateYValuePaint.setColor(Color.BLACK);
+        canvas.drawText("All", left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
+        canvas.drawText(String.valueOf(sumOfChosenValues), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
 
     }
 }

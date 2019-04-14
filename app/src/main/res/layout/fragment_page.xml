@@ -16,13 +16,7 @@
         <com.teplyakova.april.telegramcontest.ChartView
             android:id="@+id/chartview"
             android:layout_width="match_parent"
-            android:layout_height="300dp"/>
-
-        <com.teplyakova.april.telegramcontest.ScrollChartView
-            android:id="@+id/scrollchartview"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_margin="8dp"/>
+            android:layout_height="400dp"/>
 
         <LinearLayout
             android:id="@+id/checkboxes_layout"

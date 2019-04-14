@@ -5,6 +5,7 @@ import android.content.Context;
 import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.LineChart2YAxisDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.StackedAreaChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.StackedBarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.StandardLineChartDrawer;
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 
@@ -18,7 +19,7 @@ public class DrawerFactory {
             case "BarChart":
                 return new BarChartDrawer(context, chartData);
             case "StackedBarChart":
-                return new BarChartDrawer(context, chartData);
+                return new StackedBarChartDrawer(context, chartData);
             case "StackedAreaChart":
                 return new StackedAreaChartDrawer(context, chartData);
             default:
