@@ -207,7 +207,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected final int   TEXT_SIZE_SMALL_DP       = 8;
     protected final int   TEXT_SIZE_MEDIUM_DP      = 12;
     protected final int   TEXT_SIZE_LARGE_DP       = 14;
-    protected final int   SLIDER_WIDTH_DP                   = 6;
+    protected final int   SLIDER_WIDTH_DP                   = 10;
     protected final int   TOP_DATES_OFFSET_Y_DP             = 14;
     protected final float MINIMAL_NORM_SLIDER_WIDTH         = 0.2f;
 
@@ -235,7 +235,6 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected Paint mOpaquePaint;
     protected Paint mBackgroundPaint;
     protected Paint mSliderPaint;
-    protected Paint mChosenAreaPaint;
 
     protected long[] mPosX;
     protected long  mPos1 = -1;
@@ -287,11 +286,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected float mNormSliderPosLeft = 0.8f;
     protected float mNormSliderPosRight = 1;
 
-    protected RectF mBackGroundLeft;
-    protected RectF mBackgroundRight;
-    protected RectF mSliderLeft;
-    protected RectF mSliderRight;
-    protected RectF mChosenArea;
+    protected Path mScrollBackground;
+    protected Path mSlider;
 
     protected boolean mLeftSliderIsCaught = false;
     protected boolean mRightSliderIsCaught = false;
@@ -331,11 +327,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
 
         mBarRect = new RectF();
         mOpaqueRect = new RectF();
-        mBackGroundLeft = new RectF();
-        mBackgroundRight = new RectF();
-        mSliderLeft = new RectF();
-        mSliderRight = new RectF();
-        mChosenArea = new RectF();
+        mScrollBackground = new Path();
+        mSlider = new Path();
     }
 
     @Override
@@ -458,13 +451,13 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
                     showPointDetails(x);
                 }
                 if (x >= mScrollDrawingAreaStartX && x <= mScrollDrawingAreaEndX && y >= mScrollDrawingAreaStartY && y <= mScrollDrawingAreaEndY) {
-                    if ((x >= mSliderPositionLeft - 3f * mSliderWidthPx) && (x <= mSliderPositionLeft + mCurrChosenAreaWidth * 0.1f)) {
+                    if ((x >= mSliderPositionLeft - 3f * mSliderWidthPx) && (x <= mSliderPositionLeft + mSliderWidthPx)) {
                         mLeftSliderIsCaught = true;
                     }
-                    else if ((x >= mSliderPositionRight - mCurrChosenAreaWidth * 0.1f) &&(x <= mSliderPositionRight + 3f * mSliderWidthPx)) {
+                    else if ((x >= mSliderPositionRight - mSliderWidthPx) &&(x <= mSliderPositionRight + 3f * mSliderWidthPx)) {
                         mRightSliderIsCaught = true;
                     }
-                    else if (mChosenArea.contains(x, y)) {
+                    else if ((x >= mSliderPositionLeft + mSliderWidthPx) && (x <= mSliderPositionRight - mSliderWidthPx)) {
                         mChosenAreaIsCaught = true;
                         mCurrChosenAreaPosition = x;
                         mCurrChosenAreaWidth = mSliderPositionRight - mSliderPositionLeft;
@@ -685,11 +678,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
             mSliderPaint.setColor(sliderColor.data);
         }
         mSliderPaint.setStyle(Paint.Style.FILL_AND_STROKE);
-
-        mChosenAreaPaint = new Paint();
-        mChosenAreaPaint.setColor(sliderColor.data);
-        mChosenAreaPaint.setStyle(Paint.Style.STROKE);
-        mChosenAreaPaint.setStrokeWidth(10);
+        mSliderPaint.setStrokeWidth(2);
     }
 
     private void calculateRects() {
@@ -698,25 +687,38 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         float left;
         float right;
 
-        left = mScrollDrawingAreaStartX;
-        right = mSliderPositionLeft;
-        mBackGroundLeft.set(left, top, right, bottom);
+        mScrollBackground.reset();
+        mSlider.reset();
 
-        left = mSliderPositionRight;
+        left = mScrollDrawingAreaStartX;
+        right = mSliderPositionLeft + mSliderWidthPx;
+        RectF rect = new RectF(left, top, right, bottom);
+        mScrollBackground.addRoundRect(rect, 20, 20, Path.Direction.CW);
+        rect.set((right + left) / 2, top, right, bottom);
+        mScrollBackground.addRect(rect, Path.Direction.CW);
+        left = mSliderPositionRight - mSliderWidthPx;
         right = mScrollDrawingAreaEndX;
-        mBackgroundRight.set(left, top, right, bottom);
+        rect.set(left, top, right, bottom);
+        mScrollBackground.addRoundRect(rect, 20 ,20, Path.Direction.CW);
+        rect.set(left, top, (right + left) / 2, bottom);
+        mScrollBackground.addRect(rect, Path.Direction.CW);
 
         left = mSliderPositionLeft;
         right = left + mSliderWidthPx;
-        mSliderLeft.set(left, top, right, bottom);
-
+        rect.set(left, top, right, bottom);
+        mSlider.addRoundRect(rect, 20, 20, Path.Direction.CW);
+        rect.set((right + left) / 2, top, right, bottom);
+        mSlider.addRect(rect, Path.Direction.CW);
         left = mSliderPositionRight - mSliderWidthPx;
         right = mSliderPositionRight;
-        mSliderRight.set(left, top, right, bottom);
-
-        left = mSliderPositionLeft + mSliderWidthPx;
-        right = mSliderPositionRight - mSliderWidthPx;
-        mChosenArea.set(left, top, right, bottom);
+        rect.set(left, top, right, bottom);
+        mSlider.addRoundRect(rect, 20, 20, Path.Direction.CW);
+        rect.set(left, top, (right + left) / 2, bottom);
+        mSlider.addRect(rect, Path.Direction.CW);
+        mSlider.moveTo(mSliderPositionLeft + mSliderWidthPx, mScrollDrawingAreaStartY);
+        mSlider.lineTo(mSliderPositionRight - mSliderWidthPx, mScrollDrawingAreaStartY);
+        mSlider.moveTo(mSliderPositionLeft + mSliderWidthPx, mScrollDrawingAreaEndY);
+        mSlider.lineTo(mSliderPositionRight - mSliderWidthPx, mScrollDrawingAreaEndY);
     }
 
     public void setSliderPositions (float normPos1, float normPos2) {
@@ -983,7 +985,16 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
             mBarPaint.setColor(bar.Data[i].color);
             mBarPaint.setAlpha(bar.Alpha);
             canvas.drawPath(bar.ChartPaths[i], mBarPaint);
+
+            canvas.save();
+            Path clipPath = new Path();
+            RectF clipRect = new RectF(mScrollDrawingAreaStartX, mScrollDrawingAreaStartY, mScrollDrawingAreaEndX, mScrollDrawingAreaEndY);
+            clipPath.addRoundRect(clipRect, 20, 20, Path.Direction.CW);
+            canvas.clipPath(clipPath);
+
             canvas.drawPath(bar.ScrollPaths[i], mBarPaint);
+
+            canvas.restore();
         }
     }
 
@@ -1003,11 +1014,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     }
 
     protected void drawRects(Canvas canvas) {
-        canvas.drawRect(mBackGroundLeft, mBackgroundPaint);
-        canvas.drawRect(mBackgroundRight, mBackgroundPaint);
-        canvas.drawRect(mSliderLeft, mSliderPaint);
-        canvas.drawRect(mSliderRight, mSliderPaint);
-        canvas.drawRect(mChosenArea, mChosenAreaPaint);
+        canvas.drawPath(mScrollBackground, mBackgroundPaint);
+        canvas.drawPath(mSlider, mSliderPaint);
     }
 
     protected abstract void drawChosenPointPlate(Canvas canvas);
