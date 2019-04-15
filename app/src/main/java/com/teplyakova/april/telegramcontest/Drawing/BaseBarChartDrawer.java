@@ -202,7 +202,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected final int   TEXT_SIZE_DP             = 12;
     protected final int   TEXT_LABEL_WIDTH_DP      = 36;
     protected final int   TEXT_LABEL_DISTANCE_DP   = 22;
-    protected final int   PLATE_WIDTH_DP           = 120;
+    protected final int   PLATE_WIDTH_DP           = 140;
     protected final int   PLATE_HEIGHT_DP          = 180;
     protected final int   TEXT_SIZE_SMALL_DP       = 8;
     protected final int   TEXT_SIZE_MEDIUM_DP      = 12;
@@ -385,13 +385,13 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         mChartDrawingAreaStartX = drawingAreaOffsetXPx;
         mChartDrawingAreaEndX = width - drawingAreaOffsetXPx;
         mChartDrawingAreaStartY = drawingAreaOffsetYPx;
-        mChartDrawingAreaEndY = height - scrollDrawingAreaHeightPx - drawingAreaOffsetYPx;
+        mChartDrawingAreaEndY = height - scrollDrawingAreaHeightPx - 2 * drawingAreaOffsetYPx;
         mChartDrawingAreaWidth = mChartDrawingAreaEndX - mChartDrawingAreaStartX;
         mChartDrawingAreaHeight = mChartDrawingAreaEndY - mChartDrawingAreaStartY;
 
         mScrollDrawingAreaStartX = drawingAreaOffsetXPx;
         mScrollDrawingAreaEndX = width - drawingAreaOffsetXPx;
-        mScrollDrawingAreaStartY = mChartDrawingAreaEndY + drawingAreaOffsetYPx;
+        mScrollDrawingAreaStartY = mChartDrawingAreaEndY + 2 * drawingAreaOffsetYPx;
         mScrollDrawingAreaEndY = mScrollDrawingAreaStartY + scrollDrawingAreaHeightPx;
         mScrollDrawingAreaWidth = mScrollDrawingAreaEndX - mScrollDrawingAreaStartX;
         mScrollDrawingAreaHeight = mScrollDrawingAreaEndY - mScrollDrawingAreaStartY;
@@ -633,7 +633,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         if (mTheme.resolveAttribute(R.attr.dividerColor, dividerColor, true)) {
             mDividerPaint.setColor(dividerColor.data);
         }
-        mDividerPaint.setStrokeWidth(2);
+        mDividerPaint.setAlpha(255);
+        mDividerPaint.setStrokeWidth(1);
 
         mBaseLabelPaint = new TextPaint();
         mBaseLabelPaint.setTextSize(mTextSizePx);
@@ -642,6 +643,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
             mBaseLabelPaint.setColor(baseLabelColor.data);
         }
         mBaseLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+        mBaseLabelPaint.setAntiAlias(true);
 
         mPlatePaint = new Paint();
 
@@ -652,12 +654,16 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         }
         mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
         mPlateXValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+        mPlateXValuePaint.setAntiAlias(true);
 
         mPlateYValuePaint = new TextPaint();
         mPlateYValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+        mPlateYValuePaint.setAntiAlias(true);
 
         mPlateNamePaint = new TextPaint();
         mPlateNamePaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+        mPlateNamePaint.setColor(textColor.data);
+        mPlateNamePaint.setAntiAlias(true);
 
         mOpaquePaint = new Paint();
         TypedValue opaqueColor = new TypedValue();

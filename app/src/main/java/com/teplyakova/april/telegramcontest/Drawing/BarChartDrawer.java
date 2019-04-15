@@ -71,16 +71,15 @@ public class BarChartDrawer extends BaseBarChartDrawer {
         //text
         mPlateXValuePaint.setTextSize(mTextSizeLargePx);
         mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.1f, mPlateXValuePaint);
+        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.4f, mPlateXValuePaint);
 
         mPlateYValuePaint.setTextSize(mTextSizeMediumPx);
         mPlateNamePaint.setTextSize(mTextSizeMediumPx);
         mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
         mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
-        float heightOffset = 0.2f;
+        float heightOffset = 0.8f;
         for (LineData line : mLines){
             mPlateYValuePaint.setColor(line.color);
-            mPlateNamePaint.setColor(line.color);
             canvas.drawText(line.name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
             canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
             heightOffset += 0.1f;

@@ -320,13 +320,13 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mChartDrawingAreaStartX = drawingAreaOffsetXPx;
         mChartDrawingAreaEndX = width - drawingAreaOffsetXPx;
         mChartDrawingAreaStartY = drawingAreaOffsetYPx;
-        mChartDrawingAreaEndY = height - scrollDrawingAreaHeightPx - drawingAreaOffsetYPx;
+        mChartDrawingAreaEndY = height - scrollDrawingAreaHeightPx - 2 * drawingAreaOffsetYPx;
         mChartDrawingAreaWidth = mChartDrawingAreaEndX - mChartDrawingAreaStartX;
         mChartDrawingAreaHeight = mChartDrawingAreaEndY - mChartDrawingAreaStartY;
 
         mScrollDrawingAreaStartX = drawingAreaOffsetXPx;
         mScrollDrawingAreaEndX = width - drawingAreaOffsetXPx;
-        mScrollDrawingAreaStartY = mChartDrawingAreaEndY + drawingAreaOffsetYPx;
+        mScrollDrawingAreaStartY = mChartDrawingAreaEndY + 2 * drawingAreaOffsetYPx;
         mScrollDrawingAreaEndY = mScrollDrawingAreaStartY + scrollDrawingAreaHeightPx;
         mScrollDrawingAreaWidth = mScrollDrawingAreaEndX - mScrollDrawingAreaStartX;
         mScrollDrawingAreaHeight = mScrollDrawingAreaEndY - mScrollDrawingAreaStartY;
@@ -561,6 +561,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
             mBaseLabelPaint.setColor(baseLabelColor.data);
         }
         mBaseLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+        mBaseLabelPaint.setAntiAlias(true);
 
         mCirclePaint = new Paint();
         mCirclePaint.setStrokeWidth(6);
@@ -574,12 +575,18 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         }
         mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
         mPlateXValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+        mPlateXValuePaint.setAntiAlias(true);
 
         mPlateYValuePaint = new TextPaint();
         mPlateYValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+        mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
+        mPlateYValuePaint.setAntiAlias(true);
 
         mPlateNamePaint = new TextPaint();
+        mPlateNamePaint.setColor(textColor.data);
         mPlateNamePaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+        mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
+        mPlateNamePaint.setAntiAlias(true);
 
         mBackgroundPaint = new Paint();
         TypedValue backgroundColor = new TypedValue();
@@ -920,50 +927,17 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         //text
         mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
         mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(DateTimeUtils.formatDateEEEMMMd(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.22f, mPlateXValuePaint);
+        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.22f, mPlateXValuePaint);
 
         LineData[] lines = getActiveChartLines();
-        switch (lines.length) {
-            case 1:
-                mPlateYValuePaint.setTextSize(mTextSizeLargePx);
-                mPlateYValuePaint.setColor(lines[0].color);
-                mPlateYValuePaint.setTextAlign(Paint.Align.CENTER);
-                canvas.drawText(String.valueOf(lines[0].posY[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.6f, mPlateYValuePaint);
-                mPlateNamePaint.setColor(lines[0].color);
-                mPlateNamePaint.setTextSize(mTextSizeMediumPx);
-                mPlateNamePaint.setTextAlign(Paint.Align.CENTER);
-                canvas.drawText(lines[0].name, left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.8f, mPlateNamePaint);
-                break;
-            case 2:
-                mPlateYValuePaint.setTextSize(mTextSizeMediumPx);
-                mPlateYValuePaint.setColor(lines[0].color);
-                mPlateYValuePaint.setTextAlign(Paint.Align.LEFT);
-                canvas.drawText(String.valueOf(lines[0].posY[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.6f, mPlateYValuePaint);
-                mPlateNamePaint.setColor(lines[0].color);
-                mPlateNamePaint.setTextSize(mTextSizeSmallPx);
-                mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
-                canvas.drawText(lines[0].name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.8f, mPlateNamePaint);
-                mPlateYValuePaint.setColor(lines[1].color);
-                mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
-                canvas.drawText(String.valueOf(lines[1].posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.6f, mPlateYValuePaint);
-                mPlateNamePaint.setColor(lines[1].color);
-                mPlateNamePaint.setTextAlign(Paint.Align.RIGHT);
-                canvas.drawText(lines[1].name, right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * 0.8f, mPlateNamePaint);
-                break;
-            default:
-                mPlateYValuePaint.setTextSize(mTextSizeSmallPx);
-                mPlateNamePaint.setTextSize(mTextSizeSmallPx);
-                mPlateYValuePaint.setTextAlign(Paint.Align.LEFT);
-                mPlateNamePaint.setTextAlign(Paint.Align.RIGHT);
-                float heightOffset = 0.45f;
-                for (LineData line : lines){
-                    mPlateYValuePaint.setColor(line.color);
-                    mPlateNamePaint.setColor(line.color);
-                    canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
-                    canvas.drawText(line.name, right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
-                    heightOffset += 0.16f;
-                }
-                break;
+        mPlateYValuePaint.setTextSize(mTextSizeMediumPx);
+        mPlateNamePaint.setTextSize(mTextSizeMediumPx);
+        float heightOffset = 0.55f;
+        for (LineData line : lines){
+            mPlateYValuePaint.setColor(line.color);
+            canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
+            canvas.drawText(line.name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
+            heightOffset += 0.3f;
         }
     }
 

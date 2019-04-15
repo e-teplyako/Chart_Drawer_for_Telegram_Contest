@@ -49,8 +49,8 @@ public class StackedAreaChartDrawer implements ChartDrawer {
     protected final int   TEXT_SIZE_DP             = 12;
     protected final int   TEXT_LABEL_WIDTH_DP      = 36;
     protected final int   TEXT_LABEL_DISTANCE_DP   = 22;
-    protected final int   PLATE_WIDTH_DP           = 120;
-    protected final int   PLATE_HEIGHT_DP          = 180;
+    protected final int   PLATE_WIDTH_DP           = 140;
+    protected final int   PLATE_HEIGHT_DP          = 130;
     protected final int   TEXT_SIZE_SMALL_DP       = 8;
     protected final int   TEXT_SIZE_MEDIUM_DP      = 12;
     protected final int   TEXT_SIZE_LARGE_DP       = 14;
@@ -223,13 +223,13 @@ public class StackedAreaChartDrawer implements ChartDrawer {
         mChartDrawingAreaStartX = drawingAreaOffsetXPx;
         mChartDrawingAreaEndX = width - drawingAreaOffsetXPx;
         mChartDrawingAreaStartY = drawingAreaOffsetYPx;
-        mChartDrawingAreaEndY = height - scrollDrawingAreaHeightPx - drawingAreaOffsetYPx;
+        mChartDrawingAreaEndY = height - scrollDrawingAreaHeightPx - 2 * drawingAreaOffsetYPx;
         mChartDrawingAreaWidth = mChartDrawingAreaEndX - mChartDrawingAreaStartX;
         mChartDrawingAreaHeight = mChartDrawingAreaEndY - mChartDrawingAreaStartY;
 
         mScrollDrawingAreaStartX = drawingAreaOffsetXPx;
         mScrollDrawingAreaEndX = width - drawingAreaOffsetXPx;
-        mScrollDrawingAreaStartY = mChartDrawingAreaEndY + drawingAreaOffsetYPx;
+        mScrollDrawingAreaStartY = mChartDrawingAreaEndY + 2 * drawingAreaOffsetYPx;
         mScrollDrawingAreaEndY = mScrollDrawingAreaStartY + scrollDrawingAreaHeightPx;
         mScrollDrawingAreaWidth = mScrollDrawingAreaEndX - mScrollDrawingAreaStartX;
         mScrollDrawingAreaHeight = mScrollDrawingAreaEndY - mScrollDrawingAreaStartY;
@@ -465,7 +465,7 @@ public class StackedAreaChartDrawer implements ChartDrawer {
         if (mTheme.resolveAttribute(R.attr.dividerColor, dividerColor, true)) {
             mDividerPaint.setColor(dividerColor.data);
         }
-        mDividerPaint.setStrokeWidth(2);
+        mDividerPaint.setStrokeWidth(1);
 
         mBaseLabelPaint = new TextPaint();
         mBaseLabelPaint.setTextSize(mTextSizePx);
@@ -474,6 +474,7 @@ public class StackedAreaChartDrawer implements ChartDrawer {
             mBaseLabelPaint.setColor(baseLabelColor.data);
         }
         mBaseLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+        mBaseLabelPaint.setAntiAlias(true);
 
         mPlatePaint = new Paint();
 
@@ -483,12 +484,16 @@ public class StackedAreaChartDrawer implements ChartDrawer {
             mPlateXValuePaint.setColor(textColor.data);
         }
         mPlateXValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+        mPlateXValuePaint.setAntiAlias(true);
 
         mPlateYValuePaint = new TextPaint();
         mPlateYValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+        mPlateYValuePaint.setAntiAlias(true);
 
         mPlateNamePaint = new TextPaint();
         mPlateNamePaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+        mPlateNamePaint.setAntiAlias(true);
+        mPlateNamePaint.setColor(textColor.data);
 
         mBackgroundPaint = new Paint();
         TypedValue backgroundColor = new TypedValue();
@@ -850,20 +855,13 @@ public class StackedAreaChartDrawer implements ChartDrawer {
         mPlateNamePaint.setTextSize(mTextSizeMediumPx);
         mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
         mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
-        float heightOffset = 0.2f;
-        long sumOfChosenValues = 0;
+        float heightOffset = 0.24f;
         for (ChartArea area : areas){
             mPlateYValuePaint.setColor(area.Data.color);
-            mPlateNamePaint.setColor(area.Data.color);
             canvas.drawText(String.valueOf(area.Percentages[mPositionOfChosenPoint - mPointsMinIndex]) + "% " + area.Data.name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
             canvas.drawText(String.valueOf(area.Data.posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
-            heightOffset += 0.1f;
-            sumOfChosenValues += area.Data.posY[mPositionOfChosenPoint];
+            heightOffset += 0.14f;
         }
-        mPlateNamePaint.setColor(Color.BLACK);
-        mPlateYValuePaint.setColor(Color.BLACK);
-        canvas.drawText("All", left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
-        canvas.drawText(String.valueOf(sumOfChosenValues), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
     }
 
     private void drawYLabels (float height, long yMax, int alpha, boolean left, Canvas canvas) {

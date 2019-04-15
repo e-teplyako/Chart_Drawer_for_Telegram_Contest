@@ -82,14 +82,11 @@ public class StackedBarChartDrawer extends BaseBarChartDrawer {
         long sumOfChosenValues = 0;
         for (LineData line : mLines){
             mPlateYValuePaint.setColor(line.color);
-            mPlateNamePaint.setColor(line.color);
             canvas.drawText(line.name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
             canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
             heightOffset += 0.1f;
             sumOfChosenValues += line.posY[mPositionOfChosenPoint];
         }
-        mPlateNamePaint.setColor(Color.BLACK);
-        mPlateYValuePaint.setColor(Color.BLACK);
         canvas.drawText("All", left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
         canvas.drawText(String.valueOf(sumOfChosenValues), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
 

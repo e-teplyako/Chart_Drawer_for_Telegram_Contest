@@ -96,10 +96,10 @@ public class MainActivity extends AppCompatActivity {
         inflater.inflate(R.menu.switch_mode_menu, menu);
         MenuItem item = menu.findItem(R.id.switch_theme);
         if (isNightModeEnabled()) {
-            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_day_mode));
+            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_night_mode));
         }
         else {
-            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_night_mode));
+            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_day_mode));
         }
         return true;
     }

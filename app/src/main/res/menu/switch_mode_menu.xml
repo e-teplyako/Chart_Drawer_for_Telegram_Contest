@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/switch_theme"
-        android:icon="@drawable/ic_night_mode"
+        android:icon="@drawable/ic_day_mode"
         android:title="@string/switch_mode"
         app:showAsAction="ifRoom"/>
 </menu>
