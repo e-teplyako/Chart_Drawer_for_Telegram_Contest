@@ -71,6 +71,7 @@ public class StackedBarChartDrawer extends BaseBarChartDrawer {
 
         //text
         mPlateXValuePaint.setTextSize(mTextSizeLargePx);
+        mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
         canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.1f, mPlateXValuePaint);
 
         mPlateYValuePaint.setTextSize(mTextSizeMediumPx);

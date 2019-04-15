@@ -15,9 +15,9 @@ import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener{
 
-    private final int   DRAWING_AREA_OFFSET_X_DP = 8;
-    private final int   DRAWING_AREA_OFFSET_Y_DP = 16;
-    private final int   SCROLL_DRAWING_AREA_HEIGHT_DP = 50;
+    private final int   DRAWING_AREA_OFFSET_X_DP        = 8;
+    private final int   DRAWING_AREA_OFFSET_Y_DP        = 16;
+    private final int   SCROLL_DRAWING_AREA_HEIGHT_DP   = 50;
 
     private final float mDrawingAreaOffsetXPx;
     private final float mDrawingAreaOffsetYPx;
@@ -48,17 +48,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
         int viewWidth  = getWidth();
         int viewHeight = getHeight();
 
-        float chartDrawingAreaStartX = mDrawingAreaOffsetXPx;
-        float chartDrawingAreaEndX   = viewWidth - mDrawingAreaOffsetXPx;
-        float chartDrawingAreaStartY = mDrawingAreaOffsetYPx;
-        float chartDrawingAreaEndY   = viewHeight - mScrollDrawingAreaHeightPx - 2 * mDrawingAreaOffsetYPx;
-
-        float scrollDrawingAreaStartX = mDrawingAreaOffsetXPx;
-        float scrollDrawingAreaEndX   = viewWidth - mDrawingAreaOffsetXPx;
-        float scrollDrawingAreaStartY = chartDrawingAreaEndY + 2 * mDrawingAreaOffsetYPx;
-        float scrollDrawingAreaEndY   = scrollDrawingAreaStartY + mScrollDrawingAreaHeightPx;
-
-        mDrawer.setViewDimens(viewWidth, viewHeight, chartDrawingAreaStartX, chartDrawingAreaEndX, chartDrawingAreaStartY, chartDrawingAreaEndY, scrollDrawingAreaStartX, scrollDrawingAreaEndX, scrollDrawingAreaStartY, scrollDrawingAreaEndY);
+        mDrawer.setViewDimens(viewWidth, viewHeight, mDrawingAreaOffsetXPx, mDrawingAreaOffsetYPx, mScrollDrawingAreaHeightPx);
         mDrawer.setSliderPositions(mNormSliderPosLeft, mNormSliderPosRight);
     }
 

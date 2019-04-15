@@ -19,7 +19,6 @@ import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.R;
-import com.teplyakova.april.telegramcontest.ScrollChartView;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
@@ -199,8 +198,6 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         }
     }
 
-    protected final int   DRAWING_AREA_OFFSET_X_DP = 8;
-    protected final int   DRAWING_AREA_OFFSET_Y_DP = 16;
     protected final int   Y_DIVIDERS_COUNT         = 6;
     protected final int   TEXT_SIZE_DP             = 12;
     protected final int   TEXT_LABEL_WIDTH_DP      = 36;
@@ -211,6 +208,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected final int   TEXT_SIZE_MEDIUM_DP      = 12;
     protected final int   TEXT_SIZE_LARGE_DP       = 14;
     protected final int   SLIDER_WIDTH_DP                   = 6;
+    protected final int   TOP_DATES_OFFSET_Y_DP             = 14;
     protected final float MINIMAL_NORM_SLIDER_WIDTH         = 0.2f;
 
     protected final float mTextSizePx;
@@ -221,9 +219,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected final float mTextSizeSmallPx;
     protected final float mTextSizeMediumPx;
     protected final float mTextSizeLargePx;
-    protected final float mDrawingAreaOffsetXPx;
-    protected final float mDrawingAreaOffsetYPx;
     protected final float mSliderWidthPx;
+    protected final float mTopDatesOffsetYPx;
 
     protected Resources.Theme mTheme;
     protected Context mContext;
@@ -272,6 +269,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected float mScrollDrawingAreaEndY;
     protected float mScrollDrawingAreaWidth;
     protected float mScrollDrawingAreaHeight;
+    protected float mDrawingAreaOffsetXPx;
+    protected float mDrawingAreaOffsetYPx;
     protected float mXLabelsYCoordinate;
 
     protected boolean mPointIsChosen = false;
@@ -316,8 +315,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         mTextSizeSmallPx = MathUtils.dpToPixels(TEXT_SIZE_SMALL_DP, context);
         mTextSizeMediumPx = MathUtils.dpToPixels(TEXT_SIZE_MEDIUM_DP, context);
         mTextSizeLargePx = MathUtils.dpToPixels(TEXT_SIZE_LARGE_DP, context);
-        mDrawingAreaOffsetXPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_X_DP, context);
-        mDrawingAreaOffsetYPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_Y_DP, context);
+        mTopDatesOffsetYPx = MathUtils.dpToPixels(TOP_DATES_OFFSET_Y_DP, context);
         mSliderWidthPx = MathUtils.dpToPixels(SLIDER_WIDTH_DP, context);
 
         setUpPaints();
@@ -343,8 +341,10 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     @Override
     public void draw(Canvas canvas) {
 
-        if (mBordersSet)
+        if (mBordersSet) {
             drawScaleX(mChartMappedPointsX, canvas);
+            drawTopDatesText(canvas);
+        }
 
         if (!mBordersSet || (!mCurrentBar.IsVisible() && !mOldBar.IsVisible()) || mLines == null || mLines.length == 0) {
             drawScaleY(100, 100, 255, canvas);
@@ -378,30 +378,33 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     }
 
     @Override
-    public void setViewDimens(float width, float height, float drawingAreaStartX, float drawingAreaEndX, float drawingAreaStartY, float drawingAreaEndY, float scrollDrawingAreaStartX, float scrollDrawingAreaEndX, float scrollDrawingAreaStartY, float scrollDrawingAreaEndY) {
+    public void setViewDimens(float width, float height, float drawingAreaOffsetXPx, float drawingAreaOffsetYPx, float scrollDrawingAreaHeightPx) {
         mViewWidth = width;
         mViewHeight = height;
 
-        mChartDrawingAreaStartX = drawingAreaStartX;
-        mChartDrawingAreaEndX = drawingAreaEndX;
-        mChartDrawingAreaStartY = drawingAreaStartY;
-        mChartDrawingAreaEndY = drawingAreaEndY;
+        mChartDrawingAreaStartX = drawingAreaOffsetXPx;
+        mChartDrawingAreaEndX = width - drawingAreaOffsetXPx;
+        mChartDrawingAreaStartY = drawingAreaOffsetYPx;
+        mChartDrawingAreaEndY = height - scrollDrawingAreaHeightPx - drawingAreaOffsetYPx;
         mChartDrawingAreaWidth = mChartDrawingAreaEndX - mChartDrawingAreaStartX;
         mChartDrawingAreaHeight = mChartDrawingAreaEndY - mChartDrawingAreaStartY;
 
-        mScrollDrawingAreaStartX = scrollDrawingAreaStartX;
-        mScrollDrawingAreaEndX = scrollDrawingAreaEndX;
-        mScrollDrawingAreaStartY = scrollDrawingAreaStartY;
-        mScrollDrawingAreaEndY = scrollDrawingAreaEndY;
+        mScrollDrawingAreaStartX = drawingAreaOffsetXPx;
+        mScrollDrawingAreaEndX = width - drawingAreaOffsetXPx;
+        mScrollDrawingAreaStartY = mChartDrawingAreaEndY + drawingAreaOffsetYPx;
+        mScrollDrawingAreaEndY = mScrollDrawingAreaStartY + scrollDrawingAreaHeightPx;
         mScrollDrawingAreaWidth = mScrollDrawingAreaEndX - mScrollDrawingAreaStartX;
         mScrollDrawingAreaHeight = mScrollDrawingAreaEndY - mScrollDrawingAreaStartY;
+
+        mDrawingAreaOffsetXPx = drawingAreaOffsetXPx;
+        mDrawingAreaOffsetYPx = drawingAreaOffsetYPx;
 
         mXLabelsYCoordinate = mChartDrawingAreaEndY + MathUtils.dpToPixels(13, mContext);
 
         mChosenAreaMinimalWidth = mScrollDrawingAreaWidth * MINIMAL_NORM_SLIDER_WIDTH;
 
         float minChartWidth = mChartDrawingAreaWidth;
-        float maxChartWidth = minChartWidth / ScrollChartView.MINIMAL_NORM_SLIDER_WIDTH;
+        float maxChartWidth = minChartWidth / MINIMAL_NORM_SLIDER_WIDTH;
         int sizeOfArray = mPosX.length;
         for (int i = 1; true; i = i * 2) {
             int textElemsCount = sizeOfArray / i;
@@ -647,7 +650,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         if (mTheme.resolveAttribute(R.attr.labelTextColor, textColor, true)) {
             mPlateXValuePaint.setColor(textColor.data);
         }
-        mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
+        mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
         mPlateXValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
 
         mPlateYValuePaint = new TextPaint();
@@ -976,6 +979,13 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
             canvas.drawPath(bar.ChartPaths[i], mBarPaint);
             canvas.drawPath(bar.ScrollPaths[i], mBarPaint);
         }
+    }
+
+    protected void drawTopDatesText (Canvas canvas) {
+        String dateText = DateTimeUtils.formatDatedMMMMMyyyy(mPos1) + " - " + DateTimeUtils.formatDatedMMMMMyyyy(mPos2);
+        mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
+        mPlateXValuePaint.setTextAlign(Paint.Align.RIGHT);
+        canvas.drawText(dateText, mChartDrawingAreaEndX, mTopDatesOffsetYPx, mPlateXValuePaint);
     }
 
     protected void drawOpaqueRects (Canvas canvas) {

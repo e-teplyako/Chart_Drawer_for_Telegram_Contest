@@ -22,27 +22,31 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
             super(line, left);
         }
 
-        public void updateMaxY() {
+        public void updateMinMaxY() {
 
             if (!mBordersSet || !mLine.IsVisible())
                 return;
 
             LineData[] lines = {mLine.Data};
             long newYMax = MathUtils.getMaxY(lines, mPointsMinIndex, mPointsMaxIndex);
-            newYMax = (newYMax / Y_DIVIDERS_COUNT + 1) * Y_DIVIDERS_COUNT;
+            long newYMin = MathUtils.getMinY(lines, mPointsMinIndex, mPointsMaxIndex);
+            newYMax = (((newYMax - newYMin) / Y_DIVIDERS_COUNT) + 1) * Y_DIVIDERS_COUNT + newYMin;
 
-            if (newYMax != mTargetMaxY)
+            if (newYMax != mTargetMaxY || newYMin != mTargetMinY)
             {
-                boolean firstTime = mTargetMaxY < 0;
+                boolean firstTime = (mTargetMaxY < 0 || mTargetMinY < 0);
                 mTargetMaxY = newYMax;
+                mTargetMinY = newYMin;
 
                 if (firstTime)
                 {
                     mMaxY = mTargetMaxY;
+                    mMinY = mTargetMinY;
 
                     YScale yScale = new YScale();
                     yScale.Height = mMaxY;
                     yScale.MaxY   = mMaxY;
+                    yScale.MinY   = mMinY;
                     yScale.Alpha  = 255;
                     mYScales.add(yScale);
                 }
@@ -71,10 +75,24 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         }
     }
 
+    protected void mapYPointsForChartView()
+    {
+        if (!mBordersSet || !showChartLines())
+            return;
+
+        for (BaseLineChartDrawer.ChartLine line : mLines) {
+            if (line.IsVisible()){
+                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, line.mYMaxAnimator.mMinY, line.mYMaxAnimator.mMaxY);
+            }
+        }
+    }
+
     @Override
     public void draw(Canvas canvas) {
-        if (mBordersSet)
+        if (mBordersSet) {
             drawScaleX(mChartMappedPointsX, canvas);
+            drawTopDatesText(canvas);
+        }
 
         if (!showChartLines() || !mBordersSet)
         {
@@ -97,9 +115,9 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         for (BaseLineChartDrawer.ChartLine line : mLines) {
             if (line.IsVisible()) {
                 mChartPaint.setStrokeWidth(6);
-                drawChartLine(line, canvas, mChartMappedPointsX, line.mChartMappedPointsY);
+                drawChartLineInChartView(line, canvas, mChartMappedPointsX, line.mChartMappedPointsY);
                 mChartPaint.setStrokeWidth(4);
-                drawChartLine(line, canvas, line.mScrollOptimizedPointsX, line.mScrollOptimizedPointsY);
+                drawChartLineInScrollView(line, canvas, line.mScrollOptimizedPointsX, line.mScrollOptimizedPointsY);
             }
         }
 
@@ -112,7 +130,7 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         for (BaseLineChartDrawer.ChartLine line : mLines) {
             if (line.IsVisible()) {
                 for (BaseLineChartDrawer.YScale yScale : line.mYMaxAnimator.mYScales) {
-                    drawYLabels(yScale.Height, yScale.MaxY, yScale.Alpha, line.mYMaxAnimator.mLeft, line.Data.color, canvas);
+                    drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, yScale.Alpha, line.mYMaxAnimator.mLeft, line.Data.color, canvas);
                 }
             }
         }
@@ -124,7 +142,7 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         drawRects(canvas);
     }
 
-    private void drawYLabels (long height, long yMax, int alpha, boolean left, int color, Canvas canvas) {
+    private void drawYLabels (long height, long yMax, long yMin, int alpha, boolean left, int color, Canvas canvas) {
         float xCoord;
         if (left) {
             mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
@@ -137,7 +155,7 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
 
         float spaceBetweenDividers = (float)yMax / height * mChartDrawingAreaHeight / Y_DIVIDERS_COUNT;
 
-        long step = 0;
+        long step = yMin;
         float yLabelCoord = mChartDrawingAreaEndY * 0.99f;
 
         mBaseLabelPaint.setColor(color);
@@ -146,7 +164,7 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         for (int i = 0; i < Y_DIVIDERS_COUNT; i++) {
             canvas.drawText(MathUtils.getFriendlyNumber(step), xCoord, yLabelCoord, mBaseLabelPaint);
             yLabelCoord -= spaceBetweenDividers;
-            step += yMax / Y_DIVIDERS_COUNT;
+            step += (yMax - yMin) / Y_DIVIDERS_COUNT;
         }
 
     }

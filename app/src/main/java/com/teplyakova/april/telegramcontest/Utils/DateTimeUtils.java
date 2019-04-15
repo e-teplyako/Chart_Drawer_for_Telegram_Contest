@@ -30,4 +30,10 @@ public class DateTimeUtils {
         return dateFormat.format(date);
     }
 
+    public static String formatDatedMMMMMyyyy(long timestamp) {
+        Date date = fromTimestamp(timestamp);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy", Locale.getDefault());
+        return dateFormat.format(date);
+    }
+
 }

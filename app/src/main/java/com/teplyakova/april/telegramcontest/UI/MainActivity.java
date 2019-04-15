@@ -1,5 +1,6 @@
 package com.teplyakova.april.telegramcontest.UI;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;

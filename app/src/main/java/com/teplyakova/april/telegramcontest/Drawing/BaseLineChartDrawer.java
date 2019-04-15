@@ -11,7 +11,6 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.text.TextPaint;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 
@@ -32,6 +31,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
     {
         public long Height;
         public long MaxY;
+        public long MinY;
         public int  Alpha;
 
         public long HeightStart;
@@ -39,6 +39,9 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
 
         public long MaxYStart;
         public long MaxYEnd;
+
+        public long MinYStart;
+        public long MinYEnd;
 
         public int  AlphaStart;
         public int  AlphaEnd;
@@ -68,7 +71,9 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
     public abstract class YMaxAnimator {
         public ChartLine mLine;
         public long mMaxY = -1;
+        public long mMinY;
         public long mTargetMaxY = -1;
+        public long mTargetMinY = -1;
         public ValueAnimator mMaxYAnimator;
         public ArrayList<YScale> mYScales = new ArrayList<YScale>();
         public boolean mLeft;
@@ -78,7 +83,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
             mLeft = left;
         }
 
-        public abstract void updateMaxY();
+        public abstract void updateMinMaxY();
 
         public void startAnimationYMax() {
             if (mMaxYAnimator != null)
@@ -93,6 +98,8 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
                 yScale.HeightEnd   = mTargetMaxY;
                 yScale.MaxYStart   = yScale.MaxY;
                 yScale.MaxYEnd     = yScale.MaxY;
+                yScale.MinYStart   = yScale.MinY;
+                yScale.MinYEnd     = yScale.MinY;
                 yScale.AlphaStart  = yScale.Alpha;
                 yScale.AlphaEnd    = 0;
             }
@@ -104,13 +111,18 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
             newScale.MaxY        = mTargetMaxY;
             newScale.MaxYStart   = mTargetMaxY;
             newScale.MaxYEnd     = mTargetMaxY;
+            newScale.MinY        = mTargetMinY;
+            newScale.MinYStart   = mTargetMinY;
+            newScale.MinYEnd     = mTargetMinY;
             newScale.Alpha       = 0;
             newScale.AlphaStart  = 0;
             newScale.AlphaEnd    = 255;
             mYScales.add(newScale);
 
-            final long startY = mMaxY;
-            final long endY   = mTargetMaxY;
+            final long startMaxY = mMaxY;
+            final long endMaxY   = mTargetMaxY;
+            final long startMinY = mMinY;
+            final long endMinY   = mTargetMinY;
 
             final String KEY_PHASE = "phase";
 
@@ -123,12 +135,14 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
                 public void onAnimationUpdate(ValueAnimator animator) {
                     float t = (float) animator.getAnimatedValue(KEY_PHASE);
 
-                    mMaxY = (long)MathUtils.lerp(startY, endY, t);
+                    mMaxY = (long)MathUtils.lerp(startMaxY, endMaxY, t);
+                    mMinY = (long)MathUtils.lerp(startMinY, endMinY, t);
                     mapYPointsForChartView();
 
                     for (YScale yScale : mYScales)
                     {
                         yScale.MaxY   = (long)MathUtils.lerp(yScale.MaxYStart,   yScale.MaxYEnd,   t);
+                        yScale.MinY   = (long)MathUtils.lerp(yScale.MinYStart,   yScale.MinYEnd,   t);
 
                         if (yScale.AlphaEnd == 255)
                         {
@@ -169,8 +183,6 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         }
     }
 
-    protected final int   DRAWING_AREA_OFFSET_X_DP          = 8;
-    protected final int   DRAWING_AREA_OFFSET_Y_DP          = 16;
     protected final int   Y_DIVIDERS_COUNT                  = 6;
     protected final int   TEXT_SIZE_DP                      = 12;
     protected final int   TEXT_LABEL_WIDTH_DP               = 36;
@@ -181,6 +193,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
     protected final int   TEXT_SIZE_MEDIUM_DP               = 12;
     protected final int   TEXT_SIZE_LARGE_DP                = 14;
     protected final int   SLIDER_WIDTH_DP                   = 6;
+    protected final int   TOP_DATES_OFFSET_Y_DP             = 14;
     protected final float MINIMAL_NORM_SLIDER_WIDTH         = 0.2f;
 
     protected final float mTextSizePx;
@@ -191,9 +204,8 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
     protected final float mTextSizeSmallPx;
     protected final float mTextSizeMediumPx;
     protected final float mTextSizeLargePx;
-    protected final float mDrawingAreaOffsetXPx;
-    protected final float mDrawingAreaOffsetYPx;
     protected final float mSliderWidthPx;
+    protected final float mTopDatesOffsetYPx;
     protected final float mOptimTolerancePx;
 
     protected Resources.Theme mTheme;
@@ -239,6 +251,8 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
     protected float mScrollDrawingAreaEndY;
     protected float mScrollDrawingAreaWidth;
     protected float mScrollDrawingAreaHeight;
+    protected float mDrawingAreaOffsetXPx;
+    protected float mDrawingAreaOffsetYPx;
     protected float mXLabelsYCoordinate;
 
     protected boolean mPointIsChosen = false;
@@ -284,9 +298,8 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mTextSizeSmallPx = MathUtils.dpToPixels(TEXT_SIZE_SMALL_DP, context);
         mTextSizeMediumPx = MathUtils.dpToPixels(TEXT_SIZE_MEDIUM_DP, context);
         mTextSizeLargePx = MathUtils.dpToPixels(TEXT_SIZE_LARGE_DP, context);
-        mDrawingAreaOffsetXPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_X_DP, context);
-        mDrawingAreaOffsetYPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_Y_DP, context);
         mSliderWidthPx = MathUtils.dpToPixels(SLIDER_WIDTH_DP, context);
+        mTopDatesOffsetYPx = MathUtils.dpToPixels(TOP_DATES_OFFSET_Y_DP, context);
         mOptimTolerancePx = mPosX.length >= 150 ? MathUtils.dpToPixels(6, mContext) : 1;
 
         setUpPaints();
@@ -301,23 +314,26 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
     public abstract void draw(Canvas canvas);
 
     @Override
-    public void setViewDimens(float width, float height, float drawingAreaStartX, float drawingAreaEndX, float drawingAreaStartY, float drawingAreaEndY, float scrollDrawingAreaStartX, float scrollDrawingAreaEndX, float scrollDrawingAreaStartY, float scrollDrawingAreaEndY) {
+    public void setViewDimens(float width, float height, float drawingAreaOffsetXPx, float drawingAreaOffsetYPx, float scrollDrawingAreaHeightPx) {
         mViewWidth = width;
         mViewHeight = height;
 
-        mChartDrawingAreaStartX = drawingAreaStartX;
-        mChartDrawingAreaEndX = drawingAreaEndX;
-        mChartDrawingAreaStartY = drawingAreaStartY;
-        mChartDrawingAreaEndY = drawingAreaEndY;
+        mChartDrawingAreaStartX = drawingAreaOffsetXPx;
+        mChartDrawingAreaEndX = width - drawingAreaOffsetXPx;
+        mChartDrawingAreaStartY = drawingAreaOffsetYPx;
+        mChartDrawingAreaEndY = height - scrollDrawingAreaHeightPx - drawingAreaOffsetYPx;
         mChartDrawingAreaWidth = mChartDrawingAreaEndX - mChartDrawingAreaStartX;
         mChartDrawingAreaHeight = mChartDrawingAreaEndY - mChartDrawingAreaStartY;
 
-        mScrollDrawingAreaStartX = scrollDrawingAreaStartX;
-        mScrollDrawingAreaEndX = scrollDrawingAreaEndX;
-        mScrollDrawingAreaStartY = scrollDrawingAreaStartY;
-        mScrollDrawingAreaEndY = scrollDrawingAreaEndY;
+        mScrollDrawingAreaStartX = drawingAreaOffsetXPx;
+        mScrollDrawingAreaEndX = width - drawingAreaOffsetXPx;
+        mScrollDrawingAreaStartY = mChartDrawingAreaEndY + drawingAreaOffsetYPx;
+        mScrollDrawingAreaEndY = mScrollDrawingAreaStartY + scrollDrawingAreaHeightPx;
         mScrollDrawingAreaWidth = mScrollDrawingAreaEndX - mScrollDrawingAreaStartX;
         mScrollDrawingAreaHeight = mScrollDrawingAreaEndY - mScrollDrawingAreaStartY;
+
+        mDrawingAreaOffsetXPx = drawingAreaOffsetXPx;
+        mDrawingAreaOffsetYPx = drawingAreaOffsetYPx;
 
         mChosenAreaMinimalWidth = mScrollDrawingAreaWidth * MINIMAL_NORM_SLIDER_WIDTH;
 
@@ -437,7 +453,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mapXPointsForChartView();
 
         for (ChartLine line : mLines) {
-            line.mYMaxAnimator.updateMaxY();
+            line.mYMaxAnimator.updateMinMaxY();
         }
 
         hidePointDetails();
@@ -464,7 +480,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
             startSetLinesAnimation();
 
         for (ChartLine line : mLines) {
-            line.mYMaxAnimator.updateMaxY();
+            line.mYMaxAnimator.updateMinMaxY();
         }
 
         hidePointDetails();
@@ -557,7 +573,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         if (mTheme.resolveAttribute(R.attr.labelTextColor, textColor, true)) {
             mPlateXValuePaint.setColor(textColor.data);
         }
-        mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
+        mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
         mPlateXValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
 
         mPlateYValuePaint = new TextPaint();
@@ -629,17 +645,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mScrollMappedPointsX = mapXPointsForScrollView(mPosX);
     }
 
-    protected void mapYPointsForChartView()
-    {
-        if (!mBordersSet || !showChartLines())
-            return;
-
-        for (ChartLine line : mLines) {
-            if (line.IsVisible()){
-                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, 0, line.mYMaxAnimator.mMaxY);
-            }
-        }
-    }
+    protected abstract void mapYPointsForChartView();
 
     protected void mapYPointsForScrollView()
     {
@@ -654,7 +660,20 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         }
     }
 
-    protected void drawChartLine (ChartLine line, Canvas canvas, float[] mappedX, float[] mappedY){
+    protected void drawChartLineInChartView(ChartLine line, Canvas canvas, float[] mappedX, float[] mappedY){
+        mChartPaint.setColor(line.Data.color);
+        mChartPaint.setAlpha(line.Alpha);
+
+        canvas.save();
+        canvas.clipRect(mChartDrawingAreaStartX, mChartDrawingAreaStartY, mChartDrawingAreaEndX, mChartDrawingAreaEndY);
+        float[] drawingPoints = MathUtils.concatArraysForDrawing(mappedX, mappedY);
+        if (drawingPoints != null) {
+            canvas.drawLines(drawingPoints, mChartPaint);
+        }
+        canvas.restore();
+    }
+
+    protected void drawChartLineInScrollView(ChartLine line, Canvas canvas, float[] mappedX, float[] mappedY){
         mChartPaint.setColor(line.Data.color);
         mChartPaint.setAlpha(line.Alpha);
 
@@ -670,6 +689,13 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         canvas.drawRect(mSliderLeft, mSliderPaint);
         canvas.drawRect(mSliderRight, mSliderPaint);
         canvas.drawRect(mChosenArea, mChosenAreaPaint);
+    }
+
+    protected void drawTopDatesText (Canvas canvas) {
+        String dateText = DateTimeUtils.formatDatedMMMMMyyyy(mPos1) + " - " + DateTimeUtils.formatDatedMMMMMyyyy(mPos2);
+        mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
+        mPlateXValuePaint.setTextAlign(Paint.Align.RIGHT);
+        canvas.drawText(dateText, mChartDrawingAreaEndX, mTopDatesOffsetYPx, mPlateXValuePaint);
     }
 
     public void setSliderPositions (float normPos1, float normPos2) {
@@ -894,6 +920,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
 
         //text
         mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
+        mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
         canvas.drawText(DateTimeUtils.formatDateEEEMMMd(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.22f, mPlateXValuePaint);
 
         LineData[] lines = getActiveChartLines();

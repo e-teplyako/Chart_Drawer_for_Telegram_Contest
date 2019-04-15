@@ -16,13 +16,13 @@
         <com.teplyakova.april.telegramcontest.ChartView
             android:id="@+id/chartview"
             android:layout_width="match_parent"
-            android:layout_height="400dp"/>
+            android:layout_height="390dp"/>
 
         <LinearLayout
             android:id="@+id/checkboxes_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
         </LinearLayout>
     </LinearLayout>

@@ -13,17 +13,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartView;
 import com.teplyakova.april.telegramcontest.ChartsManager;
 import com.teplyakova.april.telegramcontest.DrawerFactory;
-import com.teplyakova.april.telegramcontest.Drawing.LineChart2YAxisDrawer;
-import com.teplyakova.april.telegramcontest.Drawing.StandardLineChartDrawer;
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.R;
-import com.teplyakova.april.telegramcontest.ScrollChartView;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
@@ -80,23 +78,46 @@ public class PageFragment extends Fragment {
         if (savedInstanceState != null) {
             mCheckboxesState = savedInstanceState.getBooleanArray(CHECKBOXES_KEY);
         }
-
         mCheckboxes.clear();
+
+        manageCheckboxes(view, mChartData);
+
+        return view;
+    }
+
+    private void manageCheckboxes(View view, ChartData chartData) {
+        if (chartData.type == "BarChart")
+            return;
+
         LinearLayout linearLayout = (LinearLayout) view.findViewById(R.id.checkboxes_layout);
-        for (int i = 0; i < mChartData.lines.length; i++) {
+        for (int i = 0; i < chartData.lines.length; i += 3) {
             LinearLayout row = new LinearLayout(getContext());
             row.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
             if (mCheckboxesState == null || mCheckboxesState.length == 0) {
-                createCheckbox(mChartData.lines[i], row, true);
-            }
-            else {
-                createCheckbox(mChartData.lines[i], row, mCheckboxesState[i]);
+                createCheckbox(chartData.lines[i], row, true);
+                if ((i + 1) <= chartData.lines.length - 1)
+                    createCheckbox(chartData.lines[i + 1], row, true);
+                if ((i + 2) <= chartData.lines.length - 1)
+                    createCheckbox(chartData.lines[i + 2], row, true);
+            } else {
+                createCheckbox(chartData.lines[i], row, mCheckboxesState[i]);
+                if ((i + 1) <= chartData.lines.length - 1)
+                    createCheckbox(chartData.lines[i + 1], row, mCheckboxesState[i + 1]);
+                if ((i + 2) <= chartData.lines.length - 1)
+                    createCheckbox(chartData.lines[i + 2], row, mCheckboxesState[i + 2]);
             }
             linearLayout.addView(row);
         }
 
         setLines();
-        return view;
+    }
+
+    private void removeFilters() {
+        for (CheckBox box : mCheckboxes) {
+            box.setChecked(true);
+        }
+        setLines();
     }
 
     @SuppressLint("RestrictedApi")
@@ -125,6 +146,13 @@ public class PageFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 setLines();
+            }
+        });
+        checkBox.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                removeFilters();
+                return true;
             }
         });
         mCheckboxes.add(checkBox);

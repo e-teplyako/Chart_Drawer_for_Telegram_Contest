@@ -86,6 +86,17 @@ public class MathUtils {
         return max;
     }
 
+    public static long getMinY (LineData[] lines, int minIndex, int maxIndex) {
+        long min = lines[0].posY[minIndex];
+
+        for (LineData line : lines) {
+            long minInLine = getMin(line.posY, minIndex, maxIndex);
+            if (minInLine < min)
+                min = minInLine;
+        }
+        return min;
+    }
+
     public static long getMaxYForStackedChart(LineData[] lines, int minIndex, int maxIndex) {
         if (lines == null || lines.length == 0)
             return -1;
@@ -111,6 +122,17 @@ public class MathUtils {
             }
         }
         return max;
+    }
+
+    public static long getMin (long[] array, int minIndex, int maxIndex) {
+        long min = array[minIndex];
+
+        for (int i = minIndex; i < maxIndex; i++) {
+            if (array[i] < min) {
+                min = array[i];
+            }
+        }
+        return min;
     }
 
     public static boolean equals(LineData[] array1, LineData[] array2) {
