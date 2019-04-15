@@ -182,7 +182,6 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
             mMaxYAnimator.start();
         }
     }
-
     protected final int   Y_DIVIDERS_COUNT                  = 6;
     protected final int   TEXT_SIZE_DP                      = 12;
     protected final int   TEXT_LABEL_WIDTH_DP               = 36;
@@ -665,7 +664,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mChartPaint.setAlpha(line.Alpha);
 
         canvas.save();
-        canvas.clipRect(mChartDrawingAreaStartX, mChartDrawingAreaStartY, mChartDrawingAreaEndX, mChartDrawingAreaEndY);
+        canvas.clipRect(0, mChartDrawingAreaStartY, mViewWidth, mChartDrawingAreaEndY);
         float[] drawingPoints = MathUtils.concatArraysForDrawing(mappedX, mappedY);
         if (drawingPoints != null) {
             canvas.drawLines(drawingPoints, mChartPaint);
