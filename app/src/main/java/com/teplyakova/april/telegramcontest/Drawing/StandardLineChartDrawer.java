@@ -74,6 +74,15 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         }
     }
 
+    protected int getChartLineAlpha(int alpha) {
+        int maxAlpha = 0;
+        for (BaseLineChartDrawer.ChartLine line : mLines) {
+            if (line.Alpha > maxAlpha)
+                maxAlpha = line.Alpha;
+        }
+        return maxAlpha > alpha ? alpha : maxAlpha;
+    }
+
     protected void mapYPointsForChartView()
     {
         if (!mBordersSet || !showChartLines())
@@ -129,7 +138,7 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         for (BaseLineChartDrawer.ChartLine line : mLines) {
             if (line.IsVisible()) {
                 for (BaseLineChartDrawer.YScale yScale : line.mYMaxAnimator.mYScales) {
-                    drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, yScale.Alpha, line.mYMaxAnimator.mLeft, canvas);
+                    drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, getChartLineAlpha(yScale.Alpha), line.mYMaxAnimator.mLeft, canvas);
                 }
             }
         }

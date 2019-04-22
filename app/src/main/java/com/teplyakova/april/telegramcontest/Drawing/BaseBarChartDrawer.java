@@ -239,6 +239,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected long[] mPosX;
     protected long  mPos1 = -1;
     protected long  mPos2 = -1;
+    protected int mPosFirstVisible;
     protected boolean mBordersSet;
     protected float[] mChartMappedPointsX;
     protected float[] mScrollMappedPointsX;
@@ -561,8 +562,9 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         if (mOldBar != null) {
             mOldBar.mYMaxAnimator.updateMaxY();
         }
-
         hidePointDetails();
+
+        mPosFirstVisible = MathUtils.getIndexOfNearestRightElement(mPosX, mPos1);
 
         return result;
     }
@@ -999,7 +1001,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     }
 
     protected void drawTopDatesText (Canvas canvas) {
-        String dateText = DateTimeUtils.formatDatedMMMMMyyyy(mPos1) + " - " + DateTimeUtils.formatDatedMMMMMyyyy(mPos2);
+        String dateText = DateTimeUtils.formatDatedMMMMMyyyy(mPosX[mPosFirstVisible]) + " - " + DateTimeUtils.formatDatedMMMMMyyyy(mPos2);
         mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
         mPlateXValuePaint.setTextAlign(Paint.Align.RIGHT);
         canvas.drawText(dateText, mChartDrawingAreaEndX, mTopDatesOffsetYPx, mPlateXValuePaint);

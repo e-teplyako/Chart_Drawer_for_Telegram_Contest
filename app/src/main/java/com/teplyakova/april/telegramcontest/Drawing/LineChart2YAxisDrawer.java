@@ -87,6 +87,10 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         }
     }
 
+    protected int getChartLineAlpha(int alpha, BaseLineChartDrawer.ChartLine line) {
+        return line.Alpha > alpha ? alpha : line.Alpha;
+    }
+
     @Override
     public void draw(Canvas canvas) {
         if (mBordersSet) {
@@ -130,7 +134,7 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         for (BaseLineChartDrawer.ChartLine line : mLines) {
             if (line.IsVisible()) {
                 for (BaseLineChartDrawer.YScale yScale : line.mYMaxAnimator.mYScales) {
-                    drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, yScale.Alpha, line.mYMaxAnimator.mLeft, line.Data.color, canvas);
+                    drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, getChartLineAlpha(yScale.Alpha, line), line.mYMaxAnimator.mLeft, line.Data.color, canvas);
                 }
             }
         }
