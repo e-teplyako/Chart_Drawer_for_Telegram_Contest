@@ -23,7 +23,7 @@ public class StackedBarChartDrawer extends BaseBarChartDrawer {
 
     public class YMaxAnimator extends BaseBarChartDrawer.YMaxAnimator {
         public YMaxAnimator(ChartBar bar, boolean left) {
-            super(bar, left);
+            super();
         }
     }
 

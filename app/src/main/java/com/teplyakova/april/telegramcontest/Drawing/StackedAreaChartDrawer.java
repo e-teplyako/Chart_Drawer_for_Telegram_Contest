@@ -455,7 +455,9 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 
     protected void setUpPaints() {
         mChartPaint = new Paint();
-        mChartPaint.setStyle(Paint.Style.FILL);
+        mChartPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        mChartPaint.setAntiAlias(true);
+        mChartPaint.setStrokeCap(Paint.Cap.SQUARE);
 
         mDividerPaint = new Paint();
         TypedValue dividerColor = new TypedValue();

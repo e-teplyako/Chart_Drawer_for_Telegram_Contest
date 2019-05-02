@@ -57,8 +57,6 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         public float[][] mChartMappedPointsY;
         public float[][] mScrollMappedPointsY;
 
-        public YMaxAnimator mYMaxAnimator;
-
         public boolean IsVisible()
         {
             return (Alpha > 0 || AlphaEnd > 0);
@@ -66,24 +64,21 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     }
 
     public class YMaxAnimator {
-        public ChartBar mBar;
         public long mMaxY = -1;
         public long mTargetMaxY = -1;
         public ValueAnimator mMaxYAnimator;
         public ArrayList<YScale> mYScales = new ArrayList<YScale>();
         public boolean mLeft;
 
-        public YMaxAnimator(ChartBar bar, boolean left) {
-            mBar = bar;
-            mLeft = left;
+        public YMaxAnimator() {
         }
 
         public void updateMaxY() {
 
-            if (!mBordersSet || mBar.Data == null || mBar.Data.length == 0)
+            if (!mBordersSet || mCurrentBar.Data == null || mCurrentBar.Data.length == 0)
                 return;
 
-            long newYMax = MathUtils.getMaxYForStackedChart(mBar.Data, mPointsMinIndex, mPointsMaxIndex);
+            long newYMax = MathUtils.getMaxYForStackedChart(mCurrentBar.Data, mPointsMinIndex, mPointsMaxIndex);
             newYMax = (newYMax / Y_DIVIDERS_COUNT + 1) * Y_DIVIDERS_COUNT;
 
             if (newYMax != mTargetMaxY)
@@ -106,7 +101,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
                 }
             }
 
-            mapYPointsForChartView(mBar);
+            mapYPointsForChartView(mCurrentBar);
         }
 
         public void startAnimationYMax() {
@@ -153,7 +148,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
                     float t = (float) animator.getAnimatedValue(KEY_PHASE);
 
                     mMaxY = (long)MathUtils.lerp(startY, endY, t);
-                    mapYPointsForChartView(mBar);
+                    mapYPointsForChartView(mCurrentBar);
 
                     for (YScale yScale : mYScales)
                     {
@@ -299,6 +294,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
 
     protected boolean mSliderPositionsSet = false;
 
+    protected YMaxAnimator mYMaxAnimator;
+
 
     public BaseBarChartDrawer(Context context, ChartData chartData) {
         mContext = context;
@@ -324,7 +321,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         mCurrentBar.Data = chartData.lines;
         mCurrentBar.Alpha = 255;
         mCurrentBar.AlphaEnd = 255;
-        mCurrentBar.mYMaxAnimator = new YMaxAnimator(mCurrentBar, true);
+
+        mYMaxAnimator = new YMaxAnimator();
 
         mBarRect = new RectF();
         mOpaqueRect = new RectF();
@@ -356,7 +354,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         }
 
         if (mCurrentBar != null) {
-            for (YScale yScale : mCurrentBar.mYMaxAnimator.mYScales) {
+            for (YScale yScale : mYMaxAnimator.mYScales) {
                 drawScaleY(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
                 drawYLabels(yScale.Height, yScale.MaxY, yScale.Alpha, true, canvas);
             }
@@ -492,12 +490,10 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
                 mOldBar.Alpha = mCurrentBar.Alpha;
                 mOldBar.AlphaEnd = 0;
                 mOldBar.AlphaStart = mOldBar.Alpha;
-                mOldBar.mYMaxAnimator = new YMaxAnimator(mOldBar, true);
                 mCurrentBar = new ChartBar();
                 mCurrentBar.Data = lines;
                 mCurrentBar.Alpha = 0;
                 mCurrentBar.AlphaEnd = 255;
-                mCurrentBar.mYMaxAnimator = new YMaxAnimator(mCurrentBar, true);
             }
             else {
                 mCurrentBar.Data = lines;
@@ -507,13 +503,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         if (animate)
             startChartBarAnimation();
 
-        if (mCurrentBar != null) {
-            mCurrentBar.mYMaxAnimator.updateMaxY();
-        }
-        if (mOldBar != null) {
-            mOldBar.mYMaxAnimator.updateMaxY();
-        }
-
+        mYMaxAnimator.updateMaxY();
 
         mLines = lines;
         mapXPointsForChartView();
@@ -556,12 +546,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         mapXPointsForChartView();
         mapYPointsForChartView(mCurrentBar);
 
-        if (mCurrentBar != null) {
-            mCurrentBar.mYMaxAnimator.updateMaxY();
-        }
-        if (mOldBar != null) {
-            mOldBar.mYMaxAnimator.updateMaxY();
-        }
+        mYMaxAnimator.updateMaxY();
+
         hidePointDetails();
 
         mPosFirstVisible = MathUtils.getIndexOfNearestRightElement(mPosX, mPos1);
@@ -622,6 +608,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected void setUpPaints() {
         mBarPaint = new Paint();
         mBarPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        mBarPaint.setStrokeCap(Paint.Cap.SQUARE);
+        mBarPaint.setAntiAlias(true);
 
         mDividerPaint = new Paint();
         TypedValue dividerColor = new TypedValue();
@@ -791,7 +779,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
 
 
         if (bar != null && bar.IsVisible()){
-            bar.mChartMappedPointsY = mapYPointsForChartView(bar.Data, 0, bar.mYMaxAnimator.mMaxY);
+            bar.mChartMappedPointsY = mapYPointsForChartView(bar.Data, 0, mYMaxAnimator.mMaxY);
             preparePaths(bar, mChartMappedPointsX, bar.mChartMappedPointsY, mChartDrawingAreaEndY, true);
         }
     }

@@ -544,6 +544,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         mChartPaint = new Paint();
         mChartPaint.setStyle(Paint.Style.STROKE);
         mChartPaint.setAntiAlias(true);
+        mChartPaint.setStrokeCap(Paint.Cap.ROUND);
 
         mDividerPaint = new Paint();
         TypedValue dividerColor = new TypedValue();
@@ -563,6 +564,7 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
 
         mCirclePaint = new Paint();
         mCirclePaint.setStrokeWidth(6);
+        mCirclePaint.setAntiAlias(true);
 
         mPlatePaint = new Paint();
 
