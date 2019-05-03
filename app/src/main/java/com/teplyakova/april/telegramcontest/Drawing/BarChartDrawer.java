@@ -16,12 +16,12 @@ public class BarChartDrawer extends BaseBarChartDrawer {
     public class YScale extends BaseBarChartDrawer.YScale {
     }
 
-    public class ChartBar extends BaseBarChartDrawer.ChartBar {
+    public class ChartArea extends BaseBarChartDrawer.ChartArea {
 
     }
 
     public class YMaxAnimator extends BaseBarChartDrawer.YMaxAnimator {
-        public YMaxAnimator(ChartBar bar, boolean left) {
+        public YMaxAnimator(ChartArea bar, boolean left) {
             super();
         }
     }
