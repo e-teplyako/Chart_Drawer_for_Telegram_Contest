@@ -2,6 +2,7 @@ package com.teplyakova.april.telegramcontest.Drawing;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.TypedValue;
@@ -16,12 +17,12 @@ public class StackedBarChartDrawer extends BaseBarChartDrawer {
     public class YScale extends BaseBarChartDrawer.YScale {
     }
 
-    public class ChartArea extends BaseBarChartDrawer.ChartArea {
+    public class ChartBar extends BaseBarChartDrawer.ChartBar {
 
     }
 
     public class YMaxAnimator extends BaseBarChartDrawer.YMaxAnimator {
-        public YMaxAnimator(ChartArea bar, boolean left) {
+        public YMaxAnimator(ChartBar bar, boolean left) {
             super();
         }
     }

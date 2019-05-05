@@ -43,19 +43,23 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         public int  AlphaEnd;
     }
 
-    public class ChartArea
+    public class ChartBar
     {
-        public LineData Data;
+        public LineData[] Data;
 
-        public float PosYCoefficientStart;
-        public float PosYCoefficient;
-        public float PosYCoefficientEnd;
+        public Path[] ChartPaths;
+        public Path[] ScrollPaths;
 
-        public float[] mChartMappedPointsY;
-        public float[] mScrollMappedPointsY;
+        public int      Alpha;
+        public int      AlphaStart;
+        public int      AlphaEnd;
 
-        public boolean isVisible() {
-            return (PosYCoefficient > 0 || PosYCoefficientEnd > 0);
+        public float[][] mChartMappedPointsY;
+        public float[][] mScrollMappedPointsY;
+
+        public boolean IsVisible()
+        {
+            return (Alpha > 0 || AlphaEnd > 0);
         }
     }
 
@@ -71,11 +75,10 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
 
         public void updateMaxY() {
 
-            if (!mBordersSet || !showChartAreas())
+            if (!mBordersSet || mCurrentBar.Data == null || mCurrentBar.Data.length == 0)
                 return;
 
-            LineData[] lines = getActiveChartLines();
-            long newYMax = MathUtils.getMaxYForStackedChart(lines, mPointsMinIndex, mPointsMaxIndex);
+            long newYMax = MathUtils.getMaxYForStackedChart(mCurrentBar.Data, mPointsMinIndex, mPointsMaxIndex);
             newYMax = (newYMax / Y_DIVIDERS_COUNT + 1) * Y_DIVIDERS_COUNT;
 
             if (newYMax != mTargetMaxY)
@@ -98,7 +101,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
                 }
             }
 
-            mapYPointsForChartView(getMaxPosYCoefficient());
+            mapYPointsForChartView(mCurrentBar);
         }
 
         public void startAnimationYMax() {
@@ -145,7 +148,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
                     float t = (float) animator.getAnimatedValue(KEY_PHASE);
 
                     mMaxY = (long)MathUtils.lerp(startY, endY, t);
-                    mapYPointsForChartView(getMaxPosYCoefficient());
+                    mapYPointsForChartView(mCurrentBar);
 
                     for (YScale yScale : mYScales)
                     {
@@ -239,7 +242,8 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
     protected int mPointsMinIndex;
     protected int mPointsMaxIndex;
 
-    protected ArrayList<ChartArea> mAreas = new ArrayList<>();
+    protected ChartBar mCurrentBar;
+    protected ChartBar mOldBar;
     protected LineData[] mLines;
     protected RectF mBarRect;
     protected RectF mOpaqueRect;
@@ -292,9 +296,6 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
 
     protected YMaxAnimator mYMaxAnimator;
 
-    protected Path[] mChartPaths;
-    protected Path[] mScrollPaths;
-
 
     public BaseBarChartDrawer(Context context, ChartData chartData) {
         mContext = context;
@@ -316,16 +317,10 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         mLines = chartData.lines;
         mPosX = chartData.posX;
 
-        for (LineData lineData : chartData.lines) {
-            ChartArea chartArea = new ChartArea();
-            chartArea.Data = lineData;
-            chartArea.mChartMappedPointsY = new float[lineData.posY.length];
-            chartArea.mScrollMappedPointsY = new float[lineData.posY.length];
-            chartArea.PosYCoefficient = 1;
-            chartArea.PosYCoefficientStart = 1;
-            chartArea.PosYCoefficientEnd = 1;
-            mAreas.add(chartArea);
-        }
+        mCurrentBar = new ChartBar();
+        mCurrentBar.Data = chartData.lines;
+        mCurrentBar.Alpha = 255;
+        mCurrentBar.AlphaEnd = 255;
 
         mYMaxAnimator = new YMaxAnimator();
 
@@ -343,15 +338,22 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
             drawTopDatesText(canvas);
         }
 
-        if (!mBordersSet || !showChartAreas()) {
+        if (!mBordersSet || (!mCurrentBar.IsVisible() && !mOldBar.IsVisible()) || mLines == null || mLines.length == 0) {
             drawScaleY(100, 100, 255, canvas);
             drawRects(canvas);
             return;
         }
 
-        drawAreas(canvas);
+        if (mCurrentBar != null && mCurrentBar.IsVisible() && mCurrentBar.Data != null && mCurrentBar.Data.length > 0) {
+            drawBars(mCurrentBar, canvas, mChartMappedPointsX, mCurrentBar.mChartMappedPointsY, mChartDrawingAreaEndY);
+            drawBars(mCurrentBar, canvas, mScrollMappedPointsX, mCurrentBar.mScrollMappedPointsY, mScrollDrawingAreaEndY);
+        }
+        if (mOldBar != null && mOldBar.IsVisible() && mOldBar.Data != null && mOldBar.Data.length > 0) {
+            drawBars(mOldBar, canvas, mChartMappedPointsX, mOldBar.mChartMappedPointsY, mChartDrawingAreaEndY);
+            drawBars(mOldBar, canvas, mScrollMappedPointsX, mOldBar.mScrollMappedPointsY, mScrollDrawingAreaEndY);
+        }
 
-        for (ChartArea area : mAreas) {
+        if (mCurrentBar != null) {
             for (YScale yScale : mYMaxAnimator.mYScales) {
                 drawScaleY(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
                 drawYLabels(yScale.Height, yScale.MaxY, yScale.Alpha, true, canvas);
@@ -409,8 +411,10 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
 
         mapXPointsForChartView();
         mapXPointsForScrollView();
-        mapYPointsForChartView(getMaxPosYCoefficient());
-        mapYPointsForScrollView(getMaxPosYCoefficient());
+        mapYPointsForChartView(mCurrentBar);
+        mapYPointsForScrollView(mCurrentBar);
+        mapYPointsForChartView(mOldBar);
+        mapYPointsForScrollView(mOldBar);
     }
 
     @Override
@@ -472,34 +476,45 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
 
     @Override
     public void setLines(LineData[] lines) {
-        for (ChartArea area : mAreas) {
-            if (!Arrays.asList(lines).contains(area.Data)) {
-                if (!mSetLinesFirstTime) {
-                    area.PosYCoefficientStart = area.PosYCoefficient;
-                    area.PosYCoefficientEnd = 0;
-                } else {
-                    area.PosYCoefficient = 0;
-                    area.PosYCoefficientStart = area.PosYCoefficient;
-                    area.PosYCoefficientEnd = area.PosYCoefficient;
-                }
-            } else {
-                if (!mSetLinesFirstTime) {
-                    area.PosYCoefficientStart = area.PosYCoefficient;
-                    area.PosYCoefficientEnd = 1;
-                } else {
-                    area.PosYCoefficient = 1;
-                    area.PosYCoefficientStart = area.PosYCoefficient;
-                    area.PosYCoefficientEnd = area.PosYCoefficient;
-                }
+        boolean animate = false;
+
+        if (mSetLinesFirstTime) {
+            animate = false;
+        }
+
+        if (!MathUtils.equals(lines, mLines)) {
+            if (!mSetLinesFirstTime) {
+                animate = true;
+                mOldBar = new ChartBar();
+                mOldBar.Data = mCurrentBar.Data;
+                mOldBar.Alpha = mCurrentBar.Alpha;
+                mOldBar.AlphaEnd = 0;
+                mOldBar.AlphaStart = mOldBar.Alpha;
+                mCurrentBar = new ChartBar();
+                mCurrentBar.Data = lines;
+                mCurrentBar.Alpha = 0;
+                mCurrentBar.AlphaEnd = 255;
+            }
+            else {
+                mCurrentBar.Data = lines;
             }
         }
 
-        if (!mSetLinesFirstTime)
-            startSetLinesAnimation();
+        if (animate)
+            startChartBarAnimation();
 
         mYMaxAnimator.updateMaxY();
 
+        mLines = lines;
+        mapXPointsForChartView();
+        mapYPointsForChartView(mCurrentBar);
+        mapYPointsForChartView(mOldBar);
+        mapXPointsForScrollView();
+        mapYPointsForScrollView(mCurrentBar);
+        mapYPointsForScrollView(mOldBar);
+
         hidePointDetails();
+
         mSetLinesFirstTime = false;
     }
 
@@ -529,7 +544,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         mPointsMaxIndex = MathUtils.getIndexOfNearestRightElement(mPosX,  mPos2 + distanceToScreenBorder);
 
         mapXPointsForChartView();
-        mapYPointsForChartView(getMaxPosYCoefficient());
+        mapYPointsForChartView(mCurrentBar);
 
         mYMaxAnimator.updateMaxY();
 
@@ -545,12 +560,19 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         mViewAnimatorListener = listener;
     }
 
-    protected void startSetLinesAnimation()
+    protected void startChartBarAnimation()
     {
         if (mSetLinesAnimator != null)
         {
             mSetLinesAnimator.cancel();
             mSetLinesAnimator = null;
+        }
+
+        if (mCurrentBar != null) {
+            mCurrentBar.AlphaStart = mCurrentBar.Alpha;
+        }
+        if (mOldBar != null) {
+            mOldBar.AlphaStart = mOldBar.Alpha;
         }
 
         final String KEY_PHASE = "phase";
@@ -564,70 +586,24 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
             public void onAnimationUpdate(ValueAnimator animator) {
                 float t = (float) animator.getAnimatedValue(KEY_PHASE);
 
-                for (ChartArea area : mAreas) {
-                    if (area.PosYCoefficient != area.PosYCoefficientEnd) {
-                        area.PosYCoefficient = MathUtils.lerp(area.PosYCoefficientStart, area.PosYCoefficientEnd, t);
+                if (mCurrentBar != null) {
+                    if (mCurrentBar.Alpha != mCurrentBar.AlphaEnd)
+                        mCurrentBar.Alpha = (int)MathUtils.lerp(mCurrentBar.AlphaStart,   mCurrentBar.AlphaEnd,   t);
+                }
+                if (mOldBar != null) {
+                    if (mOldBar.Alpha != mOldBar.AlphaEnd) {
+                        mOldBar.Alpha = (int) MathUtils.lerp(mOldBar.AlphaStart, mOldBar.AlphaEnd, t);
+                    }
+                    else {
+                        mOldBar = null;
                     }
                 }
-                mapYPointsForChartView(getMaxPosYCoefficient());
-                mapYPointsForScrollView(getMaxPosYCoefficient());
             }
         });
-
         mSetLinesAnimator.addUpdateListener(mViewAnimatorListener);
 
         mSetLinesAnimator.start();
     }
-
-    protected boolean showChartAreas()
-    {
-        for (ChartArea area : mAreas)
-            if (area.isVisible())
-                return true;
-        return false;
-    }
-    protected LineData[] getActiveChartLines()
-    {
-        ArrayList<LineData> arrayList = new ArrayList<>();
-        for (ChartArea area : mAreas)
-            if (area.PosYCoefficientEnd > 0)
-                arrayList.add(area.Data);
-        return arrayList.toArray(new LineData[arrayList.size()]);
-    }
-    protected ChartArea[] getActiveChartAreas()
-    {
-        ArrayList<ChartArea> arrayList = new ArrayList<>();
-        for (ChartArea area : mAreas)
-            if (area.PosYCoefficientEnd > 0)
-                arrayList.add(area);
-        return arrayList.toArray(new ChartArea[arrayList.size()]);
-    }
-    protected LineData[] getVisibleChartLines()
-    {
-        ArrayList<LineData> arrayList = new ArrayList<>();
-        for (ChartArea area : mAreas)
-            if (area.isVisible())
-                arrayList.add(area.Data);
-        return arrayList.toArray(new LineData[arrayList.size()]);
-    }
-    protected ChartArea[] getVisibleChartAreas()
-    {
-        ArrayList<ChartArea> arrayList = new ArrayList<>();
-        for (ChartArea area : mAreas)
-            if (area.isVisible())
-                arrayList.add(area);
-        return arrayList.toArray(new ChartArea[arrayList.size()]);
-    }
-    protected float getMaxPosYCoefficient() {
-        float max = 0;
-        ChartArea[] areas = getVisibleChartAreas();
-        for (ChartArea area : areas) {
-            if (area.PosYCoefficient > max)
-                max = area.PosYCoefficient;
-        }
-        return max;
-    }
-
 
     protected void setUpPaints() {
         mBarPaint = new Paint();
@@ -796,42 +772,24 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         return mapped;
     }
 
-    protected void mapYPointsForChartView(float coefficient) {
-        if (!mBordersSet || !showChartAreas())
+    protected void mapYPointsForChartView(ChartBar bar)
+    {
+        if (!mBordersSet)
             return;
 
-        ChartArea[] areas = getVisibleChartAreas();
-        float calculatedArea = MathUtils.getMaxYForStackedChart(areas, mPointsMinIndex, mPointsMaxIndex);
-        calculatedArea = (calculatedArea / Y_DIVIDERS_COUNT + 1) * Y_DIVIDERS_COUNT;
 
-        long[] previous = new long[mPointsMaxIndex - mPointsMinIndex + 1];
-        for (ChartArea area : areas) {
-            area.mChartMappedPointsY = new float[mPointsMaxIndex - mPointsMinIndex + 1];
-            for (int i = 0, j = mPointsMinIndex; i < area.mChartMappedPointsY.length; i++, j++) {
-                float percentage = (area.Data.posY[j] * area.PosYCoefficient + previous[i]) / calculatedArea;
-                area.mChartMappedPointsY[i] = mChartDrawingAreaEndY - coefficient * mChartDrawingAreaHeight * percentage;
-                previous[i] += area.Data.posY[j] * area.PosYCoefficient;
-            }
+        if (bar != null && bar.IsVisible()){
+            bar.mChartMappedPointsY = mapYPointsForChartView(bar.Data, 0, mYMaxAnimator.mMaxY);
+            preparePaths(bar, mChartMappedPointsX, bar.mChartMappedPointsY, mChartDrawingAreaEndY, true);
         }
-        //prepareChartPaths();
     }
 
-    protected void mapYPointsForScrollView(float coefficient) {
-        if (!showChartAreas())
-            return;
-
-        ChartArea[] areas = getVisibleChartAreas();
-        float calculatedArea = MathUtils.getMaxYForStackedChart(areas, 0, areas[0].Data.posY.length - 1);
-        long[] previous = new long[mScrollMappedPointsX.length];
-        for (ChartArea area : areas) {
-            area.mScrollMappedPointsY = new float[mScrollMappedPointsX.length];
-            for (int i = 0; i < area.mScrollMappedPointsY.length; i++) {
-                float percentage = (area.Data.posY[i] * area.PosYCoefficient + previous[i]) / calculatedArea;
-                area.mScrollMappedPointsY[i] = mScrollDrawingAreaEndY - coefficient * mScrollDrawingAreaHeight * percentage;
-                previous[i] += area.Data.posY[i] * area.PosYCoefficient;
-            }
+    protected void mapYPointsForScrollView(ChartBar bar)
+    {
+        if (bar != null && bar.IsVisible() && bar.Data != null && bar.Data.length > 0){
+            bar.mScrollMappedPointsY = mapYPointsForScrollView(bar.Data);
+            preparePaths(bar, mScrollMappedPointsX, bar.mScrollMappedPointsY, mScrollDrawingAreaEndY, false);
         }
-        //prepareScrollPaths();
     }
 
     protected float[][] mapYPointsForChartView(LineData[] lines, long yMin, long yMax) {
@@ -975,15 +933,15 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
 
     }
 
-    protected void preparePaths(ChartArea bar, float[] mappedX, float[][] mappedY, float startDrawingPointY, boolean chartPaths) {
-        /*float halfBarWidth = (mappedX[mappedX.length - 1] - mappedX[0]) / (mappedX.length - 1) / 2;
+    protected void preparePaths(ChartBar bar, float[] mappedX, float[][] mappedY, float startDrawingPointY, boolean chartPaths) {
+        float halfBarWidth = (mappedX[mappedX.length - 1] - mappedX[0]) / (mappedX.length - 1) / 2;
         float startX = mappedX[0] - halfBarWidth;
         float startY = startDrawingPointY;
         if (chartPaths) {
-            mChartPaths = new Path[mPointsMaxIndex - mPointsMinIndex + 1];
+            bar.ChartPaths = new Path[bar.Data.length];
         }
         else {
-            mScrollPaths = new Path[mPosX.length];
+            bar.ScrollPaths = new Path[bar.Data.length];
         }
 
         float[] previous = new float[mappedY.length];
@@ -1008,106 +966,25 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
             }
             path = new Path();
             path.moveTo(mappedX[0] - halfBarWidth, mappedY[0][i]);
-        }*/
-
-    }
-
-    protected void prepareChartPaths() {
-        float halfBarWidth = (mChartMappedPointsX[mChartMappedPointsX.length - 1] - mChartMappedPointsX[0]) / (mChartMappedPointsX.length - 1) / 2;
-        float startX = mChartMappedPointsX[0] - halfBarWidth;
-        float startY = mChartDrawingAreaEndY;
-        mChartPaths = new Path[mAreas.size()];
-
-        float[] previous = new float[mChartMappedPointsX.length];
-        Arrays.fill(previous, mChartDrawingAreaEndY);
-        for (ChartArea area : mAreas) {
-            Path path = new Path();
-            path.moveTo(startX, startY);
-            for (int i = 0; i < mAreas.size(); i++) {
-                for (int j = 0; j < area.mChartMappedPointsY.length; j++) {
-                    path.lineTo(mChartMappedPointsX[j] - halfBarWidth, area.mChartMappedPointsY[j]);
-                    path.lineTo(mChartMappedPointsX[j] + halfBarWidth, area.mChartMappedPointsY[j]);
-                }
-                for (int n = previous.length - 1; n >= 0; n--) {
-                    path.lineTo(mChartMappedPointsX[n] + halfBarWidth, previous[n]);
-                    path.lineTo(mChartMappedPointsX[n] - halfBarWidth, previous[n]);
-                    previous[n] = area.mChartMappedPointsY[n];
-                }
-                mChartPaths[i] = path;
-                path = new Path();
-                path.moveTo(mChartMappedPointsX[0] - halfBarWidth, area.mChartMappedPointsY[0]);
-            }
         }
+
     }
 
-    protected void prepareScrollPaths() {
-        float halfBarWidth = (mScrollMappedPointsX[mScrollMappedPointsX.length - 1] - mScrollMappedPointsX[0]) / (mScrollMappedPointsX.length - 1) / 2;
-        float startX = mScrollMappedPointsX[0] - halfBarWidth;
-        float startY = mScrollDrawingAreaEndY;
-        mScrollPaths = new Path[mAreas.size()];
+    protected void drawBars(ChartBar bar, Canvas canvas, float[] mappedX, float[][] mappedY, float startDrawingPoint) {
+        for (int i = 0; i < bar.ChartPaths.length; i++) {
+            mBarPaint.setColor(bar.Data[i].color);
+            mBarPaint.setAlpha(bar.Alpha);
+            canvas.drawPath(bar.ChartPaths[i], mBarPaint);
 
-        float[] previous = new float[mScrollMappedPointsX.length];
-        Arrays.fill(previous, mScrollDrawingAreaEndY);
-        for (ChartArea area : mAreas) {
-            Path path = new Path();
-            path.moveTo(startX, startY);
-            for (int i = 0; i < mAreas.size(); i++) {
-                for (int j = 0; j < area.mScrollMappedPointsY.length; j++) {
-                    path.lineTo(mScrollMappedPointsX[j] - halfBarWidth, area.mScrollMappedPointsY[j]);
-                    path.lineTo(mScrollMappedPointsX[j] + halfBarWidth, area.mScrollMappedPointsY[j]);
-                }
-                for (int n = previous.length - 1; n >= 0; n--) {
-                    path.lineTo(mScrollMappedPointsX[n] + halfBarWidth, previous[n]);
-                    path.lineTo(mScrollMappedPointsX[n] - halfBarWidth, previous[n]);
-                    previous[n] = area.mScrollMappedPointsY[n];
-                }
-                mScrollPaths[i] = path;
-                path = new Path();
-                path.moveTo(mScrollMappedPointsX[0] - halfBarWidth, area.mScrollMappedPointsY[0]);
-            }
-        }
-    }
-
-    protected void drawAreas(Canvas canvas) {
-        if (mAreas == null || mAreas.size() == 0)
-            return;
-
-                /*for (int i = 0; i < mChartPaths.length; i++) {
-            mBarPaint.setColor(mAreas.get(i).Data.color);
-            canvas.drawPath(mChartPaths[i], mBarPaint);
             canvas.save();
             Path clipPath = new Path();
             RectF clipRect = new RectF(mScrollDrawingAreaStartX, mScrollDrawingAreaStartY, mScrollDrawingAreaEndX, mScrollDrawingAreaEndY);
             clipPath.addRoundRect(clipRect, 20, 20, Path.Direction.CW);
             canvas.clipPath(clipPath);
-            canvas.drawPath(mScrollPaths[i], mBarPaint);
+
+            canvas.drawPath(bar.ScrollPaths[i], mBarPaint);
+
             canvas.restore();
-        }*/
-        float halfBarWidth = (mChartMappedPointsX[mChartMappedPointsX.length - 1] - mChartMappedPointsX[0]) / (mChartMappedPointsX.length - 1) / 2;
-        RectF rect = new RectF();
-        float[] previous = new float[mChartMappedPointsX.length];
-        Arrays.fill(previous, mChartDrawingAreaEndY);
-        ChartArea[] areas = getVisibleChartAreas();
-        for (ChartArea area : areas) {
-            mBarPaint.setColor(area.Data.color);
-            for (int i = 0; i < area.mChartMappedPointsY.length; i++) {
-                rect.set(mChartMappedPointsX[i] - halfBarWidth, area.mChartMappedPointsY[i], mChartMappedPointsX[i] + halfBarWidth, previous[i]);
-                canvas.drawRect(rect, mBarPaint);
-            }
-            previous = area.mChartMappedPointsY;
-        }
-        float halfBarWidthS = (mScrollMappedPointsX[mScrollMappedPointsX.length - 1] - mScrollMappedPointsX[0]) / (mScrollMappedPointsX.length - 1) / 2;
-        RectF rectS = new RectF();
-        float[] previousS = new float[mScrollMappedPointsX.length];
-        Arrays.fill(previousS, mScrollDrawingAreaEndY);
-        ChartArea[] areasS = getVisibleChartAreas();
-        for (ChartArea area : areasS) {
-            mBarPaint.setColor(area.Data.color);
-            for (int i = 0; i < area.mScrollMappedPointsY.length; i++) {
-                rectS.set(mScrollMappedPointsX[i] - halfBarWidthS, area.mScrollMappedPointsY[i], mScrollMappedPointsX[i] + halfBarWidthS, previousS[i]);
-                canvas.drawRect(rectS, mBarPaint);
-            }
-            previousS = area.mScrollMappedPointsY;
         }
     }
 
