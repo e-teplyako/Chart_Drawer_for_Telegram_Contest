@@ -7,6 +7,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -39,6 +40,11 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
     public void init(ChartDrawer drawer) {
         mDrawer = drawer;
         mDrawer.setAnimatorUpdateListener(this);
+    }
+
+    @Override
+    public boolean hasOverlappingRendering() {
+        return false;
     }
 
     @Override

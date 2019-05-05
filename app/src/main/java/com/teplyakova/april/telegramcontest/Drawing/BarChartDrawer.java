@@ -16,7 +16,7 @@ public class BarChartDrawer extends BaseBarChartDrawer {
     public class YScale extends BaseBarChartDrawer.YScale {
     }
 
-    public class ChartBar extends BaseBarChartDrawer.ChartBar {
+    public class ChartBar extends BaseBarChartDrawer.ChartArea {
 
     }
 

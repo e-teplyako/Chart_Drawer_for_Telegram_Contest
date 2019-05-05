@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import android.util.TypedValue;
 
+import com.teplyakova.april.telegramcontest.Drawing.BaseBarChartDrawer;
 import com.teplyakova.april.telegramcontest.LineData;
 
 import java.util.ArrayList;
@@ -31,6 +32,17 @@ public class MathUtils {
     public static float dpToPixels (float dp, Context context) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
     }
+
+    public static float getMax(float[] array) {
+        float max = array[0];
+
+        for (int i = 0; i < array.length; i++)
+            if (array[i] > max) {
+                max = array[i];
+            }
+        return max;
+    }
+
 
     public static long getMax(long[] array) {
         long max = array[0];
@@ -112,6 +124,20 @@ public class MathUtils {
         long max = getMax(wholeArray);
         return max;
     }
+
+    public static float getMaxYForStackedChart(BaseBarChartDrawer.ChartArea[] areas, int minIndex, int maxIndex) {
+        if (areas == null || areas.length == 0 || maxIndex == -1)
+            return -1;
+        float[] sumArray = new float[areas[0].Data.posY.length];
+        for (BaseBarChartDrawer.ChartArea area : areas) {
+            for (int i = minIndex, j = 0; i <= maxIndex; i++, j++) {
+                sumArray[j] += area.Data.posY[i] * area.PosYCoefficient;
+            }
+        }
+        return getMax(sumArray);
+    }
+
+
 
     public static long getMax (long[] array, int minIndex, int maxIndex) {
         long max = array[minIndex];

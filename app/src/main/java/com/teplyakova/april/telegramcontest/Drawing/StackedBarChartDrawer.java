@@ -17,7 +17,7 @@ public class StackedBarChartDrawer extends BaseBarChartDrawer {
     public class YScale extends BaseBarChartDrawer.YScale {
     }
 
-    public class ChartBar extends BaseBarChartDrawer.ChartBar {
+    public class ChartBar extends BaseBarChartDrawer.ChartArea {
 
     }
 
@@ -74,13 +74,15 @@ public class StackedBarChartDrawer extends BaseBarChartDrawer {
         mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
         canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.1f, mPlateXValuePaint);
 
+        LineData[] lines = getActiveChartLines();
+
         mPlateYValuePaint.setTextSize(mTextSizeMediumPx);
         mPlateNamePaint.setTextSize(mTextSizeMediumPx);
         mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
         mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
         float heightOffset = 0.2f;
         long sumOfChosenValues = 0;
-        for (LineData line : mLines){
+        for (LineData line : lines){
             mPlateYValuePaint.setColor(line.color);
             canvas.drawText(line.name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
             canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
