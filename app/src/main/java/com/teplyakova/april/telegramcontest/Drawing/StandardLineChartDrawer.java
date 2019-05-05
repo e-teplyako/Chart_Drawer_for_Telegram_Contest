@@ -18,8 +18,8 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
 
     public class YMaxAnimator extends BaseLineChartDrawer.YMaxAnimator {
 
-        YMaxAnimator(ChartLine line, boolean left) {
-            super(line, left);
+        YMaxAnimator() {
+            super();
         }
 
         public void updateMinMaxY() {
@@ -60,6 +60,8 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         }
     }
 
+    protected YMaxAnimator mYMaxAnimator;
+
     public StandardLineChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
 
@@ -69,9 +71,26 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
             chartLine.Data      = lineData;
             chartLine.Alpha     = 255;
             chartLine.AlphaEnd  = 255;
-            chartLine.mYMaxAnimator = new YMaxAnimator(chartLine, true);
             mLines.add(chartLine);
         }
+
+        mYMaxAnimator = new YMaxAnimator();
+    }
+
+    @Override
+    public void setLines(LineData[] lines) {
+        super.setLines(lines);
+
+        mYMaxAnimator.updateMinMaxY();
+    }
+
+    @Override
+    public boolean setBorders(float normPosX1, float normPosX2) {
+        boolean result =  super.setBorders(normPosX1, normPosX2);
+
+        mYMaxAnimator.updateMinMaxY();
+
+       return result;
     }
 
     protected int getChartLineAlpha(int alpha) {
@@ -90,7 +109,7 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
             if (line.IsVisible()){
-                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, line.mYMaxAnimator.mMinY, line.mYMaxAnimator.mMaxY);
+                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, mYMaxAnimator.mMinY, mYMaxAnimator.mMaxY);
             }
         }
     }
@@ -108,10 +127,8 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
             return;
         }
 
-        for (BaseLineChartDrawer.ChartLine line : mLines) {
-            for (BaseLineChartDrawer.YScale yScale : line.mYMaxAnimator.mYScales) {
-                drawScaleY(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
-            }
+        for (BaseLineChartDrawer.YScale yScale : mYMaxAnimator.mYScales) {
+            drawScaleY(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
         }
 
         if (mPointIsChosen) {
@@ -135,12 +152,9 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
             }
 
 
-        for (BaseLineChartDrawer.ChartLine line : mLines) {
-            if (line.IsVisible()) {
-                for (BaseLineChartDrawer.YScale yScale : line.mYMaxAnimator.mYScales) {
-                    drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, getChartLineAlpha(yScale.Alpha), line.mYMaxAnimator.mLeft, canvas);
-                }
-            }
+
+        for (BaseLineChartDrawer.YScale yScale : mYMaxAnimator.mYScales) {
+            drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, getChartLineAlpha(yScale.Alpha), canvas);
         }
 
         if (mPointIsChosen) {
@@ -150,16 +164,10 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         drawRects(canvas);
     }
 
-    private void drawYLabels (long height, long yMax, long yMin, int alpha, boolean left, Canvas canvas) {
+    private void drawYLabels (long height, long yMax, long yMin, int alpha, Canvas canvas) {
         float xCoord;
-        if (left) {
-            mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
-            xCoord = mChartDrawingAreaStartX;
-        }
-        else {
-            mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
-            xCoord = mChartDrawingAreaEndX;
-        }
+        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
+        xCoord = mChartDrawingAreaStartX;
         float spaceBetweenDividers = (float)yMax / height * mChartDrawingAreaHeight / Y_DIVIDERS_COUNT;
 
         long step = yMin;

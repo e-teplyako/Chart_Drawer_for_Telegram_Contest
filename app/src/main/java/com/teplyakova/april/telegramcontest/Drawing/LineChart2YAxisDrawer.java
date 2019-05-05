@@ -8,18 +8,24 @@ import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
+import java.util.ArrayList;
+
 public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
 
     public class YScale extends BaseLineChartDrawer.YScale {
     }
 
     public class ChartLine extends BaseLineChartDrawer.ChartLine {
+        public YMaxAnimator mYMaxAnimator;
     }
 
     public class YMaxAnimator extends BaseLineChartDrawer.YMaxAnimator{
+        public ChartLine mLine;
+        public boolean mLeft;
 
         YMaxAnimator(ChartLine line, boolean left) {
-            super(line, left);
+            mLine = line;
+            mLeft = left;
         }
 
         public void updateMinMaxY() {
@@ -75,14 +81,37 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         }
     }
 
+    @Override
+    public void setLines(LineData[] lines) {
+        super.setLines(lines);
+
+        for (BaseLineChartDrawer.ChartLine line : mLines) {
+            LineChart2YAxisDrawer.ChartLine derivedLine = (LineChart2YAxisDrawer.ChartLine) line;
+            derivedLine.mYMaxAnimator.updateMinMaxY();
+        }
+    }
+
+    @Override
+    public boolean setBorders(float normPosX1, float normPosX2) {
+        boolean result =  super.setBorders(normPosX1, normPosX2);
+
+        for (BaseLineChartDrawer.ChartLine line : mLines) {
+            LineChart2YAxisDrawer.ChartLine derivedLine = (LineChart2YAxisDrawer.ChartLine) line;
+            derivedLine.mYMaxAnimator.updateMinMaxY();
+        }
+
+        return result;
+    }
+
     protected void mapYPointsForChartView()
     {
         if (!mBordersSet || !showChartLines())
             return;
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
+            LineChart2YAxisDrawer.ChartLine derivedLine = (LineChart2YAxisDrawer.ChartLine) line;
             if (line.IsVisible()){
-                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, line.mYMaxAnimator.mMinY, line.mYMaxAnimator.mMaxY);
+                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, derivedLine.mYMaxAnimator.mMinY, derivedLine.mYMaxAnimator.mMaxY);
             }
         }
     }
@@ -106,7 +135,8 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         }
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
-            for (BaseLineChartDrawer.YScale yScale : line.mYMaxAnimator.mYScales) {
+            LineChart2YAxisDrawer.ChartLine derivedLine = (LineChart2YAxisDrawer.ChartLine) line;
+            for (BaseLineChartDrawer.YScale yScale : derivedLine.mYMaxAnimator.mYScales) {
                 drawScaleY(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
             }
         }
@@ -132,9 +162,10 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
             }
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
+            LineChart2YAxisDrawer.ChartLine derivedLine = (LineChart2YAxisDrawer.ChartLine) line;
             if (line.IsVisible()) {
-                for (BaseLineChartDrawer.YScale yScale : line.mYMaxAnimator.mYScales) {
-                    drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, getChartLineAlpha(yScale.Alpha, line), line.mYMaxAnimator.mLeft, line.Data.color, canvas);
+                for (BaseLineChartDrawer.YScale yScale : derivedLine.mYMaxAnimator.mYScales) {
+                    drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, getChartLineAlpha(yScale.Alpha, line), derivedLine.mYMaxAnimator.mLeft, line.Data.color, canvas);
                 }
             }
         }

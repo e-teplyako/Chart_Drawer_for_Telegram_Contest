@@ -62,8 +62,6 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
         public float[] mScrollOptimizedPointsY;
         public float[] mScrollOptimizedPointsX;
 
-        public YMaxAnimator mYMaxAnimator;
-
         public boolean IsVisible()
         {
             return (Alpha > 0 || AlphaEnd > 0);
@@ -71,18 +69,15 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
     }
 
     public abstract class YMaxAnimator {
-        public ChartLine mLine;
         public long mMaxY = -1;
         public long mMinY;
         public long mTargetMaxY = -1;
         public long mTargetMinY = -1;
         public ValueAnimator mMaxYAnimator;
         public ArrayList<YScale> mYScales = new ArrayList<YScale>();
-        public boolean mLeft;
 
-        public YMaxAnimator(ChartLine line, boolean left) {
-            mLine = line;
-            mLeft = left;
+        public YMaxAnimator() {
+
         }
 
         public abstract void updateMinMaxY();
@@ -447,10 +442,6 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
 
         mapXPointsForChartView();
 
-        for (ChartLine line : mLines) {
-            line.mYMaxAnimator.updateMinMaxY();
-        }
-
         hidePointDetails();
 
         mPosFirstVisible = MathUtils.getIndexOfNearestRightElement(mPosX, mPos1);
@@ -475,10 +466,6 @@ public abstract class BaseLineChartDrawer implements ChartDrawer {
 
         if (animate)
             startSetLinesAnimation();
-
-        for (ChartLine line : mLines) {
-            line.mYMaxAnimator.updateMinMaxY();
-        }
 
         hidePointDetails();
 
