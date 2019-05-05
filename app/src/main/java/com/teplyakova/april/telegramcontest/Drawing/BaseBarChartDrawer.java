@@ -835,7 +835,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
                 previous[i] += area.Data.posY[j] * area.PosYCoefficient;
             }
         }
-        //prepareChartPaths();
+        prepareChartPaths();
     }
 
     protected void mapYPointsForScrollView(float coefficient)
@@ -854,7 +854,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
                 previous[i] += area.Data.posY[i] * area.PosYCoefficient;
             }
         }
-        //prepareScrollPaths();
+        prepareScrollPaths();
     }
 
     protected int mapCoordinateToPoint(float[] mappedX, float xCoord) {
@@ -1006,27 +1006,26 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         float halfBarWidth = (mChartMappedPointsX[mChartMappedPointsX.length - 1] - mChartMappedPointsX[0]) / (mChartMappedPointsX.length - 1) / 2;
         float startX = mChartMappedPointsX[0] - halfBarWidth;
         float startY = mChartDrawingAreaEndY;
-        mChartPaths = new Path[mAreas.size()];
+        ChartArea[] areas = getVisibleChartAreas();
+        mChartPaths = new Path[areas.length];
 
         float[] previous = new float[mChartMappedPointsX.length];
         Arrays.fill(previous, mChartDrawingAreaEndY);
-        for (ChartArea area : mAreas) {
-            Path path = new Path();
-            path.moveTo(startX, startY);
-            for (int i = 0; i < mAreas.size(); i++) {
-                for (int j = 0; j < area.mChartMappedPointsY.length; j++) {
-                    path.lineTo(mChartMappedPointsX[j] - halfBarWidth, area.mChartMappedPointsY[j]);
-                    path.lineTo(mChartMappedPointsX[j] + halfBarWidth, area.mChartMappedPointsY[j]);
-                }
-                for (int n = previous.length - 1; n >= 0; n--) {
-                    path.lineTo(mChartMappedPointsX[n] + halfBarWidth, previous[n]);
-                    path.lineTo(mChartMappedPointsX[n] - halfBarWidth, previous[n]);
-                    previous[n] = area.mChartMappedPointsY[n];
-                }
-                mChartPaths[i] = path;
-                path = new Path();
-                path.moveTo(mChartMappedPointsX[0] - halfBarWidth, area.mChartMappedPointsY[0]);
+        Path path = new Path();
+        path.moveTo(startX, startY);
+        for (int i = 0; i < areas.length; i++) {
+            for (int j = 0; j < areas[i].mChartMappedPointsY.length; j++) {
+                path.lineTo(mChartMappedPointsX[j] - halfBarWidth, areas[i].mChartMappedPointsY[j]);
+                path.lineTo(mChartMappedPointsX[j] + halfBarWidth, areas[i].mChartMappedPointsY[j]);
             }
+            for (int n = previous.length - 1; n >= 0; n--) {
+                path.lineTo(mChartMappedPointsX[n] + halfBarWidth, previous[n]);
+                path.lineTo(mChartMappedPointsX[n] - halfBarWidth, previous[n]);
+                previous[n] = areas[i].mChartMappedPointsY[n];
+            }
+            mChartPaths[i] = path;
+            path = new Path();
+            path.moveTo(mChartMappedPointsX[0] - halfBarWidth, areas[i].mChartMappedPointsY[0]);
         }
 
     }
@@ -1035,35 +1034,35 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
         float halfBarWidth = (mScrollMappedPointsX[mScrollMappedPointsX.length - 1] - mScrollMappedPointsX[0]) / (mScrollMappedPointsX.length - 1) / 2;
         float startX = mScrollMappedPointsX[0] - halfBarWidth;
         float startY = mScrollDrawingAreaEndY;
-        mScrollPaths = new Path[mAreas.size()];
+        ChartArea[] areas = getVisibleChartAreas();
+        mScrollPaths = new Path[areas.length];
 
         float[] previous = new float[mScrollMappedPointsX.length];
         Arrays.fill(previous, mScrollDrawingAreaEndY);
-        for (ChartArea area : mAreas) {
-            Path path = new Path();
-            path.moveTo(startX, startY);
-            for (int i = 0; i < mAreas.size(); i++) {
-                for (int j = 0; j < area.mScrollMappedPointsY.length; j++) {
-                    path.lineTo(mScrollMappedPointsX[j] - halfBarWidth, area.mScrollMappedPointsY[j]);
-                    path.lineTo(mScrollMappedPointsX[j] + halfBarWidth, area.mScrollMappedPointsY[j]);
-                }
-                for (int n = previous.length - 1; n >= 0; n--) {
-                    path.lineTo(mScrollMappedPointsX[n] + halfBarWidth, previous[n]);
-                    path.lineTo(mScrollMappedPointsX[n] - halfBarWidth, previous[n]);
-                    previous[n] = area.mScrollMappedPointsY[n];
-                }
-                mScrollPaths[i] = path;
-                path = new Path();
-                path.moveTo(mScrollMappedPointsX[0] - halfBarWidth, area.mScrollMappedPointsY[0]);
+        Path path = new Path();
+        path.moveTo(startX, startY);
+        for (int i = 0; i < areas.length; i++) {
+            for (int j = 0; j < areas[i].mScrollMappedPointsY.length; j++) {
+                path.lineTo(mScrollMappedPointsX[j] - halfBarWidth, areas[i].mScrollMappedPointsY[j]);
+                path.lineTo(mScrollMappedPointsX[j] + halfBarWidth, areas[i].mScrollMappedPointsY[j]);
             }
+            for (int n = previous.length - 1; n >= 0; n--) {
+                path.lineTo(mScrollMappedPointsX[n] + halfBarWidth, previous[n]);
+                path.lineTo(mScrollMappedPointsX[n] - halfBarWidth, previous[n]);
+                previous[n] = areas[i].mScrollMappedPointsY[n];
+            }
+            mScrollPaths[i] = path;
+            path = new Path();
+            path.moveTo(mScrollMappedPointsX[0] - halfBarWidth, areas[i].mScrollMappedPointsY[0]);
         }
     }
 
     protected void drawAreas(Canvas canvas) {
         if (mAreas == null || mAreas.size() == 0)
             return;
-        /*for (int i = 0; i < mChartPaths.length; i++) {
-            mBarPaint.setColor(mAreas.get(i).Data.color);
+        ChartArea[] areas = getVisibleChartAreas();
+        for (int i = 0; i < mChartPaths.length; i++) {
+            mBarPaint.setColor(areas[i].Data.color);
             canvas.drawPath(mChartPaths[i], mBarPaint);
 
             canvas.save();
@@ -1075,9 +1074,9 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
             canvas.drawPath(mScrollPaths[i], mBarPaint);
 
             canvas.restore();
-        }*/
+        }
 
-        float halfBarWidth = (mChartMappedPointsX[mChartMappedPointsX.length - 1] - mChartMappedPointsX[0]) / (mChartMappedPointsX.length - 1) / 2;
+        /*float halfBarWidth = (mChartMappedPointsX[mChartMappedPointsX.length - 1] - mChartMappedPointsX[0]) / (mChartMappedPointsX.length - 1) / 2;
         RectF rect = new RectF();
         float[] previous = new float[mChartMappedPointsX.length];
         Arrays.fill(previous, mChartDrawingAreaEndY);
@@ -1103,7 +1102,7 @@ public abstract class BaseBarChartDrawer implements ChartDrawer{
                 canvas.drawRect(rectS, mBarPaint);
             }
             previousS = area.mScrollMappedPointsY;
-        }
+        }*/
     }
 
 
