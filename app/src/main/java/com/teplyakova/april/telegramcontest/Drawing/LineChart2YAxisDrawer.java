@@ -12,23 +12,23 @@ import java.util.ArrayList;
 
 public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
 
-    public class YScale extends BaseLineChartDrawer.YScale {
+    class YScale extends BaseLineChartDrawer.YScale {
     }
 
-    public class ChartLine extends BaseLineChartDrawer.ChartLine {
-        public YMaxAnimator mYMaxAnimator;
+    class ChartLine extends BaseLineChartDrawer.ChartLine {
+        YMaxAnimator mYMaxAnimator;
     }
 
-    public class YMaxAnimator extends BaseLineChartDrawer.YMaxAnimator{
-        public ChartLine mLine;
-        public boolean mLeft;
+    class YMaxAnimator extends BaseLineChartDrawer.YMaxAnimator{
+        ChartLine mLine;
+        boolean mLeft;
 
         YMaxAnimator(ChartLine line, boolean left) {
             mLine = line;
             mLeft = left;
         }
 
-        public void updateMinMaxY() {
+        void updateMinMaxY() {
 
             if (!mBordersSet || !mLine.IsVisible())
                 return;
@@ -103,23 +103,6 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         return result;
     }
 
-    protected void mapYPointsForChartView()
-    {
-        if (!mBordersSet || !showChartLines())
-            return;
-
-        for (BaseLineChartDrawer.ChartLine line : mLines) {
-            LineChart2YAxisDrawer.ChartLine derivedLine = (LineChart2YAxisDrawer.ChartLine) line;
-            if (line.IsVisible()){
-                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, derivedLine.mYMaxAnimator.mMinY, derivedLine.mYMaxAnimator.mMaxY);
-            }
-        }
-    }
-
-    protected int getChartLineAlpha(int alpha, BaseLineChartDrawer.ChartLine line) {
-        return line.Alpha > alpha ? alpha : line.Alpha;
-    }
-
     @Override
     public void draw(Canvas canvas) {
         if (mBordersSet) {
@@ -177,6 +160,19 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         drawRects(canvas);
     }
 
+    protected void mapYPointsForChartView()
+    {
+        if (!mBordersSet || !showChartLines())
+            return;
+
+        for (BaseLineChartDrawer.ChartLine line : mLines) {
+            LineChart2YAxisDrawer.ChartLine derivedLine = (LineChart2YAxisDrawer.ChartLine) line;
+            if (line.IsVisible()){
+                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, derivedLine.mYMaxAnimator.mMinY, derivedLine.mYMaxAnimator.mMaxY);
+            }
+        }
+    }
+
     private void drawYLabels (long height, long yMax, long yMin, int alpha, boolean left, int color, Canvas canvas) {
         float xCoord;
         if (left) {
@@ -204,5 +200,8 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
 
     }
 
+    private int getChartLineAlpha(int alpha, BaseLineChartDrawer.ChartLine line) {
+        return line.Alpha > alpha ? alpha : line.Alpha;
+    }
 }
 

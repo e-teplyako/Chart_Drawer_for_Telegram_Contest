@@ -13,26 +13,17 @@ import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class BarChartDrawer extends BaseBarChartDrawer {
-    public class YScale extends BaseBarChartDrawer.YScale {
-    }
+    private final int   PLATE_HEIGHT_DP = 40;
+    private final int   PLATE_WIDTH_DP  = 120;
 
-    public class ChartBar extends BaseBarChartDrawer.ChartArea {
-
-    }
-
-    public class YMaxAnimator extends BaseBarChartDrawer.YMaxAnimator {
-        public YMaxAnimator(ChartBar bar, boolean left) {
-            super();
-        }
-    }
-
-    protected final int   PLATE_HEIGHT_DP          = 40;
-    protected final float mPlateHeightPx;
+    private final float mPlateHeightPx;
+    private final float mPlateWidthPx;
 
     public BarChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
 
         mPlateHeightPx = MathUtils.dpToPixels(PLATE_HEIGHT_DP, context);
+        mPlateWidthPx = MathUtils.dpToPixels(PLATE_WIDTH_DP, context);
     }
 
     protected void drawChosenPointPlate(Canvas canvas) {
@@ -84,6 +75,5 @@ public class BarChartDrawer extends BaseBarChartDrawer {
             canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
             heightOffset += 0.1f;
         }
-
     }
 }

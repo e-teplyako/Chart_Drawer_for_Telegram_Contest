@@ -10,19 +10,19 @@ import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class StandardLineChartDrawer extends BaseLineChartDrawer {
 
-    public class YScale extends BaseLineChartDrawer.YScale {
+    class YScale extends BaseLineChartDrawer.YScale {
     }
 
-    public class ChartLine extends BaseLineChartDrawer.ChartLine {
+    class ChartLine extends BaseLineChartDrawer.ChartLine {
     }
 
-    public class YMaxAnimator extends BaseLineChartDrawer.YMaxAnimator {
+    class YMaxAnimator extends BaseLineChartDrawer.YMaxAnimator {
 
         YMaxAnimator() {
             super();
         }
 
-        public void updateMinMaxY() {
+        void updateMinMaxY() {
             LineData[] activeLines = getActiveChartLines();
 
             if (!mBordersSet || activeLines.length == 0)
@@ -60,7 +60,7 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         }
     }
 
-    protected YMaxAnimator mYMaxAnimator;
+    private YMaxAnimator mYMaxAnimator;
 
     public StandardLineChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
@@ -91,27 +91,6 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         mYMaxAnimator.updateMinMaxY();
 
        return result;
-    }
-
-    protected int getChartLineAlpha(int alpha) {
-        int maxAlpha = 0;
-        for (BaseLineChartDrawer.ChartLine line : mLines) {
-            if (line.Alpha > maxAlpha)
-                maxAlpha = line.Alpha;
-        }
-        return maxAlpha > alpha ? alpha : maxAlpha;
-    }
-
-    protected void mapYPointsForChartView()
-    {
-        if (!mBordersSet || !showChartLines())
-            return;
-
-        for (BaseLineChartDrawer.ChartLine line : mLines) {
-            if (line.IsVisible()){
-                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, mYMaxAnimator.mMinY, mYMaxAnimator.mMaxY);
-            }
-        }
     }
 
     public void draw(Canvas canvas) {
@@ -164,6 +143,17 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         drawRects(canvas);
     }
 
+    protected void mapYPointsForChartView() {
+        if (!mBordersSet || !showChartLines())
+            return;
+
+        for (BaseLineChartDrawer.ChartLine line : mLines) {
+            if (line.IsVisible()){
+                line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, mYMaxAnimator.mMinY, mYMaxAnimator.mMaxY);
+            }
+        }
+    }
+
     private void drawYLabels (long height, long yMax, long yMin, int alpha, Canvas canvas) {
         float xCoord;
         mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
@@ -182,5 +172,14 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
             step += (yMax - yMin) / Y_DIVIDERS_COUNT;
         }
 
+    }
+
+    private int getChartLineAlpha(int alpha) {
+        int maxAlpha = 0;
+        for (BaseLineChartDrawer.ChartLine line : mLines) {
+            if (line.Alpha > maxAlpha)
+                maxAlpha = line.Alpha;
+        }
+        return maxAlpha > alpha ? alpha : maxAlpha;
     }
 }
