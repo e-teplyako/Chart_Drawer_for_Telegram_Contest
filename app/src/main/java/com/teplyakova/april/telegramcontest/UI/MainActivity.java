@@ -1,19 +1,37 @@
 package com.teplyakova.april.telegramcontest.UI;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
+import android.app.ActivityOptions;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.Point;
+import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.design.widget.MathUtils;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.transition.Explode;
+import android.transition.Fade;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewAnimationUtils;
+import android.view.ViewTreeObserver;
+import android.view.Window;
+import android.view.animation.AccelerateInterpolator;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartsManager;
@@ -29,10 +47,9 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<ChartData> mChartData;
 
     ChartFragmentPagerAdapter mAdapter;
+    ArrayList<PageFragment> mFragments = new ArrayList<>();
     ViewPager mViewPager;
     TabLayout mTabLayout;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +66,21 @@ public class MainActivity extends AppCompatActivity {
         mViewPager.setAdapter(mAdapter);
         mTabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
         mTabLayout.setupWithViewPager(mViewPager);
+        Intent intent = getIntent();
+        if (intent.hasExtra("fragment_saved_state")) {
+            Bundle savedState = intent.getBundleExtra("fragment_saved_state");
+            for (int i = 0; i < mFragments.size(); i++) {
+                mFragments.get(i).onActivityCreated(savedState.getBundle(String .valueOf(i)));
+            }
+        }
+        int position = intent.getIntExtra("tablayout_position", 0);
+        mTabLayout.getTabAt(position).select();
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e("DeSTroYIng", "this dude");
     }
 
     private void addFragments() {
@@ -63,8 +94,12 @@ public class MainActivity extends AppCompatActivity {
         if (mAppTheme.resolveAttribute(R.attr.primaryBackgroundColor, backgroundColor, true)) {
             color2 = backgroundColor.data;
         }
-        for (int i = 0; i <mChartData.size(); i++) {
-            mAdapter.addFragment(PageFragment.newInstance(i, color2, color1), "Chart #" + String.valueOf(i));
+
+        mFragments.clear();
+        for (int i = 0; i < mChartData.size(); i++) {
+            PageFragment fragment =  PageFragment.newInstance(i, color2, color1);
+            mFragments.add(fragment);
+            mAdapter.addFragment(fragment, "Chart #" + String.valueOf(i));
         }
     }
 
@@ -85,7 +120,18 @@ public class MainActivity extends AppCompatActivity {
         switch (id) {
             case (R.id.switch_theme):
                 setIsNightModeEnabled(!isNightModeEnabled());
-                recreate();
+                Bundle fragmentSavedState = new Bundle();
+                for (int i = 0; i < mFragments.size(); i++) {
+                    Bundle fragmentState = new Bundle();
+                    mFragments.get(i).onSaveInstanceState(fragmentState);
+                    fragmentSavedState.putBundle(String.valueOf(i), fragmentState);
+                }
+                int tablayoutPosition = mTabLayout.getSelectedTabPosition();
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("fragment_saved_state", fragmentSavedState);
+                intent.putExtra("tablayout_position", tablayoutPosition);
+                startActivity(intent);
+                finish();
         }
         return super.onOptionsItemSelected(item);
     }

@@ -110,8 +110,7 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
             drawTopDatesText(canvas);
         }
 
-        if (!showChartLines() || !mBordersSet)
-        {
+        if (!showChartLines() || !mBordersSet) {
             drawScaleY(100, 100, 255, canvas);
             drawRects(canvas);
             return;

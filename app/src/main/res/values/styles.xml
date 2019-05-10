@@ -9,7 +9,11 @@
     </style>
 
     <style name="DayMode" parent="Base.Theme.AppCompat.Light">
+        <item name="android:windowActivityTransitions" tools:targetApi="21">true</item>
         <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="android:windowAnimationStyle">@style/DownUpActivity</item>
+        <!--<item name="android:windowTranslucentNavigation" tools:targetApi="19">true</item>-->
+        <!--<item name="android:windowTranslucentStatus" tools:targetApi="19">true</item>-->
         <item name="colorPrimary">@color/actionBarColorDay</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDarkDay</item>
         <item name="actionMenuTextColor">@color/actionBarTextColorDay</item>
@@ -25,6 +29,10 @@
     </style>
 
     <style name="NightMode" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:windowActivityTransitions" tools:targetApi="21">true</item>
+        <item name="android:windowAnimationStyle">@style/DownUpActivity</item>
+        <!--<item name="android:windowTranslucentNavigation" tools:targetApi="19">true</item>-->
+        <!--<item name="android:windowTranslucentStatus" tools:targetApi="19">true</item>-->
         <item name="colorPrimary">@color/actionBarColorNight</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDarkNight</item>
         <item name="android:colorBackground">@color/primaryBackgroundColorNight</item>
@@ -36,6 +44,11 @@
         <item name="baseLabelColor">@color/baseLabelColorNight</item>
         <item name="primaryBackgroundColor">@color/primaryBackgroundColorNight</item>
         <item name="opaqueBackground">@color/opaqueBackgroundNight</item>
+    </style>
+
+    <style name="DownUpActivity" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/open_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/open_exit</item>
     </style>
 
 

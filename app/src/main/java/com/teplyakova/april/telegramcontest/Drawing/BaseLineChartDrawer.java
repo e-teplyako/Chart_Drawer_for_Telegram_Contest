@@ -289,7 +289,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
     private void mapYPointsForScrollView()
     {
-        if (!mBordersSet || !showChartLines())
+        if (!showChartLines())
             return;
 
         for (ChartLine line : mLines) {

@@ -152,8 +152,8 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         if (!mSliderPositionsSet) {
             mNormSliderPosLeft = 0.8f;
             mNormSliderPosRight = 1;
+            //setSliderPositions(mNormSliderPosLeft, mNormSliderPosRight);
         }
-        setSliderPositions(mNormSliderPosLeft, mNormSliderPosRight);
 
         mXLabelsYCoordinate = mChartDrawingAreaEndY + MathUtils.dpToPixels(13, mContext);
 
@@ -333,9 +333,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
     }
 
     protected void mapXPointsForScrollView() {
-        if (!mBordersSet)
-            return;
-
         mScrollMappedPointsX = mapXPointsForScrollView(mPosX);
     }
 

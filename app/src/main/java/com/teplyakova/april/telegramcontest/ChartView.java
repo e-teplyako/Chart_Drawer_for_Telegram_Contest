@@ -7,7 +7,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -26,8 +25,8 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 
     private ChartDrawer mDrawer;
 
-    private float mNormSliderPosLeft = 0.8f;
-    private float mNormSliderPosRight = 1;
+    public float normSliderPosLeft = 0.8f;
+    public float normSliderPosRight = 1;
 
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -55,7 +54,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
         int viewHeight = getHeight();
 
         mDrawer.setViewDimens(viewWidth, viewHeight, mDrawingAreaOffsetXPx, mDrawingAreaOffsetYPx, mScrollDrawingAreaHeightPx);
-        mDrawer.setSliderPositions(mNormSliderPosLeft, mNormSliderPosRight);
+        mDrawer.setSliderPositions(normSliderPosLeft, normSliderPosRight);
     }
 
     @Override
@@ -108,8 +107,8 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
     protected void onRestoreInstanceState(Parcelable state) {
         SavedState ss = (SavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
-        mNormSliderPosLeft = ss.normPos1;
-        mNormSliderPosRight = ss.normPos2;
+        normSliderPosLeft = ss.normPos1;
+        normSliderPosRight = ss.normPos2;
     }
 
     private static class SavedState extends BaseSavedState {

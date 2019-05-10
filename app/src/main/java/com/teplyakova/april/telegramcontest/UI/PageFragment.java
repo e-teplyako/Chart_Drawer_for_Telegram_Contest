@@ -31,6 +31,7 @@ public class PageFragment extends Fragment {
 
     public static final String INDEX = "index";
     public static final String CHECKBOXES_KEY = "checkboxes";
+    public static final String CHARTVIEW_STATE_KEY = "chartview_state";
 
     private ChartData mChartData;
     private ChartView mChartView;
@@ -38,6 +39,7 @@ public class PageFragment extends Fragment {
     private ArrayList<CheckBox> mCheckboxes = new ArrayList<>();
     private boolean[] mCheckboxesState = null;
     private ChartDrawer mChartDrawer;
+    private float[] mChartViewPositionsState;
 
     private static int mBackgroundColor;
     private static int mLabelColor;
@@ -68,15 +70,20 @@ public class PageFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.e("called", "OnCreateView()");
         View view = inflater.inflate(R.layout.fragment_page, container, false);
         view.setBackgroundColor(mBackgroundColor);
 
         mChartView = view.findViewById(R.id.chartview);
         mChartDrawer = DrawerFactory.getChartDrawer(getContext(), mChartData);
+        if (savedInstanceState == null && mChartViewPositionsState != null) {
+            mChartView.normSliderPosLeft = mChartViewPositionsState[0];
+            mChartView.normSliderPosRight = mChartViewPositionsState[1];
+        }
         mChartView.init(mChartDrawer);
 
-        mCheckboxesState = null;
         if (savedInstanceState != null) {
+            mCheckboxesState = null;
             mCheckboxesState = savedInstanceState.getBooleanArray(CHECKBOXES_KEY);
         }
         mCheckboxes.clear();
@@ -169,15 +176,35 @@ public class PageFragment extends Fragment {
         }
         LineData[] linesArray = lines.toArray(new LineData[lines.size()]);
         mChartView.setLines(linesArray);
+        //Log.e("called setlines", "checkboxes size " + String.valueOf(mCheckboxes.size()));
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        boolean[] checkboxesState = new boolean[ mCheckboxes.size()];
+        boolean[] checkboxesState = new boolean[mCheckboxes.size()];
+        //Log.e("called savestate", "checkboxes size " + String.valueOf(mCheckboxes.size()));
+        //Log.e("CHECKBOXES SIZE", String.valueOf(mCheckboxes.size()));
         for (int i = 0; i < mCheckboxes.size(); i++) {
             checkboxesState[i] = mCheckboxes.get(i).isChecked();
         }
         outState.putBooleanArray(CHECKBOXES_KEY, checkboxesState);
+        if (mChartDrawer != null) {
+            float[] sliderPositions = mChartDrawer.getSliderPositions();
+            outState.putFloatArray(CHARTVIEW_STATE_KEY, sliderPositions);
+        }
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            mCheckboxesState = null;
+            mCheckboxesState = savedInstanceState.getBooleanArray(CHECKBOXES_KEY);
+            mChartViewPositionsState = savedInstanceState.getFloatArray(CHARTVIEW_STATE_KEY);
+            //Log.e("called", "OnActivityCreated()");
+            /*mCheckboxes.clear();
+            manageCheckboxes(mRootView, mChartData);*/
+        }
     }
 }
