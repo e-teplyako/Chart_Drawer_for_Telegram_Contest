@@ -8,8 +8,6 @@ import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
-import java.util.ArrayList;
-
 public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
 
     class YScale extends BaseLineChartDrawer.YScale {

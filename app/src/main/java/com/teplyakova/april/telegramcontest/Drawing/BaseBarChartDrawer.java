@@ -5,15 +5,11 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.graphics.Typeface;
-import android.text.TextPaint;
 import android.util.TypedValue;
-import android.view.MotionEvent;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
