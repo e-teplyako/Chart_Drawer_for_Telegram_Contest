@@ -196,23 +196,26 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
             public void onAnimationUpdate(ValueAnimator animator) {
                 float t = (float) animator.getAnimatedValue(KEY_PHASE);
 
-                ChartArea[] areas = getActiveChartAreas();
-                for (ChartArea area : areas) {
-                    for (int i = 0; i < area.ChartMappedPointsY.length; i++) {
-                        area.ChartMappedPointsY[i] = MathUtils.lerp(area.ChartMappedPointsYStart[i], area.ChartMappedPointsYEnd[i], t);
-                    }
-                    for (int i = 0; i < area.ScrollMappedPointsY.length; i++) {
-                        area.ScrollMappedPointsY[i] = MathUtils.lerp(area.ScrollMappedPointsYStart[i], area.ScrollMappedPointsYEnd[i], t);
+                for (ChartArea area : mAreas) {
+                    if (area.isVisible) {
+                        for (int i = 0; i < area.ChartMappedPointsY.length; i++) {
+                            area.ChartMappedPointsY[i] = MathUtils.lerp(area.ChartMappedPointsYStart[i], area.ChartMappedPointsYEnd[i], t);
+                        }
+                        for (int i = 0; i < area.ScrollMappedPointsY.length; i++) {
+                            area.ScrollMappedPointsY[i] = MathUtils.lerp(area.ScrollMappedPointsYStart[i], area.ScrollMappedPointsYEnd[i], t);
+                        }
                     }
                 }
 
                 if (t == 1) {
                     for (ChartArea area : mAreas) {
-                        //NEED?
-                        area.ChartMappedPointsYStart = area.ChartMappedPointsY;
-                        area.ScrollMappedPointsYStart = area.ScrollMappedPointsY;
-                        if (!area.isActive && area.isVisible)
+                        if (!area.isActive && area.isVisible) {
                             area.isVisible = false;
+                            Arrays.fill(area.ChartMappedPointsY, mChartDrawingAreaEndY);
+                            Arrays.fill(area.ScrollMappedPointsY, mScrollDrawingAreaEndY);
+                            area.ChartMappedPointsYStart = area.ChartMappedPointsY;
+                            area.ScrollMappedPointsYStart = area.ScrollMappedPointsY;
+                        }
                     }
                 }
             }
@@ -264,18 +267,18 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
         if (!mBordersSet || !showChartAreas())
             return;
 
-        ChartArea[] areas = getActiveChartAreas();
-
         long calculatedArea = 100;
 
         int[] previous = new int[mPointsMaxIndex - mPointsMinIndex + 1];
-        for (ChartArea area : areas) {
-            area.ChartMappedPointsY = new float[mPointsMaxIndex - mPointsMinIndex + 1];
-            for (int i = 0, j = mPointsMinIndex; i < area.ChartMappedPointsY.length; i++, j++) {
-                float percentage = (float) (area.Percentages[j] + previous[i]) / (float) calculatedArea;
-                area.ChartMappedPointsY[i] = mChartDrawingAreaHeight * percentage + mChartDrawingAreaStartY;
-                area.ChartMappedPointsY[i] = mChartDrawingAreaEndY - area.ChartMappedPointsY[i] + mChartDrawingAreaStartY;
-                previous[i] += area.Percentages[j];
+        for (ChartArea area : mAreas) {
+            if (area.isActive) {
+                area.ChartMappedPointsY = new float[mPointsMaxIndex - mPointsMinIndex + 1];
+                for (int i = 0, j = mPointsMinIndex; i < area.ChartMappedPointsY.length; i++, j++) {
+                    float percentage = (float) (area.Percentages[j] + previous[i]) / (float) calculatedArea;
+                    area.ChartMappedPointsY[i] = mChartDrawingAreaHeight * percentage + mChartDrawingAreaStartY;
+                    area.ChartMappedPointsY[i] = mChartDrawingAreaEndY - area.ChartMappedPointsY[i] + mChartDrawingAreaStartY;
+                    previous[i] += area.Percentages[j];
+                }
             }
         }
     }
@@ -284,18 +287,18 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
         if (!showChartAreas())
             return;
 
-        ChartArea[] areas = getActiveChartAreas();
-
         long calculatedArea = 100;
 
         int[] previous = new int[mScrollMappedPointsX.length];
-        for (ChartArea area : areas) {
-            area.ScrollMappedPointsY = new float[mScrollMappedPointsX.length];
-            for (int i = 0; i < area.ScrollMappedPointsY.length; i++) {
-                float percentage = (float) (area.Percentages[i] + previous[i]) / (float) calculatedArea;
-                area.ScrollMappedPointsY[i] = mScrollDrawingAreaHeight * percentage + mScrollDrawingAreaStartY;
-                area.ScrollMappedPointsY[i] = mScrollDrawingAreaEndY - area.ScrollMappedPointsY[i] + mScrollDrawingAreaStartY;
-                previous[i] += area.Percentages[i];
+        for (ChartArea area : mAreas) {
+            if (area.isActive) {
+                area.ScrollMappedPointsY = new float[mScrollMappedPointsX.length];
+                for (int i = 0; i < area.ScrollMappedPointsY.length; i++) {
+                    float percentage = (float) (area.Percentages[i] + previous[i]) / (float) calculatedArea;
+                    area.ScrollMappedPointsY[i] = mScrollDrawingAreaHeight * percentage + mScrollDrawingAreaStartY;
+                    area.ScrollMappedPointsY[i] = mScrollDrawingAreaEndY - area.ScrollMappedPointsY[i] + mScrollDrawingAreaStartY;
+                    previous[i] += area.Percentages[i];
+                }
             }
         }
     }
@@ -306,27 +309,27 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
 
         calculatePercentages();
 
-        ChartArea[] areas = getActiveChartAreas();
-
         long calculatedArea = 100;
 
         int[] previous = new int[mPointsMaxIndex - mPointsMinIndex + 1];
-        for (ChartArea area : areas) {
-            area.ChartMappedPointsYEnd = new float[mPointsMaxIndex - mPointsMinIndex + 1];
-            for (int i = 0, j = mPointsMinIndex; i < area.ChartMappedPointsYEnd.length; i++, j++) {
-                float percentage = (float) (area.Percentages[j] + previous[i]) / (float) calculatedArea;
-                area.ChartMappedPointsYEnd[i] = mChartDrawingAreaHeight * percentage + mChartDrawingAreaStartY;
-                area.ChartMappedPointsYEnd[i] = mChartDrawingAreaEndY - area.ChartMappedPointsYEnd[i] + mChartDrawingAreaStartY;
-                previous[i] += area.Percentages[j];
-            }
+        for (ChartArea area : mAreas) {
+            if (area.isActive) {
+                area.ChartMappedPointsYEnd = new float[mPointsMaxIndex - mPointsMinIndex + 1];
+                for (int i = 0, j = mPointsMinIndex; i < area.ChartMappedPointsYEnd.length; i++, j++) {
+                    float percentage = (float) (area.Percentages[j] + previous[i]) / (float) calculatedArea;
+                    area.ChartMappedPointsYEnd[i] = mChartDrawingAreaHeight * percentage + mChartDrawingAreaStartY;
+                    area.ChartMappedPointsYEnd[i] = mChartDrawingAreaEndY - area.ChartMappedPointsYEnd[i] + mChartDrawingAreaStartY;
+                    previous[i] += area.Percentages[j];
+                }
 
-            previous = new int[mScrollMappedPointsX.length];
-            area.ScrollMappedPointsYEnd = new float[mScrollMappedPointsX.length];
-            for (int i = 0; i < area.ScrollMappedPointsYEnd.length; i++) {
-                float percentage = (float) (area.Percentages[i] + previous[i]) / (float) calculatedArea;
-                area.ScrollMappedPointsYEnd[i] = mScrollDrawingAreaHeight * percentage + mScrollDrawingAreaStartY;
-                area.ScrollMappedPointsYEnd[i] = mScrollDrawingAreaEndY - area.ScrollMappedPointsYEnd[i] + mScrollDrawingAreaStartY;
-                previous[i] += area.Percentages[i];
+                previous = new int[mScrollMappedPointsX.length];
+                area.ScrollMappedPointsYEnd = new float[mScrollMappedPointsX.length];
+                for (int i = 0; i < area.ScrollMappedPointsYEnd.length; i++) {
+                    float percentage = (float) (area.Percentages[i] + previous[i]) / (float) calculatedArea;
+                    area.ScrollMappedPointsYEnd[i] = mScrollDrawingAreaHeight * percentage + mScrollDrawingAreaStartY;
+                    area.ScrollMappedPointsYEnd[i] = mScrollDrawingAreaEndY - area.ScrollMappedPointsYEnd[i] + mScrollDrawingAreaStartY;
+                    previous[i] += area.Percentages[i];
+                }
             }
         }
     }
@@ -342,8 +345,7 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
     }
 
     private void drawAreas(Canvas canvas, boolean drawInChartView) {
-        ChartArea[] areas = getVisibleChartAreas();
-        if (areas == null || areas.length == 0)
+        if (mAreas == null || mAreas.size() == 0)
             return;
 
         if (!mDrawPath.isEmpty())
@@ -371,31 +373,32 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
         mDrawPath.moveTo(mappedX[mappedX.length - 1], drawingStartPoint);
         float[] previous;
         if (drawInChartView) {
-            previous = new float[areas[0].ChartMappedPointsY.length];
+            previous = new float[mAreas.get(0).ChartMappedPointsY.length];
         }
         else {
-            previous = new float[areas[0].ScrollMappedPointsY.length];
+            previous = new float[mAreas.get(0).ScrollMappedPointsY.length];
         }
         Arrays.fill(previous, drawingStartPoint);
-        for (ChartArea area : areas) {
-            for (int i = previous.length - 1; i >= 0; i--) {
-                mDrawPath.lineTo(mappedX[i], previous[i]);
+        for (ChartArea area : mAreas) {
+            if (area.isVisible) {
+                for (int i = previous.length - 1; i >= 0; i--) {
+                    mDrawPath.lineTo(mappedX[i], previous[i]);
+                }
+                float[] mappedY;
+                if (drawInChartView) {
+                    mappedY = area.ChartMappedPointsY;
+                } else {
+                    mappedY = area.ScrollMappedPointsY;
+                }
+                for (int i = 0; i < mappedY.length; i++) {
+                    mDrawPath.lineTo(mappedX[i], mappedY[i]);
+                }
+                mChartPaint.setColor(area.Data.color);
+                canvas.drawPath(mDrawPath, mChartPaint);
+                mDrawPath.reset();
+                mDrawPath.moveTo(mappedX[mappedX.length - 1], mappedY[mappedY.length - 1]);
+                previous = mappedY;
             }
-            float[] mappedY;
-            if (drawInChartView) {
-                mappedY = area.ChartMappedPointsY;
-            }
-            else {
-                mappedY = area.ScrollMappedPointsY;
-            }
-            for (int i = 0; i < mappedY.length; i++) {
-                mDrawPath.lineTo(mappedX[i], mappedY[i]);
-            }
-            mChartPaint.setColor(area.Data.color);
-            canvas.drawPath(mDrawPath, mChartPaint);
-            mDrawPath.reset();
-            mDrawPath.moveTo(mappedX[mappedX.length - 1], mappedY[mappedY.length - 1]);
-            previous = mappedY;
         }
         if (!drawInChartView)
             canvas.restore();
