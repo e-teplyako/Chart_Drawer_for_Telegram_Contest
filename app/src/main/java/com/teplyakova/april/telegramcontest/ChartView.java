@@ -7,6 +7,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -73,11 +74,12 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_UP:
                 this.getParent().requestDisallowInterceptTouchEvent(true);
-                mDrawer.handleTouchEvent(event, x, y);
-                invalidate();
-                return true;
+                if (mDrawer.handleTouchEvent(event, x, y)) {
+                    invalidate();
+                    return true;
+                }
         }
-        return true;
+        return false;
     }
 
     public void setLines(LineData[] lines) {

@@ -9,6 +9,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.text.TextPaint;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 
@@ -86,6 +87,8 @@ public abstract class BaseChartDrawer implements ChartDrawer {
     private int                          mPosFirstVisible;
     private float                        mNormWidth;
     long[]                               mPosX;
+    long                                 mMinX;
+    long                                 mMaxX;
     boolean                              mBordersSet;
     int                                  mPointsMinIndex;
     int                                  mPointsMaxIndex;
@@ -110,6 +113,8 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mTheme = context.getTheme();
 
         mPosX = chartData.posX;
+        mMinX = MathUtils.getMin(mPosX);
+        mMaxX = MathUtils.getMax(mPosX);
 
         mDateWidthPx    = MathUtils.dpToPixels(TEXT_LABEL_WIDTH_DP,    context);
         mDateDistancePx = MathUtils.dpToPixels(TEXT_LABEL_DISTANCE_DP, context);
@@ -149,12 +154,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
 
         mChosenAreaMinimalWidth = mScrollDrawingAreaWidth * MINIMAL_NORM_SLIDER_WIDTH;
 
-        if (!mSliderPositionsSet) {
-            mNormSliderPosLeft = 0.8f;
-            mNormSliderPosRight = 1;
-            //setSliderPositions(mNormSliderPosLeft, mNormSliderPosRight);
-        }
-
         mXLabelsYCoordinate = mChartDrawingAreaEndY + MathUtils.dpToPixels(13, mContext);
 
         float minChartWidth = mChartDrawingAreaWidth;
@@ -191,10 +190,9 @@ public abstract class BaseChartDrawer implements ChartDrawer {
                     }
                     else if (mChosenAreaIsCaught) {
                         float deltaX = x - mCurrChosenAreaPosition;
-                        setSliderPositions(normalizeSliderPosition(MathUtils.clamp(mSliderPositionLeft + deltaX, mScrollDrawingAreaEndX - mCurrChosenAreaWidth, mScrollDrawingAreaStartX)), normalizeSliderPosition(MathUtils.clamp(mSliderPositionRight + deltaX, mScrollDrawingAreaEndX, mScrollDrawingAreaStartX + mCurrChosenAreaWidth)));
                         mCurrChosenAreaPosition = x;
+                        setSliderPositions(normalizeSliderPosition(MathUtils.clamp(mSliderPositionLeft + deltaX, mScrollDrawingAreaEndX - mCurrChosenAreaWidth, mScrollDrawingAreaStartX)), normalizeSliderPosition(MathUtils.clamp(mSliderPositionRight + deltaX, mScrollDrawingAreaEndX, mScrollDrawingAreaStartX + mCurrChosenAreaWidth)));
                     }
-
                     return true;
                 }
             case MotionEvent.ACTION_DOWN:
@@ -216,17 +214,16 @@ public abstract class BaseChartDrawer implements ChartDrawer {
                         mCurrChosenAreaPosition = x;
                         mCurrChosenAreaWidth = mSliderPositionRight - mSliderPositionLeft;
                     }
-                    return true;
                 }
+                return true;
             case MotionEvent.ACTION_UP:
-                if (x >= mScrollDrawingAreaStartX && x <= mScrollDrawingAreaEndX && y >= mScrollDrawingAreaStartY && y <= mScrollDrawingAreaEndY) {
+            case MotionEvent.ACTION_OUTSIDE:
                     mRightSliderIsCaught = false;
                     mLeftSliderIsCaught = false;
                     mChosenAreaIsCaught = false;
                     return true;
-                }
         }
-        return true;
+        return false;
     }
 
     public boolean setBorders (float normPosX1, float normPosX2) {
@@ -235,11 +232,9 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mNormWidth = normPosX2 - normPosX1;
         long pos1;
         long pos2;
-        long xMin = MathUtils.getMin(mPosX);
-        long xMax = MathUtils.getMax(mPosX);
-        long width = xMax - xMin;
-        pos1 = (long) Math.floor(normPosX1 * width) + xMin;
-        pos2 = (long) Math.ceil(normPosX2 * width) + xMin;
+        long width = mMaxX - mMinX;
+        pos1 = (long) Math.floor(normPosX1 * width) + mMinX;
+        pos2 = (long) Math.ceil(normPosX2 * width) + mMinX;
 
         boolean result = false;
         if (mPos1 != pos1 || mPos2 != pos2)
@@ -270,7 +265,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mCurrChosenAreaWidth = mSliderPositionRight - mSliderPositionLeft;
 
         calculateRects();
-
         mNormSliderPosLeft = normPos1;
         mNormSliderPosRight = normPos2;
         setBorders(mNormSliderPosLeft, mNormSliderPosRight);
