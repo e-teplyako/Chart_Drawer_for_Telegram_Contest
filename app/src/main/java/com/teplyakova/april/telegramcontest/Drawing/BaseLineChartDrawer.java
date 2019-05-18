@@ -19,7 +19,6 @@ import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
@@ -55,7 +54,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         float[]  mScrollOptimizedPointsY;
         float[]  mScrollOptimizedPointsX;
 
-        boolean IsVisible()
+        boolean isVisible()
         {
             return (Alpha > 0 || AlphaEnd > 0);
         }
@@ -189,8 +188,6 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
     private boolean       mSetLinesFirstTime      = true;
 
-    int                   mPositionOfChosenPoint;
-
 
     BaseLineChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
@@ -205,10 +202,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
     @Override
     public void setViewDimens(float width, float height, float drawingAreaOffsetXPx, float drawingAreaOffsetYPx, float scrollDrawingAreaHeightPx) {
         super.setViewDimens(width, height, drawingAreaOffsetXPx, drawingAreaOffsetYPx, scrollDrawingAreaHeightPx);
-
-        mapXPointsForChartView();
         mapXPointsForScrollView();
-        mapYPointsForChartView();
         mapYPointsForScrollView();
     }
 
@@ -222,6 +216,9 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
     }
 
     public void setLines (LineData[] lines) {
+        if (lines == null || lines.length == 0)
+            hidePointDetails();
+
         boolean animate = false;
 
         for (ChartLine line : mLines) {
@@ -238,8 +235,6 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
         if (animate)
             startSetLinesAnimation();
-
-        hidePointDetails();
 
         mapYPointsForScrollView();
 
@@ -281,15 +276,11 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
     protected abstract void mapYPointsForChartView();
 
-    private void mapYPointsForScrollView()
-    {
-        if (!showChartLines())
-            return;
-
+    private void mapYPointsForScrollView() {
         for (ChartLine line : mLines) {
-            if (line.IsVisible()){
-                line.mScrollMappedPointsY = mapYPointsForScrollView(line.Data.posY);
-                optimizeScrollPoints(line);
+        if (line.isVisible()){
+            line.mScrollMappedPointsY = mapYPointsForScrollView(line.Data.posY);
+            optimizeScrollPoints(line);
             }
         }
     }
@@ -346,7 +337,6 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         mChartPaint.setStrokeCap(Paint.Cap.ROUND);
 
         mCirclePaint = new Paint();
-        mCirclePaint.setStrokeWidth(6);
         mCirclePaint.setAntiAlias(true);
     }
 
@@ -381,8 +371,9 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         canvas.restore();
     }
 
-    void drawChosenPointCircle(float[] mappedX, float[] mappedY, int color, Canvas canvas) {
+    void drawChosenPointCircle(float[] mappedX, float[] mappedY, int color, int alpha, Canvas canvas) {
         mCirclePaint.setColor(color);
+        mCirclePaint.setAlpha(alpha);
         canvas.drawCircle(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mappedY[mPositionOfChosenPoint - mPointsMinIndex], 16f, mCirclePaint);
         TypedValue background = new TypedValue();
         if (mTheme.resolveAttribute(R.attr.primaryBackgroundColor, background, true)) {
@@ -413,21 +404,8 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         RectF rectF = new RectF(left, top, right, bottom);
         int cornerRadius = 25;
 
-        TypedValue dividerColor = new TypedValue();
-        if (mTheme.resolveAttribute(R.attr.dividerColor, dividerColor, true)) {
-            mPlatePaint.setColor(dividerColor.data);
-        }
-        mPlatePaint.setStrokeWidth(2);
-        mPlatePaint.setStyle(Paint.Style.STROKE);
-
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
-
-        mPlatePaint.setStyle(Paint.Style.FILL);
-        TypedValue plateColor = new TypedValue();
-        if (mTheme.resolveAttribute(R.attr.plateBackgroundColor, plateColor, true)) {
-            mPlatePaint.setColor(plateColor.data);
-        }
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateStrokePaint);
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateFillPaint);
 
         //text
         mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
@@ -476,7 +454,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
     boolean showChartLines() {
         for (ChartLine line : mLines)
-            if (line.IsVisible())
+            if (line.isVisible())
                 return true;
 
         return false;

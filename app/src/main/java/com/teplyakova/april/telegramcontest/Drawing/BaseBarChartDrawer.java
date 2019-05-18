@@ -12,15 +12,12 @@ import android.graphics.RectF;
 import android.util.TypedValue;
 
 import com.teplyakova.april.telegramcontest.ChartData;
-import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.R;
-import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
 public abstract class BaseBarChartDrawer extends BaseChartDrawer{
     class YScale
@@ -196,8 +193,6 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
     RectF                        mBarRect;
     RectF                        mOpaqueRect;
 
-    int                          mPositionOfChosenPoint;
-
     private boolean              mSetLinesFirstTime = true;
 
     private YMaxAnimator         mYMaxAnimator;
@@ -249,11 +244,10 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
 
         for (YScale yScale : mYMaxAnimator.mYScales) {
             drawScaleY(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
-            drawYLabels(yScale.Height, yScale.MaxY, yScale.Alpha, true, canvas);
+            drawYLabels(yScale.Height, yScale.MaxY, yScale.Alpha, canvas);
         }
 
         if (mPointIsChosen) {
-            mPositionOfChosenPoint = mapCoordinateToPoint(mChartMappedPointsX, mXCoordinateOfTouch);
             drawOpaqueRects(canvas);
             drawChosenPointPlate(canvas);
         }
@@ -265,14 +259,14 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
     public void setViewDimens(float width, float height, float drawingAreaOffsetXPx, float drawingAreaOffsetYPx, float scrollDrawingAreaHeightPx) {
         super.setViewDimens(width, height, drawingAreaOffsetXPx, drawingAreaOffsetYPx, scrollDrawingAreaHeightPx);
 
-        mapXPointsForChartView();
         mapXPointsForScrollView();
-        mapYPointsForChartView(getMaxPosYCoefficient(), mYMaxAnimator.mMaxY);
         mapYPointsForScrollView(getMaxPosYCoefficient());
     }
 
     @Override
     public void setLines(LineData[] lines) {
+        if (lines == null || lines.length == 0)
+            hidePointDetails();
 
         for (ChartArea area : mAreas) {
             if(!Arrays.asList(lines).contains(area.Data)) {
@@ -302,10 +296,7 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
         if (!mSetLinesFirstTime)
             startSetLinesAnimation();
 
-
         mYMaxAnimator.updateMaxY();
-
-        hidePointDetails();
 
         mSetLinesFirstTime = false;
     }
@@ -357,19 +348,19 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
         mSetLinesAnimator.start();
     }
 
-    private void mapYPointsForChartView(float coefficient, long yMax)
-    {   if (!mBordersSet || !showChartAreas())
-        return;
-
-        ChartArea[] areas = getVisibleChartAreas();
+    private void mapYPointsForChartView(float coefficient, long yMax) {
+        if (!mBordersSet)
+            return;
 
         long[] previous = new long[mPointsMaxIndex - mPointsMinIndex + 1];
-        for (ChartArea area : areas) {
-            area.mChartMappedPointsY = new float[mPointsMaxIndex - mPointsMinIndex + 1];
-            for (int i = 0, j = mPointsMinIndex; i < area.mChartMappedPointsY.length; i++, j++) {
-                float percentage = (area.Data.posY[j] * area.PosYCoefficient + previous[i]) / yMax;
-                area.mChartMappedPointsY[i] = mChartDrawingAreaEndY - coefficient * mChartDrawingAreaHeight * percentage;
-                previous[i] += area.Data.posY[j] * area.PosYCoefficient;
+        for (ChartArea area : mAreas) {
+            if (area.isVisible()) {
+                area.mChartMappedPointsY = new float[mPointsMaxIndex - mPointsMinIndex + 1];
+                for (int i = 0, j = mPointsMinIndex; i < area.mChartMappedPointsY.length; i++, j++) {
+                    float percentage = (area.Data.posY[j] * area.PosYCoefficient + previous[i]) / yMax;
+                    area.mChartMappedPointsY[i] = mChartDrawingAreaEndY - coefficient * mChartDrawingAreaHeight * percentage;
+                    previous[i] += area.Data.posY[j] * area.PosYCoefficient;
+                }
             }
         }
         prepareChartPaths();
@@ -466,8 +457,7 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
         mOpaquePaint.setStyle(Paint.Style.FILL);
     }
 
-    private void drawScaleY (long height, long yMax, int alpha, Canvas canvas)
-    {
+    private void drawScaleY (long height, long yMax, int alpha, Canvas canvas) {
         mDividerPaint.setAlpha(255);
         canvas.drawLine(mChartDrawingAreaStartX, mChartDrawingAreaEndY, mChartDrawingAreaEndX, mChartDrawingAreaEndY, mDividerPaint);
 
@@ -485,36 +475,29 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
         }
     }
 
-    private void drawYLabels (long height, long yMax, int alpha, boolean left, Canvas canvas) {
-        float xCoord;
-        if (left) {
-            mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
-            xCoord = mChartDrawingAreaStartX;
-        }
-        else {
-            mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
-            xCoord = mChartDrawingAreaEndX;
-        }
+    private void drawYLabels (long height, long yMax, int alpha, Canvas canvas) {
+        float xCoord = mChartDrawingAreaStartX;
+        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
         float spaceBetweenDividers = (float)yMax / height * mChartDrawingAreaHeight / Y_DIVIDERS_COUNT;
 
         long step = 0;
         float yLabelCoord = mChartDrawingAreaEndY * 0.99f;
 
         mBaseLabelPaint.setAlpha(alpha);
-        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
 
         for (int i = 0; i < Y_DIVIDERS_COUNT; i++) {
             canvas.drawText(MathUtils.getFriendlyNumber(step), xCoord, yLabelCoord, mBaseLabelPaint);
             yLabelCoord -= spaceBetweenDividers;
             step += yMax / Y_DIVIDERS_COUNT;
         }
-
     }
 
     private void drawAreas(Canvas canvas) {
-        if (mAreas == null || mAreas.size() == 0)
-            return;
         ChartArea[] areas = getVisibleChartAreas();
+
+        if (areas == null || areas.length == 0)
+            return;
+
         for (int i = 0; i < mChartPaths.length; i++) {
             mBarPaint.setColor(areas[i].Data.color);
             canvas.drawPath(mChartPaths[i], mBarPaint);
@@ -549,15 +532,13 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
         super.showPointDetails(xCoord);
     }
 
-    private boolean showChartAreas()
-    {
+    private boolean showChartAreas() {
         for (ChartArea area : mAreas)
             if (area.isVisible())
                 return true;
 
         return false;
     }
-
 
     LineData[] getActiveChartLines()
     {

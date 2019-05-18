@@ -70,7 +70,6 @@ public class PageFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Log.e("called", "OnCreateView()");
         View view = inflater.inflate(R.layout.fragment_page, container, false);
         view.setBackgroundColor(mBackgroundColor);
 
@@ -94,7 +93,7 @@ public class PageFragment extends Fragment {
     }
 
     private void manageCheckboxes(View view, ChartData chartData) {
-        if (chartData.type == "BarChart")
+        if (chartData.lines.length == 1)
             return;
 
         LinearLayout linearLayout = (LinearLayout) view.findViewById(R.id.checkboxes_layout);

@@ -3,9 +3,12 @@ package com.teplyakova.april.telegramcontest.Drawing;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.util.TypedValue;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.LineData;
+import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
@@ -28,12 +31,11 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
 
         void updateMinMaxY() {
 
-            if (!mBordersSet || !mLine.IsVisible())
+            if (!mBordersSet || !mLine.isVisible())
                 return;
 
-            LineData[] lines = {mLine.Data};
-            long newYMax = MathUtils.getMaxY(lines, mPointsMinIndex, mPointsMaxIndex);
-            long newYMin = MathUtils.getMinY(lines, mPointsMinIndex, mPointsMaxIndex);
+            long newYMax = MathUtils.getMax(mLine.Data.posY, mPointsMinIndex, mPointsMaxIndex);
+            long newYMin = MathUtils.getMin(mLine.Data.posY, mPointsMinIndex, mPointsMaxIndex);
             newYMax = (((newYMax - newYMin) / Y_DIVIDERS_COUNT) + 1) * Y_DIVIDERS_COUNT + newYMin;
 
             if (newYMax != mTargetMaxY || newYMin != mTargetMinY)
@@ -62,6 +64,8 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
             mapYPointsForChartView();
         }
     }
+
+    private Paint mAxisLabelPaint;
 
     public LineChart2YAxisDrawer(Context context, ChartData chartData) {
         super(context, chartData);
@@ -122,12 +126,11 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         }
 
         if (mPointIsChosen) {
-            mPositionOfChosenPoint = mapCoordinateToPoint(mChartMappedPointsX, mXCoordinateOfTouch);
             drawVerticalDivider(mChartMappedPointsX, canvas);
         }
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
-            if (line.IsVisible()) {
+            if (line.isVisible()) {
                 mChartPaint.setStrokeWidth(6);
                 drawChartLineInChartView(line, canvas, mChartMappedPointsX, line.mChartMappedPointsY);
                 mChartPaint.setStrokeWidth(4);
@@ -137,13 +140,13 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
 
         if (mPointIsChosen)
             for (BaseLineChartDrawer.ChartLine line : mLines) {
-                if (line.IsVisible())
-                    drawChosenPointCircle(mChartMappedPointsX, line.mChartMappedPointsY, line.Data.color, canvas);
+                if (line.isVisible())
+                    drawChosenPointCircle(mChartMappedPointsX, line.mChartMappedPointsY, line.Data.color, line.Alpha, canvas);
             }
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
             LineChart2YAxisDrawer.ChartLine derivedLine = (LineChart2YAxisDrawer.ChartLine) line;
-            if (line.IsVisible()) {
+            if (line.isVisible()) {
                 for (BaseLineChartDrawer.YScale yScale : derivedLine.mYMaxAnimator.mYScales) {
                     drawYLabels(yScale.Height, yScale.MaxY, yScale.MinY, getChartLineAlpha(yScale.Alpha, line), derivedLine.mYMaxAnimator.mLeft, line.Data.color, canvas);
                 }
@@ -157,27 +160,35 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         drawRects(canvas);
     }
 
-    protected void mapYPointsForChartView()
-    {
-        if (!mBordersSet || !showChartLines())
+    protected void mapYPointsForChartView() {
+        if (!mBordersSet)
             return;
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
             LineChart2YAxisDrawer.ChartLine derivedLine = (LineChart2YAxisDrawer.ChartLine) line;
-            if (line.IsVisible()){
+            if (line.isVisible()){
                 line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, derivedLine.mYMaxAnimator.mMinY, derivedLine.mYMaxAnimator.mMaxY);
             }
         }
     }
 
+    @Override
+    protected void setUpPaints() {
+        super.setUpPaints();
+        mAxisLabelPaint = new Paint();
+        mAxisLabelPaint.setTextSize(mTextSizeMediumPx);
+        mAxisLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+        mAxisLabelPaint.setAntiAlias(true);
+    }
+
     private void drawYLabels (long height, long yMax, long yMin, int alpha, boolean left, int color, Canvas canvas) {
         float xCoord;
         if (left) {
-            mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
+            mAxisLabelPaint.setTextAlign(Paint.Align.LEFT);
             xCoord = mChartDrawingAreaStartX;
         }
         else {
-            mBaseLabelPaint.setTextAlign(Paint.Align.RIGHT);
+            mAxisLabelPaint.setTextAlign(Paint.Align.RIGHT);
             xCoord = mChartDrawingAreaEndX;
         }
 
@@ -186,15 +197,14 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         long step = yMin;
         float yLabelCoord = mChartDrawingAreaEndY * 0.99f;
 
-        mBaseLabelPaint.setColor(color);
-        mBaseLabelPaint.setAlpha(alpha);
+        mAxisLabelPaint.setColor(color);
+        mAxisLabelPaint.setAlpha(alpha);
 
         for (int i = 0; i < Y_DIVIDERS_COUNT; i++) {
-            canvas.drawText(MathUtils.getFriendlyNumber(step), xCoord, yLabelCoord, mBaseLabelPaint);
+            canvas.drawText(MathUtils.getFriendlyNumber(step), xCoord, yLabelCoord, mAxisLabelPaint);
             yLabelCoord -= spaceBetweenDividers;
             step += (yMax - yMin) / Y_DIVIDERS_COUNT;
         }
-
     }
 
     private int getChartLineAlpha(int alpha, BaseLineChartDrawer.ChartLine line) {

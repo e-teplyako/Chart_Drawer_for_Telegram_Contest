@@ -9,7 +9,6 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.text.TextPaint;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 
@@ -63,7 +62,8 @@ public abstract class BaseChartDrawer implements ChartDrawer {
     Paint                                mSliderPaint;
     Paint                                mDividerPaint;
     TextPaint                            mBaseLabelPaint;
-    Paint                                mPlatePaint;
+    Paint                                mPlateStrokePaint;
+    Paint                                mPlateFillPaint;
     TextPaint                            mPlateXValuePaint;
     TextPaint                            mPlateYValuePaint;
     TextPaint                            mPlateNamePaint;
@@ -76,7 +76,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
     private float                        mCurrChosenAreaWidth;
     private float                        mChosenAreaMinimalWidth;
 
-    private boolean                      mSliderPositionsSet             = false;
     private float                        mNormSliderPosLeft              = 0.8f;
     private float                        mNormSliderPosRight             = 1;
     private float                        mSliderPositionLeft;
@@ -84,7 +83,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
 
     private long                         mPos1                           = -1;
     private long                         mPos2                           = -1;
-    private int                          mPosFirstVisible;
     private float                        mNormWidth;
     long[]                               mPosX;
     long                                 mMinX;
@@ -106,7 +104,7 @@ public abstract class BaseChartDrawer implements ChartDrawer {
     ValueAnimator.AnimatorUpdateListener mViewAnimatorListener;
 
     boolean                              mPointIsChosen                  = false;
-    float                                mXCoordinateOfTouch;
+    int                                  mPositionOfChosenPoint;
 
     public BaseChartDrawer(Context context, ChartData chartData) {
         mContext = context;
@@ -248,8 +246,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mPointsMinIndex = MathUtils.getIndexOfNearestLeftElement(mPosX, mPos1 - distanceToScreenBorder);
         mPointsMaxIndex = MathUtils.getIndexOfNearestRightElement(mPosX,  mPos2 + distanceToScreenBorder);
 
-        mPosFirstVisible = MathUtils.getIndexOfNearestRightElement(mPosX, mPos1);
-
         hidePointDetails();
 
         return result;
@@ -268,8 +264,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mNormSliderPosLeft = normPos1;
         mNormSliderPosRight = normPos2;
         setBorders(mNormSliderPosLeft, mNormSliderPosRight);
-
-        mSliderPositionsSet = true;
     }
 
     public float[] getSliderPositions() {
@@ -385,7 +379,18 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mBaseLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
         mBaseLabelPaint.setAntiAlias(true);
 
-        mPlatePaint = new Paint();
+        mPlateStrokePaint = new Paint();
+        mPlateStrokePaint.setColor(dividerColor.data);
+        mPlateStrokePaint.setStyle(Paint.Style.STROKE);
+        mPlateStrokePaint.setStrokeWidth(2);
+
+        mPlateFillPaint = new Paint();
+        mPlateFillPaint.setStyle(Paint.Style.FILL);
+        TypedValue plateColor = new TypedValue();
+        if (mTheme.resolveAttribute(R.attr.plateBackgroundColor, plateColor, true)) {
+            mPlateFillPaint.setColor(plateColor.data);
+        }
+
 
         mPlateXValuePaint = new TextPaint();
         TypedValue textColor = new TypedValue();
@@ -429,7 +434,8 @@ public abstract class BaseChartDrawer implements ChartDrawer {
     }
 
     protected void drawTopDatesText (Canvas canvas) {
-        String dateText = DateTimeUtils.formatDatedMMMMMyyyy(mPosX[mPosFirstVisible]) + " - " + DateTimeUtils.formatDatedMMMMMyyyy(mPos2);
+        int firstVisiblePosition = MathUtils.getIndexOfNearestRightElement(mPosX, mPos1);
+        String dateText = DateTimeUtils.formatDatedMMMMMyyyy(mPosX[firstVisiblePosition]) + " - " + DateTimeUtils.formatDatedMMMMMyyyy(mPos2);
         mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
         mPlateXValuePaint.setTextAlign(Paint.Align.RIGHT);
         canvas.drawText(dateText, mChartDrawingAreaEndX, mTopDatesOffsetYPx, mPlateXValuePaint);
@@ -449,10 +455,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         }
         mXLabelsPeriodCurrent = xLabelPeriodicity;
 
-        TypedValue baseLabelColor = new TypedValue();
-        if (mTheme.resolveAttribute(R.attr.baseLabelColor, baseLabelColor, true)) {
-            mBaseLabelPaint.setColor(baseLabelColor.data);
-        }
         mBaseLabelPaint.setAlpha(255);
         mBaseLabelPaint.setTextAlign(Paint.Align.CENTER);
 
@@ -488,7 +490,7 @@ public abstract class BaseChartDrawer implements ChartDrawer {
     }
 
     protected void showPointDetails(float xCoord) {
-        mXCoordinateOfTouch = xCoord;
+        mPositionOfChosenPoint = mapCoordinateToPoint(mChartMappedPointsX, xCoord);
         mPointIsChosen = true;
     }
 

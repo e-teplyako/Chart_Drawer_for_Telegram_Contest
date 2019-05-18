@@ -111,12 +111,11 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         }
 
         if (mPointIsChosen) {
-            mPositionOfChosenPoint = mapCoordinateToPoint(mChartMappedPointsX, mXCoordinateOfTouch);
             drawVerticalDivider(mChartMappedPointsX, canvas);
         }
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
-            if (line.IsVisible()) {
+            if (line.isVisible()) {
                 mChartPaint.setStrokeWidth(6);
                 drawChartLineInChartView(line, canvas, mChartMappedPointsX, line.mChartMappedPointsY);
                 mChartPaint.setStrokeWidth(4);
@@ -126,8 +125,8 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
 
         if (mPointIsChosen)
             for (BaseLineChartDrawer.ChartLine line : mLines) {
-                if (line.IsVisible())
-                    drawChosenPointCircle(mChartMappedPointsX, line.mChartMappedPointsY, line.Data.color, canvas);
+                if (line.isVisible())
+                    drawChosenPointCircle(mChartMappedPointsX, line.mChartMappedPointsY, line.Data.color, line.Alpha, canvas);
             }
 
 
@@ -144,11 +143,11 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
     }
 
     protected void mapYPointsForChartView() {
-        if (!mBordersSet || !showChartLines())
+        if (!mBordersSet)
             return;
 
         for (BaseLineChartDrawer.ChartLine line : mLines) {
-            if (line.IsVisible()){
+            if (line.isVisible()){
                 line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, mYMaxAnimator.mMinY, mYMaxAnimator.mMaxY);
             }
         }
@@ -156,7 +155,6 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
 
     private void drawYLabels (long height, long yMax, long yMin, int alpha, Canvas canvas) {
         float xCoord;
-        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
         xCoord = mChartDrawingAreaStartX;
         float spaceBetweenDividers = (float)yMax / height * mChartDrawingAreaHeight / Y_DIVIDERS_COUNT;
 

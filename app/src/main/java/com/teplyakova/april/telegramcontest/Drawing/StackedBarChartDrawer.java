@@ -4,11 +4,9 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.util.TypedValue;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.LineData;
-import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
@@ -44,21 +42,8 @@ public class StackedBarChartDrawer extends BaseBarChartDrawer {
         RectF rectF = new RectF(left, top, right, bottom);
         int cornerRadius = 25;
 
-        TypedValue dividerColor = new TypedValue();
-        if (mTheme.resolveAttribute(R.attr.dividerColor, dividerColor, true)) {
-            mPlatePaint.setColor(dividerColor.data);
-        }
-        mPlatePaint.setStrokeWidth(2);
-        mPlatePaint.setStyle(Paint.Style.STROKE);
-
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
-
-        mPlatePaint.setStyle(Paint.Style.FILL);
-        TypedValue plateColor = new TypedValue();
-        if (mTheme.resolveAttribute(R.attr.plateBackgroundColor, plateColor, true)) {
-            mPlatePaint.setColor(plateColor.data);
-        }
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlatePaint);
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateStrokePaint);
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateFillPaint);
 
         //text
         mPlateXValuePaint.setTextSize(mTextSizeLargePx);
