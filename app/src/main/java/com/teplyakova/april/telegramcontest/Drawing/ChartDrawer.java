@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest.Interfaces;
+package com.teplyakova.april.telegramcontest.Drawing;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;

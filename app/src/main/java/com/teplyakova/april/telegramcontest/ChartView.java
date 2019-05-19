@@ -7,22 +7,16 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener{
-
-    private final int   DRAWING_AREA_OFFSET_X_DP        = 8;
-    private final int   DRAWING_AREA_OFFSET_Y_DP        = 16;
-    private final int   SCROLL_DRAWING_AREA_HEIGHT_DP   = 50;
-
-    private final float mDrawingAreaOffsetXPx;
-    private final float mDrawingAreaOffsetYPx;
-    private final float mScrollDrawingAreaHeightPx;
+    private final float DRAWING_AREA_OFFSET_X_PX;
+    private final float DRAWING_AREA_OFFSET_Y_PX;
+    private final float SCROLL_DRAWING_AREA_HEIGHT_PX;
 
     private ChartDrawer mDrawer;
 
@@ -32,9 +26,9 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
-        mDrawingAreaOffsetXPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_X_DP, context);
-        mDrawingAreaOffsetYPx = MathUtils.dpToPixels(DRAWING_AREA_OFFSET_Y_DP, context);
-        mScrollDrawingAreaHeightPx = MathUtils.dpToPixels(SCROLL_DRAWING_AREA_HEIGHT_DP, context);
+        DRAWING_AREA_OFFSET_X_PX = MathUtils.dpToPixels(8, context);
+        DRAWING_AREA_OFFSET_Y_PX = MathUtils.dpToPixels(16, context);
+        SCROLL_DRAWING_AREA_HEIGHT_PX = MathUtils.dpToPixels(50, context);
     }
 
     public void init(ChartDrawer drawer) {
@@ -54,7 +48,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
         int viewWidth  = getWidth();
         int viewHeight = getHeight();
 
-        mDrawer.setViewDimens(viewWidth, viewHeight, mDrawingAreaOffsetXPx, mDrawingAreaOffsetYPx, mScrollDrawingAreaHeightPx);
+        mDrawer.setViewDimens(viewWidth, viewHeight, DRAWING_AREA_OFFSET_X_PX, DRAWING_AREA_OFFSET_Y_PX, SCROLL_DRAWING_AREA_HEIGHT_PX);
         mDrawer.setSliderPositions(normSliderPosLeft, normSliderPosRight);
     }
 

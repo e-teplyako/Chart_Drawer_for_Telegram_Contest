@@ -13,7 +13,6 @@ import android.util.TypedValue;
 import android.view.MotionEvent;
 
 import com.teplyakova.april.telegramcontest.ChartData;
-import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
 import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;

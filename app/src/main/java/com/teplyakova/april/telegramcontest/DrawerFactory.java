@@ -7,7 +7,7 @@ import com.teplyakova.april.telegramcontest.Drawing.LineChart2YAxisDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.StackedAreaChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.StackedBarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.StandardLineChartDrawer;
-import com.teplyakova.april.telegramcontest.Interfaces.ChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 
 public class DrawerFactory {
     public static ChartDrawer getChartDrawer(Context context, ChartData chartData) {
