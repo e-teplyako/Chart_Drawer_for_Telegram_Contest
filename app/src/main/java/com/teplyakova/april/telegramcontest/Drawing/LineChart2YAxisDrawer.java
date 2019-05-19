@@ -4,11 +4,9 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.util.TypedValue;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.LineData;
-import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
@@ -176,7 +174,7 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
     protected void setUpPaints() {
         super.setUpPaints();
         mAxisLabelPaint = new Paint();
-        mAxisLabelPaint.setTextSize(mTextSizeMediumPx);
+        mAxisLabelPaint.setTextSize(TEXT_SIZE_MEDIUM_PX);
         mAxisLabelPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
         mAxisLabelPaint.setAntiAlias(true);
     }

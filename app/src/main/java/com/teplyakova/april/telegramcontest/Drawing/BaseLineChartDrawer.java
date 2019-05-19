@@ -172,11 +172,8 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
     }
 
     final int             Y_DIVIDERS_COUNT         = 6;
-    final int             PLATE_WIDTH_DP           = 110;
-    final int             PLATE_HEIGHT_DP          = 56;
 
     private final float   mPlateWidthPx;
-    private final float   mPlateHeightPx;
     private final float   mOptimTolerancePx;
 
     Paint                 mChartPaint;
@@ -193,8 +190,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         super(context, chartData);
 
         mOptimTolerancePx = mPosX.length >= 150 ? MathUtils.dpToPixels(2, mContext) : 1;
-        mPlateWidthPx = MathUtils.dpToPixels(PLATE_WIDTH_DP, context);
-        mPlateHeightPx = MathUtils.dpToPixels(PLATE_HEIGHT_DP, context);
+        mPlateWidthPx = MathUtils.dpToPixels(140, context);
     }
 
     public abstract void draw(Canvas canvas);
@@ -388,9 +384,11 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
     }
 
     void drawChosenPointPlate(float[] mappedX, Canvas canvas) {
+        LineData[] lines = getActiveChartLines();
         //plate
+        float plateHeightPx = (3 + lines.length) * VERTICAL_TEXT_OFFSET_PX + (1 + lines.length) * TEXT_SIZE_MEDIUM_PX;
         float top = mChartDrawingAreaHeight * 0.05f + mChartDrawingAreaWidth * 0.05f;
-        float bottom = top + mPlateHeightPx;
+        float bottom = top + plateHeightPx;
         float left;
         float right;
         float offset = mChartDrawingAreaWidth * 0.05f;
@@ -408,19 +406,16 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateFillPaint);
 
         //text
-        mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
+        float textPosY = top + TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
         mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.22f, mPlateXValuePaint);
+        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, textPosY, mPlateXValuePaint);
 
-        LineData[] lines = getActiveChartLines();
-        mPlateYValuePaint.setTextSize(mTextSizeMediumPx);
-        mPlateNamePaint.setTextSize(mTextSizeMediumPx);
-        float heightOffset = 0.55f;
+        textPosY += TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
         for (LineData line : lines){
             mPlateYValuePaint.setColor(line.color);
-            canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
-            canvas.drawText(line.name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
-            heightOffset += 0.3f;
+            canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - HORIZONTAL_TEXT_OFFSET_PX, textPosY, mPlateYValuePaint);
+            canvas.drawText(line.name, left + HORIZONTAL_TEXT_OFFSET_PX, textPosY, mPlateNamePaint);
+            textPosY += TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
         }
     }
 

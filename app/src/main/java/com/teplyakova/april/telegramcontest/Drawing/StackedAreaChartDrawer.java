@@ -8,11 +8,9 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.Log;
-import android.util.TypedValue;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.LineData;
-import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
@@ -40,11 +38,8 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
     }
 
     private final int            Y_DIVIDERS_COUNT       = 5;
-    private final int            PLATE_WIDTH_DP         = 140;
-    private final int            PLATE_HEIGHT_DP        = 130;
 
-    private final float          mPlateHeightPx;
-    private final float          mPlateWidthPx;
+    private final float          PLATE_WIDTH_PX;
 
     private Paint                mChartPaint;
 
@@ -60,8 +55,7 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
     public StackedAreaChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
 
-        mPlateHeightPx = MathUtils.dpToPixels(PLATE_HEIGHT_DP, context);
-        mPlateWidthPx = MathUtils.dpToPixels(PLATE_WIDTH_DP, context);
+        PLATE_WIDTH_PX = MathUtils.dpToPixels(140, context);
 
         for (LineData lineData : chartData.lines) {
             ChartArea chartArea = new ChartArea();
@@ -426,18 +420,20 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
     }
 
     private void drawChosenPointPlate(float[] mappedX, Canvas canvas) {
+        ChartArea[] areas = getActiveChartAreas();
         //plate
+        float plateHeightPx = (3 + areas.length) * VERTICAL_TEXT_OFFSET_PX + (1 + areas.length) * TEXT_SIZE_MEDIUM_PX;
         float top = mChartDrawingAreaHeight * 0.05f + mChartDrawingAreaWidth * 0.05f;
-        float bottom = top + mPlateHeightPx;
+        float bottom = top + plateHeightPx;
         float left;
         float right;
         float offset = mChartDrawingAreaWidth * 0.05f;
-        if ((mappedX[mPositionOfChosenPoint - mPointsMinIndex] + offset + mPlateWidthPx) >= mChartDrawingAreaEndX) {
+        if ((mappedX[mPositionOfChosenPoint - mPointsMinIndex] + offset + PLATE_WIDTH_PX) >= mChartDrawingAreaEndX) {
             right = mappedX[mPositionOfChosenPoint - mPointsMinIndex] - offset;
-            left = right - mPlateWidthPx;
+            left = right - PLATE_WIDTH_PX;
         } else {
             left = mappedX[mPositionOfChosenPoint - mPointsMinIndex] + offset;
-            right = left + mPlateWidthPx;
+            right = left + PLATE_WIDTH_PX;
         }
         RectF rectF = new RectF(left, top, right, bottom);
         int cornerRadius = 25;
@@ -445,21 +441,17 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
         canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateStrokePaint);
         canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateFillPaint);
 
-        ChartArea[] areas = getVisibleChartAreas();
-        mPlateXValuePaint.setTextSize(mTextSizeLargePx);
+        //text
+        float textPosY = top + TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
         mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, top + mPlateHeightPx * 0.1f, mPlateXValuePaint);
+        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + PLATE_WIDTH_PX * 0.5f, textPosY, mPlateXValuePaint);
 
-        mPlateYValuePaint.setTextSize(mTextSizeMediumPx);
-        mPlateNamePaint.setTextSize(mTextSizeMediumPx);
-        mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
-        mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
-        float heightOffset = 0.24f;
+        textPosY += TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
         for (ChartArea area : areas){
             mPlateYValuePaint.setColor(area.Data.color);
-            canvas.drawText(String.valueOf(area.Percentages[mPositionOfChosenPoint - mPointsMinIndex]) + "% " + area.Data.name, left + mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateNamePaint);
-            canvas.drawText(String.valueOf(area.Data.posY[mPositionOfChosenPoint]), right - mPlateWidthPx * 0.05f, top + mPlateHeightPx * heightOffset, mPlateYValuePaint);
-            heightOffset += 0.14f;
+            canvas.drawText(String.valueOf(area.Percentages[mPositionOfChosenPoint - mPointsMinIndex]) + "% " + area.Data.name, left + HORIZONTAL_TEXT_OFFSET_PX, textPosY, mPlateNamePaint);
+            canvas.drawText(String.valueOf(area.Data.posY[mPositionOfChosenPoint]), right - HORIZONTAL_TEXT_OFFSET_PX, textPosY, mPlateYValuePaint);
+            textPosY += TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
         }
     }
 

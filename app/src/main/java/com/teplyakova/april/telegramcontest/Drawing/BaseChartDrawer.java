@@ -22,21 +22,15 @@ import java.util.HashMap;
 
 public abstract class BaseChartDrawer implements ChartDrawer {
     private final float                  MINIMAL_NORM_SLIDER_WIDTH      = 0.2f;
-    private final int                    TEXT_LABEL_WIDTH_DP            = 36;
-    private final int                    TEXT_LABEL_DISTANCE_DP         = 22;
-    private final int                    TEXT_SIZE_SMALL_DP             = 8;
-    private final int                    TEXT_SIZE_MEDIUM_DP            = 12;
-    private final int                    TEXT_SIZE_LARGE_DP             = 14;
-    private final int                    SLIDER_WIDTH_DP                = 10;
-    private final int                    TOP_DATES_OFFSET_Y_DP          = 14;
-
-    private final float                  mDateWidthPx;
-    private final float                  mDateDistancePx;
-    private final float                  mTextSizeSmallPx;
-            final float                  mTextSizeMediumPx;
-            final float                  mTextSizeLargePx;
-    private final float                  mSliderWidthPx;
-    private final float                  mTopDatesOffsetYPx;
+    private final float                  DATE_WIDTH_PX;
+    private final float                  DATE_DISTANCE_PX;
+    private final float                  TEXT_SIZE_SMALL_PX;
+            final float                  TEXT_SIZE_MEDIUM_PX;
+            final float                  TEXT_SIZE_LARGE_PX;
+            final float                  VERTICAL_TEXT_OFFSET_PX;
+    final float                          HORIZONTAL_TEXT_OFFSET_PX;
+    private final float                  SLIDER_WIDTH_PX;
+    private final float                  TOP_DATES_Y_OFFSET_PX;
 
     Resources.Theme                      mTheme;
     Context                              mContext;
@@ -114,13 +108,15 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mMinX = MathUtils.getMin(mPosX);
         mMaxX = MathUtils.getMax(mPosX);
 
-        mDateWidthPx    = MathUtils.dpToPixels(TEXT_LABEL_WIDTH_DP,    context);
-        mDateDistancePx = MathUtils.dpToPixels(TEXT_LABEL_DISTANCE_DP, context);
-        mTextSizeSmallPx = MathUtils.dpToPixels(TEXT_SIZE_SMALL_DP, context);
-        mTextSizeMediumPx = MathUtils.dpToPixels(TEXT_SIZE_MEDIUM_DP, context);
-        mTextSizeLargePx = MathUtils.dpToPixels(TEXT_SIZE_LARGE_DP, context);
-        mSliderWidthPx = MathUtils.dpToPixels(SLIDER_WIDTH_DP, context);
-        mTopDatesOffsetYPx = MathUtils.dpToPixels(TOP_DATES_OFFSET_Y_DP, context);
+        DATE_WIDTH_PX = MathUtils.dpToPixels(36,    context);
+        DATE_DISTANCE_PX = MathUtils.dpToPixels(22, context);
+        TEXT_SIZE_SMALL_PX = MathUtils.dpToPixels(8, context);
+        TEXT_SIZE_MEDIUM_PX = MathUtils.dpToPixels(12, context);
+        TEXT_SIZE_LARGE_PX = MathUtils.dpToPixels(14, context);
+        VERTICAL_TEXT_OFFSET_PX = MathUtils.dpToPixels(4, context);
+        HORIZONTAL_TEXT_OFFSET_PX = MathUtils.dpToPixels(7, context);
+        SLIDER_WIDTH_PX = MathUtils.dpToPixels(10, context);
+        TOP_DATES_Y_OFFSET_PX = MathUtils.dpToPixels(14, context);
 
         setUpPaints();
 
@@ -159,7 +155,7 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         int sizeOfArray = mPosX.length;
         for (int i = 1; true; i = i * 2) {
             int textElemsCount = sizeOfArray / i;
-            float chartWidth = mDateWidthPx * textElemsCount + mDateDistancePx * (textElemsCount - 1);
+            float chartWidth = DATE_WIDTH_PX * textElemsCount + DATE_DISTANCE_PX * (textElemsCount - 1);
             if (chartWidth >= minChartWidth && chartWidth <= maxChartWidth)
                 mXLabelsPeriodToMinChartWidthPx.put(i, chartWidth);
             else if (chartWidth < minChartWidth) {
@@ -201,13 +197,13 @@ public abstract class BaseChartDrawer implements ChartDrawer {
                     showPointDetails(x);
                 }
                 if (x >= mScrollDrawingAreaStartX && x <= mScrollDrawingAreaEndX && y >= mScrollDrawingAreaStartY && y <= mScrollDrawingAreaEndY) {
-                    if ((x >= mSliderPositionLeft - 3f * mSliderWidthPx) && (x <= mSliderPositionLeft + mSliderWidthPx)) {
+                    if ((x >= mSliderPositionLeft - 3f * SLIDER_WIDTH_PX) && (x <= mSliderPositionLeft + SLIDER_WIDTH_PX)) {
                         mLeftSliderIsCaught = true;
                     }
-                    else if ((x >= mSliderPositionRight - mSliderWidthPx) &&(x <= mSliderPositionRight + 3f * mSliderWidthPx)) {
+                    else if ((x >= mSliderPositionRight - SLIDER_WIDTH_PX) &&(x <= mSliderPositionRight + 3f * SLIDER_WIDTH_PX)) {
                         mRightSliderIsCaught = true;
                     }
-                    else if ((x >= mSliderPositionLeft + mSliderWidthPx) && (x <= mSliderPositionRight - mSliderWidthPx)) {
+                    else if ((x >= mSliderPositionLeft + SLIDER_WIDTH_PX) && (x <= mSliderPositionRight - SLIDER_WIDTH_PX)) {
                         mChosenAreaIsCaught = true;
                         mCurrChosenAreaPosition = x;
                         mCurrChosenAreaWidth = mSliderPositionRight - mSliderPositionLeft;
@@ -283,12 +279,12 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mSlider.reset();
 
         left = mScrollDrawingAreaStartX;
-        right = mSliderPositionLeft + mSliderWidthPx;
+        right = mSliderPositionLeft + SLIDER_WIDTH_PX;
         RectF rect = new RectF(left, top, right, bottom);
         mScrollBackground.addRoundRect(rect, 20, 20, Path.Direction.CW);
         rect.set((right + left) / 2, top, right, bottom);
         mScrollBackground.addRect(rect, Path.Direction.CW);
-        left = mSliderPositionRight - mSliderWidthPx;
+        left = mSliderPositionRight - SLIDER_WIDTH_PX;
         right = mScrollDrawingAreaEndX;
         rect.set(left, top, right, bottom);
         mScrollBackground.addRoundRect(rect, 20 ,20, Path.Direction.CW);
@@ -296,21 +292,21 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mScrollBackground.addRect(rect, Path.Direction.CW);
 
         left = mSliderPositionLeft;
-        right = left + mSliderWidthPx;
+        right = left + SLIDER_WIDTH_PX;
         rect.set(left, top, right, bottom);
         mSlider.addRoundRect(rect, 20, 20, Path.Direction.CW);
         rect.set((right + left) / 2, top, right, bottom);
         mSlider.addRect(rect, Path.Direction.CW);
-        left = mSliderPositionRight - mSliderWidthPx;
+        left = mSliderPositionRight - SLIDER_WIDTH_PX;
         right = mSliderPositionRight;
         rect.set(left, top, right, bottom);
         mSlider.addRoundRect(rect, 20, 20, Path.Direction.CW);
         rect.set(left, top, (right + left) / 2, bottom);
         mSlider.addRect(rect, Path.Direction.CW);
-        mSlider.moveTo(mSliderPositionLeft + mSliderWidthPx, mScrollDrawingAreaStartY);
-        mSlider.lineTo(mSliderPositionRight - mSliderWidthPx, mScrollDrawingAreaStartY);
-        mSlider.moveTo(mSliderPositionLeft + mSliderWidthPx, mScrollDrawingAreaEndY);
-        mSlider.lineTo(mSliderPositionRight - mSliderWidthPx, mScrollDrawingAreaEndY);
+        mSlider.moveTo(mSliderPositionLeft + SLIDER_WIDTH_PX, mScrollDrawingAreaStartY);
+        mSlider.lineTo(mSliderPositionRight - SLIDER_WIDTH_PX, mScrollDrawingAreaStartY);
+        mSlider.moveTo(mSliderPositionLeft + SLIDER_WIDTH_PX, mScrollDrawingAreaEndY);
+        mSlider.lineTo(mSliderPositionRight - SLIDER_WIDTH_PX, mScrollDrawingAreaEndY);
     }
 
     protected void mapXPointsForChartView() {
@@ -371,7 +367,7 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         mDividerPaint.setStrokeWidth(2);
 
         mBaseLabelPaint = new TextPaint();
-        mBaseLabelPaint.setTextSize(mTextSizeMediumPx);
+        mBaseLabelPaint.setTextSize(TEXT_SIZE_MEDIUM_PX);
         TypedValue baseLabelColor = new TypedValue();
         if (mTheme.resolveAttribute(R.attr.baseLabelColor, baseLabelColor, true)) {
             mBaseLabelPaint.setColor(baseLabelColor.data);
@@ -397,17 +393,19 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         if (mTheme.resolveAttribute(R.attr.labelTextColor, textColor, true)) {
             mPlateXValuePaint.setColor(textColor.data);
         }
-        mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
+        mPlateXValuePaint.setTextSize(TEXT_SIZE_MEDIUM_PX);
         mPlateXValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
         mPlateXValuePaint.setAntiAlias(true);
 
         mPlateYValuePaint = new TextPaint();
+        mPlateYValuePaint.setTextSize(TEXT_SIZE_MEDIUM_PX);
         mPlateYValuePaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
         mPlateYValuePaint.setTextAlign(Paint.Align.RIGHT);
         mPlateYValuePaint.setAntiAlias(true);
 
         mPlateNamePaint = new TextPaint();
         mPlateNamePaint.setColor(textColor.data);
+        mPlateNamePaint.setTextSize(TEXT_SIZE_MEDIUM_PX);
         mPlateNamePaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
         mPlateNamePaint.setTextAlign(Paint.Align.LEFT);
         mPlateNamePaint.setAntiAlias(true);
@@ -436,9 +434,9 @@ public abstract class BaseChartDrawer implements ChartDrawer {
     protected void drawTopDatesText (Canvas canvas) {
         int firstVisiblePosition = MathUtils.getIndexOfNearestRightElement(mPosX, mPos1);
         String dateText = DateTimeUtils.formatDatedMMMMMyyyy(mPosX[firstVisiblePosition]) + " - " + DateTimeUtils.formatDatedMMMMMyyyy(mPos2);
-        mPlateXValuePaint.setTextSize(mTextSizeMediumPx);
+        mPlateXValuePaint.setTextSize(TEXT_SIZE_MEDIUM_PX);
         mPlateXValuePaint.setTextAlign(Paint.Align.RIGHT);
-        canvas.drawText(dateText, mChartDrawingAreaEndX, mTopDatesOffsetYPx, mPlateXValuePaint);
+        canvas.drawText(dateText, mChartDrawingAreaEndX, TOP_DATES_Y_OFFSET_PX, mPlateXValuePaint);
     }
 
     protected void drawScaleX (float[] mappedX, Canvas canvas) {
