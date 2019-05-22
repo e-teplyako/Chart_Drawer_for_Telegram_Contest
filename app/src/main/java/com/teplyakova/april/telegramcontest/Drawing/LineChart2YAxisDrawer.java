@@ -170,6 +170,15 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         }
     }
 
+    void mapYPointsForScrollView() {
+        for (BaseLineChartDrawer.ChartLine line : mLines) {
+            if (line.isVisible()){
+                line.mScrollMappedPointsY = mapYPointsForScrollView(line.Data.posY, MathUtils.getMin(line.Data.posY), MathUtils.getMax(line.Data.posY));
+                optimizeScrollPoints(line);
+            }
+        }
+    }
+
     @Override
     protected void setUpPaints() {
         super.setUpPaints();

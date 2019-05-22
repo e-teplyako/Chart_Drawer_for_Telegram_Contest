@@ -62,8 +62,14 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
 
     private YMaxAnimator mYMaxAnimator;
 
+    long                  mGlobalMinY;
+    long                  mGlobalMaxY;
+
     public StandardLineChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
+
+        mGlobalMinY = MathUtils.getMinY(chartData.lines);
+        mGlobalMaxY = MathUtils.getMaxY(chartData.lines);
 
         for (LineData lineData : chartData.lines)
         {
@@ -149,6 +155,16 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
         for (BaseLineChartDrawer.ChartLine line : mLines) {
             if (line.isVisible()){
                 line.mChartMappedPointsY = mapYPointsForChartView(line.Data.posY, mYMaxAnimator.mMinY, mYMaxAnimator.mMaxY);
+            }
+        }
+    }
+
+
+    void mapYPointsForScrollView() {
+        for (BaseLineChartDrawer.ChartLine line : mLines) {
+            if (line.isVisible()){
+                line.mScrollMappedPointsY = mapYPointsForScrollView(line.Data.posY, mGlobalMinY, mGlobalMaxY);
+                optimizeScrollPoints(line);
             }
         }
     }

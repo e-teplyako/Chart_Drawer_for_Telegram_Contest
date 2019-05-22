@@ -89,7 +89,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
 
     private float                        mXLabelsYCoordinate;
     private HashMap<Integer, Float>      mXLabelsPeriodToMinChartWidthPx = new HashMap<>();
-    private int                          mXLabelsPeriodCurrent;
 
     private Path                         mScrollBackground;
     private Path                         mSlider;
@@ -450,13 +449,13 @@ public abstract class BaseChartDrawer implements ChartDrawer {
             if (mXLabelsPeriodToMinChartWidthPx.get(xLabelPeriodicity) <= chartWidthPx)
                 break;
         }
-        mXLabelsPeriodCurrent = xLabelPeriodicity;
+        int labelsPeriodCurrent = xLabelPeriodicity;
 
         mBaseLabelPaint.setAlpha(255);
         mBaseLabelPaint.setTextAlign(Paint.Align.CENTER);
 
         for (int i = mPointsMinIndex, j = 0; i <= mPointsMaxIndex; i++, j++) {
-            if ((mPosX.length - 1 - i) % mXLabelsPeriodCurrent == 0) {
+            if ((mPosX.length - 1 - i) % labelsPeriodCurrent == 0) {
                 if (i == mPosX.length - 1) {
                     canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[j]- MathUtils.dpToPixels(9, mContext), mXLabelsYCoordinate, mBaseLabelPaint);
                 }
@@ -467,19 +466,19 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         }
 
         //if there are no inbetween labels
-        if (mXLabelsPeriodToMinChartWidthPx.get(mXLabelsPeriodCurrent) == chartWidthPx)
+        if (mXLabelsPeriodToMinChartWidthPx.get(labelsPeriodCurrent) == chartWidthPx)
             return;
 
-        if (mXLabelsPeriodToMinChartWidthPx.containsKey(mXLabelsPeriodCurrent / 2)) {
-            float alphaMultiplier = MathUtils.inverseLerp(mXLabelsPeriodToMinChartWidthPx.get(mXLabelsPeriodCurrent),
-                    mXLabelsPeriodToMinChartWidthPx.get(mXLabelsPeriodCurrent / 2),
+        if (mXLabelsPeriodToMinChartWidthPx.containsKey(labelsPeriodCurrent / 2)) {
+            float alphaMultiplier = MathUtils.inverseLerp(mXLabelsPeriodToMinChartWidthPx.get(labelsPeriodCurrent),
+                    mXLabelsPeriodToMinChartWidthPx.get(labelsPeriodCurrent / 2),
                     chartWidthPx);
             alphaMultiplier = (alphaMultiplier - 0.334f) * 3;
             alphaMultiplier = MathUtils.clamp(alphaMultiplier, 1, 0);
             mBaseLabelPaint.setAlpha((int) Math.floor(255 * alphaMultiplier));
 
             for (int i = mPointsMinIndex, j = 0; i <= mPointsMaxIndex; i++, j++) {
-                if ((mPosX.length - 1 - i) % (mXLabelsPeriodCurrent / 2) == 0 && (mPosX.length - 1 - i) % mXLabelsPeriodCurrent != 0) {
+                if ((mPosX.length - 1 - i) % (labelsPeriodCurrent / 2) == 0 && (mPosX.length - 1 - i) % labelsPeriodCurrent != 0) {
                     canvas.drawText(DateTimeUtils.formatDateMMMd(mPosX[i]), mappedX[j], mXLabelsYCoordinate, mBaseLabelPaint);
                 }
             }

@@ -270,16 +270,9 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         mSetLinesAnimator.start();
     }
 
-    protected abstract void mapYPointsForChartView();
+    abstract void mapYPointsForChartView();
 
-    private void mapYPointsForScrollView() {
-        for (ChartLine line : mLines) {
-        if (line.isVisible()){
-            line.mScrollMappedPointsY = mapYPointsForScrollView(line.Data.posY);
-            optimizeScrollPoints(line);
-            }
-        }
-    }
+    abstract void mapYPointsForScrollView();
 
     float[] mapYPointsForChartView(long[] points, long yMin, long yMax) {
         long calculatedArea = yMax - yMin;
@@ -294,12 +287,12 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         return mapped;
     }
 
-    private float[] mapYPointsForScrollView(long[] points) {
-        long calculatedArea = MathUtils.getMax(points);
+    float[] mapYPointsForScrollView(long[] points, long yMin, long yMax) {
+        long calculatedArea = yMax - yMin;
         float[] mapped = new float[points.length];
 
         for (int i = 0; i < mapped.length; i++) {
-            float percentage = (float) points[i] / (float) calculatedArea;
+            float percentage = (float) (points[i] - yMin) / (float) calculatedArea;
             mapped[i] = mScrollDrawingAreaHeight * percentage + mScrollDrawingAreaStartY;
             mapped[i] = mScrollDrawingAreaEndY - mapped[i] + mScrollDrawingAreaStartY;
         }
@@ -307,7 +300,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         return mapped;
     }
 
-    private void optimizeScrollPoints(ChartLine line) {
+    void optimizeScrollPoints(ChartLine line) {
         if (mScrollMappedPointsX == null)
             return;
         ArrayList<Float> optimizedX = new ArrayList<>();
