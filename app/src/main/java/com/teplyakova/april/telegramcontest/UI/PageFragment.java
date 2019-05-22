@@ -29,7 +29,8 @@ public class PageFragment extends Fragment {
 
     public static final String INDEX = "index";
     public static final String CHECKBOXES_KEY = "checkboxes";
-    public static final String CHARTVIEW_STATE_KEY = "chartview_state";
+    public static final String CHARTVIEW_SLIDER_POS_KEY = "chartview_slider";
+    public static final String CHARTVIEW_CHOSEN_POINT_KEY = "chartview_chosen_point";
 
     private ChartData mChartData;
     private ChartView mChartView;
@@ -38,6 +39,7 @@ public class PageFragment extends Fragment {
     private boolean[] mCheckboxesState = null;
     private ChartDrawer mChartDrawer;
     private float[] mChartViewPositionsState;
+    private int mChartViewChosenPointPosition = -1;
 
     private static int mBackgroundColor;
     private static int mLabelColor;
@@ -76,6 +78,7 @@ public class PageFragment extends Fragment {
         if (savedInstanceState == null && mChartViewPositionsState != null) {
             mChartView.normSliderPosLeft = mChartViewPositionsState[0];
             mChartView.normSliderPosRight = mChartViewPositionsState[1];
+            mChartView.chosenPointPosition = mChartViewChosenPointPosition;
         }
         mChartView.init(mChartDrawer);
 
@@ -188,7 +191,9 @@ public class PageFragment extends Fragment {
         outState.putBooleanArray(CHECKBOXES_KEY, checkboxesState);
         if (mChartDrawer != null) {
             float[] sliderPositions = mChartDrawer.getSliderPositions();
-            outState.putFloatArray(CHARTVIEW_STATE_KEY, sliderPositions);
+            outState.putFloatArray(CHARTVIEW_SLIDER_POS_KEY, sliderPositions);
+            int pointPos = mChartDrawer.getChosenPointPosition();
+            outState.putInt(CHARTVIEW_CHOSEN_POINT_KEY, pointPos);
         }
     }
 
@@ -198,10 +203,8 @@ public class PageFragment extends Fragment {
         if (savedInstanceState != null) {
             mCheckboxesState = null;
             mCheckboxesState = savedInstanceState.getBooleanArray(CHECKBOXES_KEY);
-            mChartViewPositionsState = savedInstanceState.getFloatArray(CHARTVIEW_STATE_KEY);
-            //Log.e("called", "OnActivityCreated()");
-            /*mCheckboxes.clear();
-            manageCheckboxes(mRootView, mChartData);*/
+            mChartViewPositionsState = savedInstanceState.getFloatArray(CHARTVIEW_SLIDER_POS_KEY);
+            mChartViewChosenPointPosition = savedInstanceState.getInt(CHARTVIEW_CHOSEN_POINT_KEY);
         }
     }
 }

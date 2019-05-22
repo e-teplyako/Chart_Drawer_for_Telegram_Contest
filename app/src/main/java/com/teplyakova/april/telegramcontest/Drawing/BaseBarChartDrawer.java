@@ -525,11 +525,11 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
     protected abstract void drawChosenPointPlate(Canvas canvas);
 
     @Override
-    protected void showPointDetails(float xCoord) {
+    protected void showPointDetails(int pointPosition) {
         if (mLines == null || mLines.length == 0)
             return;
 
-        super.showPointDetails(xCoord);
+        super.showPointDetails(pointPosition);
     }
 
     private boolean showChartAreas() {

@@ -250,16 +250,15 @@ public class MathUtils {
     }
 
     public static String getFriendlyNumber (long num) {
-        String result = "";
         long div = num / 1000;
         if (div < 10)
             return String.valueOf(num);
         else if (div < 1000)
-            return String.valueOf(div) + "K";
+            return String.valueOf(div) + "." + String.valueOf(num % 1000 / 100) + "K";
         else if (div < 100000)
-            return String.valueOf(div / 1000) + "M";
+            return String.valueOf(div / 1000) + "." + String.valueOf(num % 1000000 / 100000) + "M";
         else if (div < 100000000)
-            return String.valueOf(div / 1000000) + "B";
+            return String.valueOf(div / 1000000) + "." + String.valueOf(num % 1000000000 / 100000000) + "B";
         return String.valueOf(num);
     }
 

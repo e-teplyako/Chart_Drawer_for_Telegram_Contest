@@ -12,6 +12,8 @@ public interface ChartDrawer{
     boolean handleTouchEvent(MotionEvent event, float x, float y);
     void setLines(LineData[] lines);
     float[] getSliderPositions();
+    int getChosenPointPosition();
+    void setChosenPointPosition(int pointPosition);
     void setSliderPositions(float pos1, float pos2);
     void setAnimatorUpdateListener(ValueAnimator.AnimatorUpdateListener listener);
 }

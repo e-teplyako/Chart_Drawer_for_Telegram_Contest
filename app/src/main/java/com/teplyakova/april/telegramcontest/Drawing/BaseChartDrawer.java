@@ -171,7 +171,7 @@ public abstract class BaseChartDrawer implements ChartDrawer {
                     hidePointDetails();
                 }
                 else {
-                    showPointDetails(x);
+                    showPointDetails(mapCoordinateToPoint(mChartMappedPointsX, x));
                 }
                 if (x >= mScrollDrawingAreaStartX && x <= mScrollDrawingAreaEndX && y >= mScrollDrawingAreaStartY && y <= mScrollDrawingAreaEndY) {
                     if (mLeftSliderIsCaught){
@@ -192,7 +192,7 @@ public abstract class BaseChartDrawer implements ChartDrawer {
                     hidePointDetails();
                 }
                 else {
-                    showPointDetails(x);
+                    showPointDetails(mapCoordinateToPoint(mChartMappedPointsX, x));
                 }
                 if (x >= mScrollDrawingAreaStartX && x <= mScrollDrawingAreaEndX && y >= mScrollDrawingAreaStartY && y <= mScrollDrawingAreaEndY) {
                     if ((x >= mSliderPositionLeft - 3f * SLIDER_WIDTH_PX) && (x <= mSliderPositionLeft + SLIDER_WIDTH_PX)) {
@@ -265,6 +265,19 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         positions[0] = mNormSliderPosLeft;
         positions[1] = mNormSliderPosRight;
         return positions;
+    }
+
+    public int getChosenPointPosition() {
+        if (mPointIsChosen)
+            return mPositionOfChosenPoint;
+        else
+            return -1;
+    }
+
+    public void setChosenPointPosition(int pointPosition) {
+        if (pointPosition != -1) {
+            showPointDetails(pointPosition);
+        }
     }
 
     private void calculateRects() {
@@ -485,8 +498,8 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         }
     }
 
-    protected void showPointDetails(float xCoord) {
-        mPositionOfChosenPoint = mapCoordinateToPoint(mChartMappedPointsX, xCoord);
+    protected void showPointDetails(int positionOfChosenPoint) {
+        mPositionOfChosenPoint = positionOfChosenPoint;
         mPointIsChosen = true;
     }
 

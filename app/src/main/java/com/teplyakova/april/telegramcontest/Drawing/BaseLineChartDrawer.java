@@ -433,11 +433,11 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
     }
 
     @Override
-    protected void showPointDetails(float xCoord) {
+    protected void showPointDetails(int pointPosition) {
         if (!showChartLines())
             return;
 
-        super.showPointDetails(xCoord);
+        super.showPointDetails(pointPosition);
     }
 
     boolean showChartLines() {

@@ -493,11 +493,11 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
     }
 
     @Override
-    protected void showPointDetails(float xCoord) {
+    protected void showPointDetails(int pointPosition) {
         if (!showVisibleChartAreas())
             return;
 
-        super.showPointDetails(xCoord);
+        super.showPointDetails(pointPosition);
     }
 
     private boolean showVisibleChartAreas()

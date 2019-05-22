@@ -20,8 +20,9 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 
     private ChartDrawer mDrawer;
 
-    public float normSliderPosLeft = 0.8f;
-    public float normSliderPosRight = 1;
+    public float normSliderPosLeft   = 0.8f;
+    public float normSliderPosRight  = 1;
+    public int   chosenPointPosition = -1;
 
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -50,6 +51,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 
         mDrawer.setViewDimens(viewWidth, viewHeight, DRAWING_AREA_OFFSET_X_PX, DRAWING_AREA_OFFSET_Y_PX, SCROLL_DRAWING_AREA_HEIGHT_PX);
         mDrawer.setSliderPositions(normSliderPosLeft, normSliderPosRight);
+        mDrawer.setChosenPointPosition(chosenPointPosition);
     }
 
     @Override
@@ -95,6 +97,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
             float[] positions = mDrawer.getSliderPositions();
             ss.normPos1 = positions[0];
             ss.normPos2 = positions[1];
+            ss.chosenPoint = mDrawer.getChosenPointPosition();
         }
         return ss;
     }
@@ -105,11 +108,13 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
         super.onRestoreInstanceState(ss.getSuperState());
         normSliderPosLeft = ss.normPos1;
         normSliderPosRight = ss.normPos2;
+        chosenPointPosition = ss.chosenPoint;
     }
 
     private static class SavedState extends BaseSavedState {
         float normPos1;
         float normPos2;
+        int   chosenPoint;
 
         private SavedState(Parcelable superState) {
             super(superState);
@@ -119,6 +124,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
             super(in);
             normPos1 = in.readFloat();
             normPos2 = in.readFloat();
+            chosenPoint = in.readInt();
         }
 
         @Override
@@ -126,6 +132,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
             super.writeToParcel(out, flags);
             out.writeFloat(normPos1);
             out.writeFloat(normPos2);
+            out.writeInt(chosenPoint);
         }
 
         public static final Parcelable.Creator<SavedState> CREATOR
