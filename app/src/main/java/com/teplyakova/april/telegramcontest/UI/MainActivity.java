@@ -1,18 +1,18 @@
 package com.teplyakova.april.telegramcontest.UI;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
-import android.support.design.widget.TabLayout;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PagerSnapHelper;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SnapHelper;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,17 +22,18 @@ import com.teplyakova.april.telegramcontest.R;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private Resources.Theme mAppTheme;
     private boolean mNightModeIsEnabled = false;
     private final String NIGHT_MODE_ENABLED_KEY = "night_mode";
     private ArrayList<ChartData> mChartData;
 
-    ChartFragmentPagerAdapter mAdapter;
-    ArrayList<PageFragment> mFragments = new ArrayList<>();
-    ViewPager mViewPager;
-    TabLayout mTabLayout;
+    private static final String STATE_ADAPTER = "adapter";
+
+    private final SnapHelper snapHelper = new PagerSnapHelper();
+    PageAdapter adapter;
+    RecyclerView pager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,47 +51,29 @@ public class MainActivity extends AppCompatActivity {
 
         mChartData = ChartsManager.getCharts(getApplicationContext());
 
-        mAdapter = new ChartFragmentPagerAdapter(getSupportFragmentManager());
-        addFragments();
-        mViewPager = findViewById(R.id.viewpager);
-        mViewPager.setAdapter(mAdapter);
-        mTabLayout = findViewById(R.id.sliding_tabs);
-        mTabLayout.setupWithViewPager(mViewPager);
-        Intent intent = getIntent();
-        if (intent.hasExtra("fragment_saved_state")) {
-            Bundle savedState = intent.getBundleExtra("fragment_saved_state");
-            for (int i = 0; i < mFragments.size(); i++) {
-                mFragments.get(i).onActivityCreated(savedState.getBundle(String .valueOf(i)));
-            }
-        }
-        int position = intent.getIntExtra("tablayout_position", 0);
-        mTabLayout.getTabAt(position).select();
+       pager = findViewById(R.id.pager);
+        pager.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        snapHelper.attachToRecyclerView(pager);
+        adapter = new PageAdapter(pager, getLayoutInflater());
+        pager.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        Bundle adapterState=new Bundle();
+        state.putBundle(STATE_ADAPTER, adapterState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle state) {
+        super.onRestoreInstanceState(state);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.e("DeSTroYIng", "this dude");
-    }
-
-    private void addFragments() {
-        TypedValue textColor = new TypedValue();
-        int color1 = Color.GRAY;
-        if (mAppTheme.resolveAttribute(R.attr.labelTextColor, textColor, true)) {
-             color1 = textColor.data;
-        }
-        TypedValue backgroundColor = new TypedValue();
-        int color2 = Color.WHITE;
-        if (mAppTheme.resolveAttribute(R.attr.primaryBackgroundColor, backgroundColor, true)) {
-            color2 = backgroundColor.data;
-        }
-
-        mFragments.clear();
-        for (int i = 0; i < mChartData.size(); i++) {
-            PageFragment fragment =  PageFragment.newInstance(i, color2, color1);
-            mFragments.add(fragment);
-            mAdapter.addFragment(fragment, "Chart #" + String.valueOf(i));
-        }
     }
 
     private void changeTheme() {
@@ -110,16 +93,7 @@ public class MainActivity extends AppCompatActivity {
         switch (id) {
             case (R.id.switch_theme):
                 setIsNightModeEnabled(!isNightModeEnabled());
-                Bundle fragmentSavedState = new Bundle();
-                for (int i = 0; i < mFragments.size(); i++) {
-                    Bundle fragmentState = new Bundle();
-                    mFragments.get(i).onSaveInstanceState(fragmentState);
-                    fragmentSavedState.putBundle(String.valueOf(i), fragmentState);
-                }
-                int tablayoutPosition = mTabLayout.getSelectedTabPosition();
                 Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra("fragment_saved_state", fragmentSavedState);
-                intent.putExtra("tablayout_position", tablayoutPosition);
                 startActivity(intent);
                 finish();
         }

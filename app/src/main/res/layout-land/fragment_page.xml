@@ -1,31 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/charts_scrollview"
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/charts_linear_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="16dp">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/charts_linear_layout"
-        android:layout_width="match_parent"
+        android:id="@+id/checkboxes_layout"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <com.teplyakova.april.telegramcontest.ChartView
-            android:id="@+id/chartview"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"/>
-
-
-        <LinearLayout
-            android:id="@+id/checkboxes_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-        </LinearLayout>
     </LinearLayout>
 
-</ScrollView>
+    <com.teplyakova.april.telegramcontest.ChartView
+        android:id="@+id/chartview"
+        android:layout_width="match_parent"
+        android:layout_height="390dp"
+        android:paddingBottom="4dp" />
+</LinearLayout>

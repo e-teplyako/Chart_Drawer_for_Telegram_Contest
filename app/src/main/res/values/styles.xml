@@ -1,22 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <style name="AppTheme" parent="@android:style/Theme.Holo">
+        <!-- Customize your theme here. --><!--
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent">@color/colorAccent</item>-->
     </style>
 
-    <style name="DayMode" parent="Base.Theme.AppCompat.Light">
+    <style name="DayMode" parent="@android:style/Theme.Holo">
         <item name="android:windowActivityTransitions" tools:targetApi="21">true</item>
         <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
         <item name="android:windowAnimationStyle">@style/DownUpActivity</item>
-        <!--<item name="android:windowTranslucentNavigation" tools:targetApi="19">true</item>-->
-        <!--<item name="android:windowTranslucentStatus" tools:targetApi="19">true</item>-->
-        <item name="colorPrimary">@color/actionBarColorDay</item>
+        <!--<item name="colorPrimary">@color/actionBarColorDay</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDarkDay</item>
-        <item name="actionMenuTextColor">@color/actionBarTextColorDay</item>
+        <item name="actionMenuTextColor">@color/actionBarTextColorDay</item>-->
         <item name="android:colorBackground">@color/primaryBackgroundColorDay</item>
         <item name="chartScrollViewBackgroundColor">@color/chartScrollViewBackgroundColorDay</item>
         <item name="labelTextColor">@color/labelTextColorDay</item>
@@ -28,13 +26,13 @@
         <item name="opaqueBackground">@color/opaqueBackgroundDay</item>
     </style>
 
-    <style name="NightMode" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="NightMode" parent="AppTheme">
         <item name="android:windowActivityTransitions" tools:targetApi="21">true</item>
         <item name="android:windowAnimationStyle">@style/DownUpActivity</item>
         <!--<item name="android:windowTranslucentNavigation" tools:targetApi="19">true</item>-->
-        <!--<item name="android:windowTranslucentStatus" tools:targetApi="19">true</item>-->
+        <!--<item name="android:windowTranslucentStatus" tools:targetApi="19">true</item>--><!--
         <item name="colorPrimary">@color/actionBarColorNight</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDarkNight</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkNight</item>-->
         <item name="android:colorBackground">@color/primaryBackgroundColorNight</item>
         <item name="chartScrollViewBackgroundColor">@color/chartScrollViewBackgroundColorNight</item>
         <item name="labelTextColor">@color/labelTextColorNight</item>
@@ -46,7 +44,7 @@
         <item name="opaqueBackground">@color/opaqueBackgroundNight</item>
     </style>
 
-    <style name="DownUpActivity" parent="@android:style/Animation.Activity">
+    <style name="DownUpActivity" parent="AppTheme">
         <item name="android:activityOpenEnterAnimation">@anim/open_enter</item>
         <item name="android:activityOpenExitAnimation">@anim/open_exit</item>
     </style>
