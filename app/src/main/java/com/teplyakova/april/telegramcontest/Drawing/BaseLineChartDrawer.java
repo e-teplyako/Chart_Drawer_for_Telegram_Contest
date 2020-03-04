@@ -189,7 +189,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
     BaseLineChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
 
-        mOptimTolerancePx = mPosX.length >= 150 ? MathUtils.dpToPixels(2, mContext) : 1;
+        mOptimTolerancePx = mPosX.length >= 150 ? MathUtils.dpToPixels(2, this.context) : 1;
         mPlateWidthPx = MathUtils.dpToPixels(140, context);
     }
 
@@ -280,8 +280,8 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
         for (int i = 0, j = mPointsMinIndex; i < mapped.length; i++, j++) {
             float percentage = (float) (points[j] - yMin) / (float) calculatedArea;
-            mapped[i] = mChartDrawingAreaHeight * percentage + mChartDrawingAreaStartY;
-            mapped[i] = mChartDrawingAreaEndY - mapped[i] + mChartDrawingAreaStartY;
+            mapped[i] = chartAreaHeightPx * percentage + chartAreaStartY;
+            mapped[i] = chartAreaEndY - mapped[i] + chartAreaStartY;
         }
 
         return mapped;
@@ -293,8 +293,8 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
         for (int i = 0; i < mapped.length; i++) {
             float percentage = (float) (points[i] - yMin) / (float) calculatedArea;
-            mapped[i] = mScrollDrawingAreaHeight * percentage + mScrollDrawingAreaStartY;
-            mapped[i] = mScrollDrawingAreaEndY - mapped[i] + mScrollDrawingAreaStartY;
+            mapped[i] = scrollAreaHeightPx * percentage + scrollAreaStartY;
+            mapped[i] = scrollAreaEndY - mapped[i] + scrollAreaStartY;
         }
 
         return mapped;
@@ -334,7 +334,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         mChartPaint.setAlpha(line.Alpha);
 
         canvas.save();
-        canvas.clipRect(0, mChartDrawingAreaStartY, mViewWidth, mChartDrawingAreaEndY);
+        canvas.clipRect(0, chartAreaStartY, viewWidthPx, chartAreaEndY);
         float[] drawingPoints = MathUtils.concatArraysForDrawing(mappedX, mappedY);
         if (drawingPoints != null) {
             canvas.drawLines(drawingPoints, mChartPaint);
@@ -348,7 +348,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
         canvas.save();
         Path clipPath = new Path();
-        RectF clipRect = new RectF(mScrollDrawingAreaStartX, mScrollDrawingAreaStartY, mScrollDrawingAreaEndX, mScrollDrawingAreaEndY);
+        RectF clipRect = new RectF(scrollAreaStartX, scrollAreaStartY, scrollAreaEndX, scrollAreaEndY);
         clipPath.addRoundRect(clipRect, 20, 20, Path.Direction.CW);
         canvas.clipPath(clipPath);
 
@@ -365,27 +365,27 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         mCirclePaint.setAlpha(alpha);
         canvas.drawCircle(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mappedY[mPositionOfChosenPoint - mPointsMinIndex], 16f, mCirclePaint);
         TypedValue background = new TypedValue();
-        if (mTheme.resolveAttribute(R.attr.primaryBackgroundColor, background, true)) {
+        if (theme.resolveAttribute(R.attr.primaryBackgroundColor, background, true)) {
             mCirclePaint.setColor(background.data);
         }
         canvas.drawCircle(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mappedY[mPositionOfChosenPoint - mPointsMinIndex], 8f, mCirclePaint);
     }
 
     void drawVerticalDivider(float[] mappedX, Canvas canvas) {
-        mDividerPaint.setAlpha(255);
-        canvas.drawLine(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mChartDrawingAreaStartY, mappedX[mPositionOfChosenPoint - mPointsMinIndex], mChartDrawingAreaEndY, mDividerPaint);
+        divider.setAlpha(255);
+        canvas.drawLine(mappedX[mPositionOfChosenPoint - mPointsMinIndex], chartAreaStartY, mappedX[mPositionOfChosenPoint - mPointsMinIndex], chartAreaEndY, divider);
     }
 
     void drawChosenPointPlate(float[] mappedX, Canvas canvas) {
         LineData[] lines = getActiveChartLines();
         //plate
         float plateHeightPx = (3 + lines.length) * VERTICAL_TEXT_OFFSET_PX + (1 + lines.length) * TEXT_SIZE_MEDIUM_PX;
-        float top = mChartDrawingAreaHeight * 0.05f + mChartDrawingAreaWidth * 0.05f;
+        float top = chartAreaHeightPx * 0.05f + chartAreaWidthPx * 0.05f;
         float bottom = top + plateHeightPx;
         float left;
         float right;
-        float offset = mChartDrawingAreaWidth * 0.05f;
-        if ((mappedX[mPositionOfChosenPoint - mPointsMinIndex] + offset + mPlateWidthPx) >= mChartDrawingAreaEndX) {
+        float offset = chartAreaWidthPx * 0.05f;
+        if ((mappedX[mPositionOfChosenPoint - mPointsMinIndex] + offset + mPlateWidthPx) >= chartAreaEndX) {
             right = mappedX[mPositionOfChosenPoint - mPointsMinIndex] - offset;
             left = right - mPlateWidthPx;
         } else {
@@ -395,19 +395,19 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         RectF rectF = new RectF(left, top, right, bottom);
         int cornerRadius = 25;
 
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateStrokePaint);
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateFillPaint);
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, plateBorder);
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, plateFill);
 
         //text
         float textPosY = top + TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
-        mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, textPosY, mPlateXValuePaint);
+        plateXValue.setTextAlign(Paint.Align.CENTER);
+        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, textPosY, plateXValue);
 
         textPosY += TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
         for (LineData line : lines){
-            mPlateYValuePaint.setColor(line.color);
-            canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - HORIZONTAL_TEXT_OFFSET_PX, textPosY, mPlateYValuePaint);
-            canvas.drawText(line.name, left + HORIZONTAL_TEXT_OFFSET_PX, textPosY, mPlateNamePaint);
+            plateYValue.setColor(line.color);
+            canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - HORIZONTAL_TEXT_OFFSET_PX, textPosY, plateYValue);
+            canvas.drawText(line.name, left + HORIZONTAL_TEXT_OFFSET_PX, textPosY, plateName);
             textPosY += TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
         }
     }
@@ -415,18 +415,18 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
     void drawScaleY (long height, long yMax, int alpha, Canvas canvas)
     {
-        mDividerPaint.setAlpha(255);
-        canvas.drawLine(mChartDrawingAreaStartX, mChartDrawingAreaEndY, mChartDrawingAreaEndX, mChartDrawingAreaEndY, mDividerPaint);
+        divider.setAlpha(255);
+        canvas.drawLine(chartAreaStartX, chartAreaEndY, chartAreaEndX, chartAreaEndY, divider);
 
-        float spaceBetweenDividers = (float)yMax / height * mChartDrawingAreaHeight / Y_DIVIDERS_COUNT;
+        float spaceBetweenDividers = (float)yMax / height * chartAreaHeightPx / Y_DIVIDERS_COUNT;
 
-        float startY = mChartDrawingAreaEndY - spaceBetweenDividers;
+        float startY = chartAreaEndY - spaceBetweenDividers;
         float stopY = startY;
 
-        mDividerPaint.setAlpha(alpha);
+        divider.setAlpha(alpha);
 
         for (int i = 0; i < Y_DIVIDERS_COUNT - 1; i++) {
-            canvas.drawLine(mChartDrawingAreaStartX, startY, mChartDrawingAreaEndX, stopY, mDividerPaint);
+            canvas.drawLine(chartAreaStartX, startY, chartAreaEndX, stopY, divider);
             startY -= spaceBetweenDividers;
             stopY = startY;
         }

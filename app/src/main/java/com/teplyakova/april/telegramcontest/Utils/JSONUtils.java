@@ -1,7 +1,6 @@
 package com.teplyakova.april.telegramcontest.Utils;
 
 import android.graphics.Color;
-import android.util.Log;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.LineData;

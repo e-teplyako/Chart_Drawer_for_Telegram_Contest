@@ -1,6 +1,5 @@
 package com.teplyakova.april.telegramcontest.UI;
 
-import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,7 +13,7 @@ public class ChartFragmentPagerAdapter extends FragmentPagerAdapter {
     private List<Fragment> mFragments = new ArrayList<>();
     private List<String> mTabTitles = new ArrayList<>();
 
-    public ChartFragmentPagerAdapter (FragmentManager fm, Context context) {
+    public ChartFragmentPagerAdapter (FragmentManager fm) {
         super(fm);
     }
 

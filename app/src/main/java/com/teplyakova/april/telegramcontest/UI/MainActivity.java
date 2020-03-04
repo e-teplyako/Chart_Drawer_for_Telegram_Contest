@@ -1,38 +1,21 @@
 package com.teplyakova.april.telegramcontest.UI;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.app.Activity;
-import android.app.ActivityOptions;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.Point;
-import android.os.Build;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
-import android.support.design.widget.MathUtils;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.transition.Explode;
-import android.transition.Fade;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewAnimationUtils;
-import android.view.ViewTreeObserver;
-import android.view.Window;
-import android.view.animation.AccelerateInterpolator;
-
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartsManager;
 import com.teplyakova.april.telegramcontest.R;
@@ -58,13 +41,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mAppTheme = getTheme();
 
-        mChartData = ChartsManager.getCharts(this);
+        StrictMode.ThreadPolicy.Builder builder =
+                new StrictMode.ThreadPolicy.Builder()
+                .detectAll()
+                .penaltyLog()
+                .penaltyFlashScreen();
+        StrictMode.setThreadPolicy(builder.build());
 
-        mAdapter = new ChartFragmentPagerAdapter(getSupportFragmentManager(), this);
+        mChartData = ChartsManager.getCharts(getApplicationContext());
+
+        mAdapter = new ChartFragmentPagerAdapter(getSupportFragmentManager());
         addFragments();
-        mViewPager = (ViewPager) findViewById(R.id.viewpager);
+        mViewPager = findViewById(R.id.viewpager);
         mViewPager.setAdapter(mAdapter);
-        mTabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
+        mTabLayout = findViewById(R.id.sliding_tabs);
         mTabLayout.setupWithViewPager(mViewPager);
         Intent intent = getIntent();
         if (intent.hasExtra("fragment_saved_state")) {
@@ -151,14 +141,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isNightModeEnabled() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         mNightModeIsEnabled = sharedPreferences.getBoolean(NIGHT_MODE_ENABLED_KEY, false);
         return mNightModeIsEnabled;
     }
 
     private void setIsNightModeEnabled (boolean isEnabled) {
         mNightModeIsEnabled = isEnabled;
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean(NIGHT_MODE_ENABLED_KEY, mNightModeIsEnabled);
         editor.apply();

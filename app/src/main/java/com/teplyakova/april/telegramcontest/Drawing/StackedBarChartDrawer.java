@@ -24,12 +24,12 @@ public class StackedBarChartDrawer extends BaseBarChartDrawer {
         LineData[] lines = getActiveChartLines();
         //plate
         float plateHeightPx = (4 + lines.length) * VERTICAL_TEXT_OFFSET_PX + (2 + lines.length) * TEXT_SIZE_MEDIUM_PX;
-        float top = mChartDrawingAreaHeight * 0.05f + mChartDrawingAreaWidth * 0.05f;
+        float top = chartAreaHeightPx * 0.05f + chartAreaWidthPx * 0.05f;
         float bottom = top + plateHeightPx;
         float left;
         float right;
-        float offset = mChartDrawingAreaWidth * 0.05f;
-        if ((mChartMappedPointsX[mPositionOfChosenPoint - mPointsMinIndex] + offset + mPlateWidthPx) >= mChartDrawingAreaEndX) {
+        float offset = chartAreaWidthPx * 0.05f;
+        if ((mChartMappedPointsX[mPositionOfChosenPoint - mPointsMinIndex] + offset + mPlateWidthPx) >= chartAreaEndX) {
             right = mChartMappedPointsX[mPositionOfChosenPoint - mPointsMinIndex] - offset;
             left = right - mPlateWidthPx;
         } else {
@@ -39,24 +39,24 @@ public class StackedBarChartDrawer extends BaseBarChartDrawer {
         RectF rectF = new RectF(left, top, right, bottom);
         int cornerRadius = 25;
 
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateStrokePaint);
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, mPlateFillPaint);
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, plateBorder);
+        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, plateFill);
 
         //text
         float textPosY = top + TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
-        mPlateXValuePaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, textPosY, mPlateXValuePaint);
+        plateXValue.setTextAlign(Paint.Align.CENTER);
+        canvas.drawText(DateTimeUtils.formatDateEEEdMMMYYYY(mPosX[mPositionOfChosenPoint]), left + mPlateWidthPx * 0.5f, textPosY, plateXValue);
 
         textPosY += TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
         long sumOfChosenValues = 0;
         for (LineData line : lines){
-            mPlateYValuePaint.setColor(line.color);
-            canvas.drawText(line.name, left + HORIZONTAL_TEXT_OFFSET_PX, textPosY, mPlateNamePaint);
-            canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - HORIZONTAL_TEXT_OFFSET_PX, textPosY, mPlateYValuePaint);
+            plateYValue.setColor(line.color);
+            canvas.drawText(line.name, left + HORIZONTAL_TEXT_OFFSET_PX, textPosY, plateName);
+            canvas.drawText(String.valueOf(line.posY[mPositionOfChosenPoint]), right - HORIZONTAL_TEXT_OFFSET_PX, textPosY, plateYValue);
             textPosY += TEXT_SIZE_MEDIUM_PX + VERTICAL_TEXT_OFFSET_PX;
             sumOfChosenValues += line.posY[mPositionOfChosenPoint];
         }
-        canvas.drawText("All", left + mPlateWidthPx * 0.05f, textPosY, mPlateNamePaint);
-        canvas.drawText(String.valueOf(sumOfChosenValues), right - mPlateWidthPx * 0.05f, textPosY, mPlateYValuePaint);
+        canvas.drawText("All", left + mPlateWidthPx * 0.05f, textPosY, plateName);
+        canvas.drawText(String.valueOf(sumOfChosenValues), right - mPlateWidthPx * 0.05f, textPosY, plateYValue);
     }
 }

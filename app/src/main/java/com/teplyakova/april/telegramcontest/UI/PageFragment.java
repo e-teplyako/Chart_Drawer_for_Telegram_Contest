@@ -59,7 +59,7 @@ public class PageFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mChartData = ChartsManager.getCharts(getContext()).get(getArguments().getInt(INDEX));
+        mChartData = ChartsManager.getCharts(getActivity().getApplicationContext()).get(getArguments().getInt(INDEX));
 
         mLines.clear();
         for (int i = 0; i < mChartData.lines.length; i++) {

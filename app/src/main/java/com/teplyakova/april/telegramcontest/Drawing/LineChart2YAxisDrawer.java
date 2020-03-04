@@ -192,17 +192,17 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         float xCoord;
         if (left) {
             mAxisLabelPaint.setTextAlign(Paint.Align.LEFT);
-            xCoord = mChartDrawingAreaStartX;
+            xCoord = chartAreaStartX;
         }
         else {
             mAxisLabelPaint.setTextAlign(Paint.Align.RIGHT);
-            xCoord = mChartDrawingAreaEndX;
+            xCoord = chartAreaEndX;
         }
 
-        float spaceBetweenDividers = (float)yMax / height * mChartDrawingAreaHeight / Y_DIVIDERS_COUNT;
+        float spaceBetweenDividers = (float)yMax / height * chartAreaHeightPx / Y_DIVIDERS_COUNT;
 
         long step = yMin;
-        float yLabelCoord = mChartDrawingAreaEndY * 0.99f;
+        float yLabelCoord = chartAreaEndY * 0.99f;
 
         mAxisLabelPaint.setColor(color);
         mAxisLabelPaint.setAlpha(alpha);

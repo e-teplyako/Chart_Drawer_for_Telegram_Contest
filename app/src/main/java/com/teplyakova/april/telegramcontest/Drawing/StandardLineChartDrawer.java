@@ -171,17 +171,17 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
 
     private void drawYLabels (long height, long yMax, long yMin, int alpha, Canvas canvas) {
         float xCoord;
-        xCoord = mChartDrawingAreaStartX;
-        float spaceBetweenDividers = (float)yMax / height * mChartDrawingAreaHeight / Y_DIVIDERS_COUNT;
+        xCoord = chartAreaStartX;
+        float spaceBetweenDividers = (float)yMax / height * chartAreaHeightPx / Y_DIVIDERS_COUNT;
 
         long step = yMin;
-        float yLabelCoord = mChartDrawingAreaEndY * 0.99f;
+        float yLabelCoord = chartAreaEndY * 0.99f;
 
-        mBaseLabelPaint.setAlpha(alpha);
-        mBaseLabelPaint.setTextAlign(Paint.Align.LEFT);
+        label.setAlpha(alpha);
+        label.setTextAlign(Paint.Align.LEFT);
 
         for (int i = 0; i < Y_DIVIDERS_COUNT; i++) {
-            canvas.drawText(MathUtils.getFriendlyNumber(step), xCoord, yLabelCoord, mBaseLabelPaint);
+            canvas.drawText(MathUtils.getFriendlyNumber(step), xCoord, yLabelCoord, label);
             yLabelCoord -= spaceBetweenDividers;
             step += (yMax - yMin) / Y_DIVIDERS_COUNT;
         }
