@@ -51,10 +51,10 @@ public class MainActivity extends Activity {
 
         mChartData = ChartsManager.getCharts(getApplicationContext());
 
-       pager = findViewById(R.id.pager);
+        pager = findViewById(R.id.pager);
         pager.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         snapHelper.attachToRecyclerView(pager);
-        adapter = new PageAdapter(pager, getLayoutInflater());
+        adapter = new PageAdapter(mChartData, getLayoutInflater());
         pager.setAdapter(adapter);
     }
 
