@@ -2,17 +2,13 @@ package com.teplyakova.april.telegramcontest.UI;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.StrictMode;
-import android.preference.PreferenceManager;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PagerSnapHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SnapHelper;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -23,11 +19,6 @@ import com.teplyakova.april.telegramcontest.R;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
-
-    private Resources.Theme mAppTheme;
-    private boolean mNightModeIsEnabled = false;
-    private final String NIGHT_MODE_ENABLED_KEY = "night_mode";
-    private ArrayList<ChartData> mChartData;
 
     private static final String STATE_ADAPTER = "adapter";
 
@@ -40,7 +31,6 @@ public class MainActivity extends Activity {
         changeTheme();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mAppTheme = getTheme();
 
         StrictMode.ThreadPolicy.Builder builder =
                 new StrictMode.ThreadPolicy.Builder()
@@ -49,12 +39,12 @@ public class MainActivity extends Activity {
                 .penaltyFlashScreen();
         StrictMode.setThreadPolicy(builder.build());
 
-        mChartData = ChartsManager.getCharts(getApplicationContext());
+        ArrayList<ChartData> chartData = ChartsManager.getCharts(getApplicationContext());
 
         pager = findViewById(R.id.pager);
         pager.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         snapHelper.attachToRecyclerView(pager);
-        adapter = new PageAdapter(mChartData, getLayoutInflater());
+        adapter = new PageAdapter(chartData, getLayoutInflater());
         pager.setAdapter(adapter);
     }
 
@@ -69,21 +59,13 @@ public class MainActivity extends Activity {
     protected void onRestoreInstanceState(Bundle state) {
         super.onRestoreInstanceState(state);
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.e("DeSTroYIng", "this dude");
-    }
-
+    
     private void changeTheme() {
-        if (isNightModeEnabled()) {
+        if (Preferences.getInstance(getApplicationContext()).isInNightMode()) {
             setTheme(R.style.NightMode);
-            mAppTheme = getTheme();
 
         } else {
             setTheme(R.style.DayMode);
-            mAppTheme = getTheme();
         }
     }
 
@@ -92,7 +74,7 @@ public class MainActivity extends Activity {
         int id = item.getItemId();
         switch (id) {
             case (R.id.switch_theme):
-                setIsNightModeEnabled(!isNightModeEnabled());
+                Preferences.getInstance(getApplicationContext()).setNightMode(!isInNightMode());
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
                 finish();
@@ -105,7 +87,7 @@ public class MainActivity extends Activity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.switch_mode_menu, menu);
         MenuItem item = menu.findItem(R.id.switch_theme);
-        if (isNightModeEnabled()) {
+        if (isInNightMode()) {
             item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_night_mode));
         }
         else {
@@ -114,17 +96,7 @@ public class MainActivity extends Activity {
         return true;
     }
 
-    private boolean isNightModeEnabled() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        mNightModeIsEnabled = sharedPreferences.getBoolean(NIGHT_MODE_ENABLED_KEY, false);
-        return mNightModeIsEnabled;
-    }
-
-    private void setIsNightModeEnabled (boolean isEnabled) {
-        mNightModeIsEnabled = isEnabled;
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(NIGHT_MODE_ENABLED_KEY, mNightModeIsEnabled);
-        editor.apply();
+    private boolean isInNightMode() {
+        return Preferences.getInstance(getApplicationContext()).isInNightMode();
     }
 }
