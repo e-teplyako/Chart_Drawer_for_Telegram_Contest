@@ -1,20 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="@android:style/Theme.Holo">
+    <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
         <!-- Customize your theme here. --><!--
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>-->
     </style>
 
-    <style name="DayMode" parent="@android:style/Theme.Holo">
+    <style name="DayMode" parent="AppTheme">
         <item name="android:windowActivityTransitions" tools:targetApi="21">true</item>
         <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
         <item name="android:windowAnimationStyle">@style/DownUpActivity</item>
-        <!--<item name="colorPrimary">@color/actionBarColorDay</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDarkDay</item>
-        <item name="actionMenuTextColor">@color/actionBarTextColorDay</item>-->
+        <item name="android:colorPrimary" tools:targetApi= "21">@color/actionBarColorDay</item>
+        <item name="android:colorPrimaryDark" tools:targetApi= "21">@color/colorPrimaryDarkDay</item>
+        <item name="android:actionMenuTextColor">@color/actionBarTextColorDay</item>
         <item name="android:colorBackground">@color/primaryBackgroundColorDay</item>
         <item name="chartScrollViewBackgroundColor">@color/chartScrollViewBackgroundColorDay</item>
         <item name="labelTextColor">@color/labelTextColorDay</item>
@@ -30,9 +30,9 @@
         <item name="android:windowActivityTransitions" tools:targetApi="21">true</item>
         <item name="android:windowAnimationStyle">@style/DownUpActivity</item>
         <!--<item name="android:windowTranslucentNavigation" tools:targetApi="19">true</item>-->
-        <!--<item name="android:windowTranslucentStatus" tools:targetApi="19">true</item>--><!--
-        <item name="colorPrimary">@color/actionBarColorNight</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDarkNight</item>-->
+        <!--<item name="android:windowTranslucentStatus" tools:targetApi="19">true</item>-->
+        <item name="android:colorPrimary" tools:targetApi= "21">@color/actionBarColorNight</item>
+        <item name="android:colorPrimaryDark" tools:targetApi= "21">@color/colorPrimaryDarkNight</item>
         <item name="android:colorBackground">@color/primaryBackgroundColorNight</item>
         <item name="chartScrollViewBackgroundColor">@color/chartScrollViewBackgroundColorNight</item>
         <item name="labelTextColor">@color/labelTextColorNight</item>

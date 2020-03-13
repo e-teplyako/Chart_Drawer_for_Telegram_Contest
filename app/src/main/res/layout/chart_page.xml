@@ -4,19 +4,19 @@
     android:id="@+id/charts_linear_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingTop="32dp"
+    android:paddingBottom="32dp">
 
     <LinearLayout
         android:id="@+id/checkboxes_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-
     </LinearLayout>
 
     <com.teplyakova.april.telegramcontest.ChartView
         android:id="@+id/chartview"
         android:layout_width="match_parent"
-        android:layout_height="390dp"
-        android:paddingBottom="4dp" />
+        android:layout_height="390dp" />
 </LinearLayout>

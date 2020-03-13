@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class JSONUtils {
 
     public static ChartData parseJSON (String jsonString) {
-        if (jsonString.equals("") || jsonString == null) {
+        if (jsonString == null || jsonString.equals("")) {
             return null;
         }
 

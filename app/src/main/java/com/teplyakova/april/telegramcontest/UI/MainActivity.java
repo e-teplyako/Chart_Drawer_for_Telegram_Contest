@@ -2,13 +2,10 @@ package com.teplyakova.april.telegramcontest.UI;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.StrictMode;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PagerSnapHelper;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SnapHelper;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,8 +18,6 @@ import java.util.ArrayList;
 public class MainActivity extends Activity {
 
     private static final String STATE_ADAPTER = "adapter";
-
-    private final SnapHelper snapHelper = new PagerSnapHelper();
     PageAdapter adapter;
     RecyclerView pager;
 
@@ -32,18 +27,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        StrictMode.ThreadPolicy.Builder builder =
-                new StrictMode.ThreadPolicy.Builder()
-                .detectAll()
-                .penaltyLog()
-                .penaltyFlashScreen();
-        StrictMode.setThreadPolicy(builder.build());
-
         ArrayList<ChartData> chartData = ChartsManager.getCharts(getApplicationContext());
 
         pager = findViewById(R.id.pager);
-        pager.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        snapHelper.attachToRecyclerView(pager);
+        pager.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adapter = new PageAdapter(chartData, getLayoutInflater());
         pager.setAdapter(adapter);
     }
