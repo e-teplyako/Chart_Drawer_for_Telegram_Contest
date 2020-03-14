@@ -6,17 +6,18 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/checkboxes_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-    </LinearLayout>
-
     <com.teplyakova.april.telegramcontest.ChartView
         android:id="@+id/chartview"
         android:layout_width="match_parent"
         android:layout_height="390dp"
         android:paddingBottom="4dp" />
+
+    <GridLayout
+        android:id="@+id/checkboxes_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="4dp"
+        android:columnCount="3">
+    </GridLayout>
+
 </LinearLayout>

@@ -14,7 +14,7 @@ import com.teplyakova.april.telegramcontest.ChartsManager;
 import com.teplyakova.april.telegramcontest.R;
 
 import java.util.ArrayList;
-
+//TODO: fix bug with blank screen when ChartView height=match_parent
 public class MainActivity extends Activity {
 
     private static final String STATE_ADAPTER = "adapter";
@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
 
         pager = findViewById(R.id.pager);
         pager.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        adapter = new PageAdapter(chartData, getLayoutInflater());
+        adapter = new PageAdapter(chartData, getLayoutInflater(), this);
         pager.setAdapter(adapter);
     }
 

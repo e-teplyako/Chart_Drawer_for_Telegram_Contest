@@ -1,17 +1,14 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-
+<!--//TODO: change Action Bar  text color-->
     <!-- Base application theme. -->
     <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-        <!-- Customize your theme here. --><!--
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>-->
     </style>
 
     <style name="DayMode" parent="AppTheme">
         <item name="android:windowActivityTransitions" tools:targetApi="21">true</item>
         <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
         <item name="android:windowAnimationStyle">@style/DownUpActivity</item>
+        <item name="android:actionBarStyle">@style/ActionBarDay</item>
         <item name="android:colorPrimary" tools:targetApi= "21">@color/actionBarColorDay</item>
         <item name="android:colorPrimaryDark" tools:targetApi= "21">@color/colorPrimaryDarkDay</item>
         <item name="android:actionMenuTextColor">@color/actionBarTextColorDay</item>
@@ -29,8 +26,7 @@
     <style name="NightMode" parent="AppTheme">
         <item name="android:windowActivityTransitions" tools:targetApi="21">true</item>
         <item name="android:windowAnimationStyle">@style/DownUpActivity</item>
-        <!--<item name="android:windowTranslucentNavigation" tools:targetApi="19">true</item>-->
-        <!--<item name="android:windowTranslucentStatus" tools:targetApi="19">true</item>-->
+        <item name="android:actionBarStyle">@style/ActionBarNight</item>
         <item name="android:colorPrimary" tools:targetApi= "21">@color/actionBarColorNight</item>
         <item name="android:colorPrimaryDark" tools:targetApi= "21">@color/colorPrimaryDarkNight</item>
         <item name="android:colorBackground">@color/primaryBackgroundColorNight</item>
@@ -49,5 +45,12 @@
         <item name="android:activityOpenExitAnimation">@anim/open_exit</item>
     </style>
 
+    <style name="ActionBarDay" parent="android:Widget.ActionBar">
+        <item name="android:background">@color/actionBarColorDay</item>
+    </style>
+
+    <style name="ActionBarNight" parent="android:Widget.ActionBar">
+        <item name="android:background">@color/actionBarColorNight</item>
+    </style>
 
 </resources>
