@@ -14,7 +14,6 @@ import com.teplyakova.april.telegramcontest.ChartsManager;
 import com.teplyakova.april.telegramcontest.R;
 
 import java.util.ArrayList;
-//TODO: fix bug with blank screen when ChartView height=match_parent
 public class MainActivity extends Activity {
 
     private static final String STATE_ADAPTER = "adapter";
