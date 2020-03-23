@@ -1,19 +1,12 @@
 package com.teplyakova.april.telegramcontest.UI;
 import androidx.annotation.NonNull;
-import androidx.lifecycle.ViewModel;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.StateListDrawable;
-import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseArray;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.GridLayout;
 
@@ -26,7 +19,6 @@ import com.teplyakova.april.telegramcontest.R;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 //TODO: fix checkboxes text color
 public class PageAdapter extends RecyclerView.Adapter {
@@ -55,7 +47,7 @@ public class PageAdapter extends RecyclerView.Adapter {
         _chartView.init(DrawerFactory.getChartDrawer(_context, _chartData.get(i)));
         _chartView.setLines(_chartData.get(i).getActiveLines());
         ChartViewHolder vh = (ChartViewHolder) viewHolder;
-        vh.bind(i);
+        vh.bind(i, _chartData.get(i));
     }
 
     @Override
@@ -63,11 +55,10 @@ public class PageAdapter extends RecyclerView.Adapter {
         return _chartData.size();
     }
 
-    private class ChartViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener {
+    class ChartViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener {
         private ChartView _chartView;
         private ChartData _chart;
         private GridLayout _checkboxesLayout;
-        private HashMap<Integer, Boolean> _checkboxesState = new HashMap<>();
         private CustomCheckbox[] _checkboxes;
         private HashMap<Integer, LineData> _lineByCheckboxId = new HashMap<>();
 
@@ -77,8 +68,8 @@ public class PageAdapter extends RecyclerView.Adapter {
             _checkboxesLayout = checkboxesLayout;
         }
 
-        void bind(int position) {
-            _chart = _chartData.get(position);
+        void bind(int position, ChartData chart) {
+            _chart = chart;
             createAndAttachCheckboxes(position);
         }
 
@@ -87,15 +78,14 @@ public class PageAdapter extends RecyclerView.Adapter {
             int linesCount = _chart.getLines().length;
             _checkboxes = new CustomCheckbox[linesCount];
             for (int k = 0; k < linesCount; k++) {
-                int color = _chartData.get(position).getLines()[k].color;
+                int color = _chart.getLines()[k].color;
                 CustomCheckbox cb = CustomCheckbox.getCheckbox(_chartView.getContext(), color);
-                cb.setText(_chartData.get(position).getLines()[k].name);
-                cb.setChecked(_chartData.get(position).isLineActive(k));
-                Log.e(getClass().getSimpleName(), _chartData.get(position).isLineActive(k) + "");
+                cb.setText(_chart.getLines()[k].name);
+                cb.setChecked(_chart.isLineActive(k));
+                Log.e(getClass().getSimpleName(), _chart.isLineActive(k) + "");
                 int id = cb.getUniqueId();
                 _checkboxes[k] = cb;
-                _checkboxesState.put(id, cb.isChecked());
-                _lineByCheckboxId.put(id, _chartData.get(position).getLines()[k]);
+                _lineByCheckboxId.put(id, _chart.getLines()[k]);
                 _checkboxesLayout.addView(cb);
                 cb.setOnCheckedChangeListener(this);
             }
@@ -104,13 +94,9 @@ public class PageAdapter extends RecyclerView.Adapter {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             CustomCheckbox cb = (CustomCheckbox) buttonView;
-            _checkboxesState.put(cb.getUniqueId(), isChecked);
             _chart.setLineState(_lineByCheckboxId.get(cb.getUniqueId()), isChecked);
-            setLinesForView();
-        }
-
-        private void setLinesForView() {
             _chartView.setLines(_chart.getActiveLines());
         }
+
     }
 }

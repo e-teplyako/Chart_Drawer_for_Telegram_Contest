@@ -3,21 +3,24 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/charts_linear_layout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical">
 
     <com.teplyakova.april.telegramcontest.ChartView
         android:id="@+id/chartview"
         android:layout_width="match_parent"
-        android:layout_height="390dp"
+        android:layout_height="0dp"
+        android:layout_weight="7"
         android:paddingBottom="4dp" />
 
     <GridLayout
         android:id="@+id/checkboxes_layout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="3"
         android:padding="4dp"
-        android:columnCount="3">
+        android:useDefaultMargins="true"
+        android:columnCount="4">
     </GridLayout>
 
 </LinearLayout>

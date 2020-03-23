@@ -1,6 +1,7 @@
 package com.teplyakova.april.telegramcontest.UI;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,7 +29,14 @@ public class MainActivity extends Activity {
         ArrayList<ChartData> chartData = ChartsManager.getCharts(getApplicationContext());
 
         recyclerView = findViewById(R.id.pager);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+
+        int orientation = getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        } else {
+            recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        }
+
         adapter = new PageAdapter(chartData, getLayoutInflater(), this);
         recyclerView.setAdapter(adapter);
     }
