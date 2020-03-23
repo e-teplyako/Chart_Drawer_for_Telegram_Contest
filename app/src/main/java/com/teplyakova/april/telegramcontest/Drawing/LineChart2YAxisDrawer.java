@@ -69,7 +69,7 @@ public class LineChart2YAxisDrawer extends BaseLineChartDrawer {
         super(context, chartData);
 
         boolean left = true;
-        for (LineData lineData : chartData.lines)
+        for (LineData lineData : chartData.getLines())
         {
             ChartLine chartLine = new ChartLine();
             chartLine.Data      = lineData;

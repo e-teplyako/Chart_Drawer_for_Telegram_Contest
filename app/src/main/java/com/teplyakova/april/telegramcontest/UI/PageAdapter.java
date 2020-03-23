@@ -1,11 +1,14 @@
 package com.teplyakova.april.telegramcontest.UI;
 import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModel;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,9 +35,9 @@ public class PageAdapter extends RecyclerView.Adapter {
     private List<ChartData> _chartData;
     private ChartView _chartView;
 
-    PageAdapter(@NonNull List<ChartData> data, LayoutInflater inflater, Context context) {
+    PageAdapter(@NonNull List<ChartData> chartData, LayoutInflater inflater, Context context) {
         _inflater = inflater;
-        _chartData = new ArrayList<>(data);
+        _chartData = new ArrayList<>(chartData);
         _context = context;
     }
 
@@ -50,7 +53,7 @@ public class PageAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
         _chartView.init(DrawerFactory.getChartDrawer(_context, _chartData.get(i)));
-        _chartView.setLines(_chartData.get(i).lines);
+        _chartView.setLines(_chartData.get(i).getActiveLines());
         ChartViewHolder vh = (ChartViewHolder) viewHolder;
         vh.bind(i);
     }
@@ -60,41 +63,13 @@ public class PageAdapter extends RecyclerView.Adapter {
         return _chartData.size();
     }
 
-
-
-    private StateListDrawable getCheckboxDrawable(int color) {
-        StateListDrawable drawable = new StateListDrawable();
-        drawable.addState(new int[]{android.R.attr.state_checked}, getCheckedShape(color));
-        drawable.addState(new int[]{}, getUncheckedShape(color));
-        return drawable;
-    }
-
-    private GradientDrawable getUncheckedShape(int color) {
-        GradientDrawable shape = getBaseShape(color);
-        shape.setStroke(8, color);
-        return shape;
-    }
-
-    private GradientDrawable getCheckedShape(int color) {
-       GradientDrawable shape = getBaseShape(color);
-       shape.setColor(color);
-       return shape;
-    }
-
-    private GradientDrawable getBaseShape(int color) {
-        GradientDrawable shape = new GradientDrawable();
-        shape.setShape(GradientDrawable.RECTANGLE);
-        shape.setCornerRadius(100);
-        return shape;
-    }
-
     private class ChartViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener {
-        private LineData[] _lines;
         private ChartView _chartView;
+        private ChartData _chart;
         private GridLayout _checkboxesLayout;
-        private SparseBooleanArray _checkboxesState = new SparseBooleanArray();
-        private CheckBox[] _checkboxes;
-        private Map<Integer, LineData> _lineByCheckboxId = new HashMap<>();
+        private HashMap<Integer, Boolean> _checkboxesState = new HashMap<>();
+        private CustomCheckbox[] _checkboxes;
+        private HashMap<Integer, LineData> _lineByCheckboxId = new HashMap<>();
 
         ChartViewHolder(@NonNull View pageView, @NonNull ChartView chartView, @NonNull GridLayout checkboxesLayout) {
             super(pageView);
@@ -103,45 +78,39 @@ public class PageAdapter extends RecyclerView.Adapter {
         }
 
         void bind(int position) {
-            _lines = _chartData.get(position).lines.clone();
+            _chart = _chartData.get(position);
             createAndAttachCheckboxes(position);
         }
 
         private void createAndAttachCheckboxes(int position) {
-            int linesCount = _lines.length;
-            _checkboxes = new CheckBox[linesCount];
+            _checkboxesLayout.removeAllViews();
+            int linesCount = _chart.getLines().length;
+            _checkboxes = new CustomCheckbox[linesCount];
             for (int k = 0; k < linesCount; k++) {
-                int color = _chartData.get(position).lines[k].color;
-                CheckBox cb = new CheckBox(_context);
-                cb.setId(k);
-                cb.setChecked(true);
-                cb.setText(_chartData.get(position).lines[k].name);
-                cb.setButtonDrawable(null);
-                cb.setBackground(getCheckboxDrawable(color));
-                cb.setPadding(20,20,20,20);
-                cb.setOnCheckedChangeListener(this);
+                int color = _chartData.get(position).getLines()[k].color;
+                CustomCheckbox cb = CustomCheckbox.getCheckbox(_chartView.getContext(), color);
+                cb.setText(_chartData.get(position).getLines()[k].name);
+                cb.setChecked(_chartData.get(position).isLineActive(k));
+                Log.e(getClass().getSimpleName(), _chartData.get(position).isLineActive(k) + "");
+                int id = cb.getUniqueId();
                 _checkboxes[k] = cb;
-                _checkboxesState.put(k, cb.isChecked());
-                _lineByCheckboxId.put(k, _chartData.get(position).lines[k]);
+                _checkboxesState.put(id, cb.isChecked());
+                _lineByCheckboxId.put(id, _chartData.get(position).getLines()[k]);
                 _checkboxesLayout.addView(cb);
+                cb.setOnCheckedChangeListener(this);
             }
         }
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            _checkboxesState.put(buttonView.getId(), isChecked);
-            Log.e(getClass().getSimpleName(), _checkboxesState.toString());
+            CustomCheckbox cb = (CustomCheckbox) buttonView;
+            _checkboxesState.put(cb.getUniqueId(), isChecked);
+            _chart.setLineState(_lineByCheckboxId.get(cb.getUniqueId()), isChecked);
             setLinesForView();
         }
 
         private void setLinesForView() {
-            List<LineData> lines = new ArrayList<>();
-            for (CheckBox cb : _checkboxes) {
-                if (_checkboxesState.get(cb.getId())){
-                    lines.add(_lineByCheckboxId.get(cb.getId()));
-                }
-            }
-            _chartView.setLines(lines.toArray(new LineData[lines.size()]));
+            _chartView.setLines(_chart.getActiveLines());
         }
     }
 }

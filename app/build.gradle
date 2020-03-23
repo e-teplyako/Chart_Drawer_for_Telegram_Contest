@@ -25,4 +25,5 @@ android {
 
 dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation "androidx.lifecycle:lifecycle-viewmodel:2.2.0"
 }

@@ -59,7 +59,7 @@ public class StackedAreaChartDrawer extends BaseChartDrawer {
 
         PLATE_WIDTH_PX = MathUtils.dpToPixels(140, context);
 
-        for (LineData lineData : chartData.lines) {
+        for (LineData lineData : chartData.getLines()) {
             ChartArea chartArea = new ChartArea();
             chartArea.Data = lineData;
             chartArea.Percentages = new int[lineData.posY.length];

@@ -68,10 +68,10 @@ public class StandardLineChartDrawer extends BaseLineChartDrawer {
     public StandardLineChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
 
-        mGlobalMinY = MathUtils.getMinY(chartData.lines);
-        mGlobalMaxY = MathUtils.getMaxY(chartData.lines);
+        mGlobalMinY = MathUtils.getMinY(chartData.getLines());
+        mGlobalMaxY = MathUtils.getMaxY(chartData.getLines());
 
-        for (LineData lineData : chartData.lines)
+        for (LineData lineData : chartData.getLines())
         {
             ChartLine chartLine = new ChartLine();
             chartLine.Data      = lineData;

@@ -1,7 +1,6 @@
 package com.teplyakova.april.telegramcontest.UI;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,7 +17,7 @@ public class MainActivity extends Activity {
 
     private static final String STATE_ADAPTER = "adapter";
     PageAdapter adapter;
-    RecyclerView pager;
+    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,28 +27,30 @@ public class MainActivity extends Activity {
 
         ArrayList<ChartData> chartData = ChartsManager.getCharts(getApplicationContext());
 
-        pager = findViewById(R.id.pager);
-        pager.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        recyclerView = findViewById(R.id.pager);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adapter = new PageAdapter(chartData, getLayoutInflater(), this);
-        pager.setAdapter(adapter);
+        recyclerView.setAdapter(adapter);
     }
+
 
     @Override
     protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
-        Bundle adapterState=new Bundle();
-        state.putBundle(STATE_ADAPTER, adapterState);
+        state.putParcelable(STATE_ADAPTER, recyclerView.getLayoutManager().onSaveInstanceState());
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle state) {
         super.onRestoreInstanceState(state);
+        if (state != null) {
+            recyclerView.getLayoutManager().onRestoreInstanceState(state.getParcelable(STATE_ADAPTER));
+        }
     }
     
     private void changeTheme() {
         if (Preferences.getInstance(getApplicationContext()).isInNightMode()) {
             setTheme(R.style.NightMode);
-
         } else {
             setTheme(R.style.DayMode);
         }
@@ -61,9 +62,7 @@ public class MainActivity extends Activity {
         switch (id) {
             case (R.id.switch_theme):
                 Preferences.getInstance(getApplicationContext()).setNightMode(!isInNightMode());
-                Intent intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
-                finish();
+                recreate();
         }
         return super.onOptionsItemSelected(item);
     }

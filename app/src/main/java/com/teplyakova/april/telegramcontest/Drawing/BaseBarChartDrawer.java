@@ -206,9 +206,9 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
     BaseBarChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
 
-        mLines = chartData.lines;
+        mLines = chartData.getLines();
 
-        for (LineData lineData : chartData.lines)
+        for (LineData lineData : chartData.getLines())
         {
             ChartArea chartArea = new ChartArea();
             chartArea.Data = lineData;

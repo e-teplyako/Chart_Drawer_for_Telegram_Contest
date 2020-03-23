@@ -55,7 +55,7 @@ public class JSONUtils {
                     line.color = Color.parseColor(jsonColors.optString(line.id));
                 }
 
-                chartData.lines = lines.toArray(new LineData[lines.size()]);
+                chartData.init(lines.toArray(new LineData[lines.size()]));
 
                 JSONObject jsonTypes = jsonRootObject.optJSONObject("types");
                 String type = jsonTypes.optString(lines.get(0).id);
