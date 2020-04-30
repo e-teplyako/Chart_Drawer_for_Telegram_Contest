@@ -5,7 +5,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.widget.CheckBox;
 
-public class CustomCheckbox extends CheckBox {
+public class CustomCheckbox extends CheckBox implements Themed{
 	private static int ID = 1337;
 	private int _id;
 
@@ -53,5 +53,11 @@ public class CustomCheckbox extends CheckBox {
 		shape.setShape(GradientDrawable.RECTANGLE);
 		shape.setCornerRadius(100);
 		return shape;
+	}
+
+	@Override
+	public void refreshTheme(ThemeHelper themeHelper) {
+		setTextColor(themeHelper.getMainTextColor());
+		invalidate();
 	}
 }

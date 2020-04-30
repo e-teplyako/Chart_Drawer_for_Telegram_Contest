@@ -185,6 +185,8 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
 
     private boolean       mSetLinesFirstTime      = true;
 
+    private int _primaryBgColor;
+
 
     BaseLineChartDrawer(Context context, ChartData chartData) {
         super(context, chartData);
@@ -364,10 +366,7 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
         mCirclePaint.setColor(color);
         mCirclePaint.setAlpha(alpha);
         canvas.drawCircle(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mappedY[mPositionOfChosenPoint - mPointsMinIndex], 16f, mCirclePaint);
-        TypedValue background = new TypedValue();
-        if (theme.resolveAttribute(R.attr.primaryBackgroundColor, background, true)) {
-            mCirclePaint.setColor(background.data);
-        }
+        mCirclePaint.setColor(_primaryBgColor);
         canvas.drawCircle(mappedX[mPositionOfChosenPoint - mPointsMinIndex], mappedY[mPositionOfChosenPoint - mPointsMinIndex], 8f, mCirclePaint);
     }
 
@@ -457,5 +456,10 @@ public abstract class BaseLineChartDrawer extends BaseChartDrawer {
                 arrayList.add(line.Data);
 
         return arrayList.toArray(new LineData[arrayList.size()]);
+    }
+
+    @Override
+    public void setPrimaryBgColor(int color) {
+        _primaryBgColor = color;
     }
 }

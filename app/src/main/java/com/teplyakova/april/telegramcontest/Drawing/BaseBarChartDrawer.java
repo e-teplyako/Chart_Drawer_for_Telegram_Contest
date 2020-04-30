@@ -450,10 +450,6 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
         mBarPaint.setAntiAlias(true);
 
         mOpaquePaint = new Paint();
-        TypedValue opaqueColor = new TypedValue();
-        if (theme.resolveAttribute(R.attr.opaqueBackground, opaqueColor, true)) {
-            mOpaquePaint.setColor(opaqueColor.data);
-        }
         mOpaquePaint.setStyle(Paint.Style.FILL);
     }
 
@@ -571,5 +567,10 @@ public abstract class BaseBarChartDrawer extends BaseChartDrawer{
         }
 
         return max;
+    }
+
+    @Override
+    public void setOpaquePlateColor(int color) {
+        mOpaquePaint.setColor(color);
     }
 }

@@ -1,14 +1,21 @@
 package com.teplyakova.april.telegramcontest.UI;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.res.Configuration;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartsManager;
 import com.teplyakova.april.telegramcontest.R;
@@ -19,17 +26,18 @@ public class MainActivity extends Activity {
     private static final String STATE_ADAPTER = "adapter";
     PageAdapter adapter;
     RecyclerView recyclerView;
+    ThemeHelper _themeHelper;
+    MenuItem _menuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        changeTheme();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         ArrayList<ChartData> chartData = ChartsManager.getCharts(getApplicationContext());
 
         recyclerView = findViewById(R.id.pager);
-
+        recyclerView.setHasFixedSize(true);
         int orientation = getResources().getConfiguration().orientation;
         if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
             recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -37,10 +45,11 @@ public class MainActivity extends Activity {
             recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         }
 
-        adapter = new PageAdapter(chartData, getLayoutInflater(), this);
+        adapter = new PageAdapter(chartData, getLayoutInflater(),  this);
         recyclerView.setAdapter(adapter);
-    }
 
+        _themeHelper = ThemeHelper.getInstance(getApplicationContext());
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle state) {
@@ -55,22 +64,20 @@ public class MainActivity extends Activity {
             recyclerView.getLayoutManager().onRestoreInstanceState(state.getParcelable(STATE_ADAPTER));
         }
     }
-    
-    private void changeTheme() {
-        if (Preferences.getInstance(getApplicationContext()).isInNightMode()) {
-            setTheme(R.style.NightMode);
-        } else {
-            setTheme(R.style.DayMode);
-        }
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         switch (id) {
             case (R.id.switch_theme):
-                Preferences.getInstance(getApplicationContext()).setNightMode(!isInNightMode());
-                recreate();
+                if (_themeHelper.getBaseTheme() == Theme.DAY) {
+                    setBaseTheme(Theme.NIGHT);
+                    updateUiElements();
+                }
+                else {
+                    setBaseTheme(Theme.DAY);
+                    updateUiElements();
+                }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -79,17 +86,34 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.switch_mode_menu, menu);
-        MenuItem item = menu.findItem(R.id.switch_theme);
-        if (isInNightMode()) {
-            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_night_mode));
-        }
-        else {
-            item.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_day_mode));
-        }
+        _menuItem = menu.findItem(R.id.switch_theme);
         return true;
     }
 
-    private boolean isInNightMode() {
-        return Preferences.getInstance(getApplicationContext()).isInNightMode();
+    public void setBaseTheme(Theme baseTheme) {
+        _themeHelper.setBaseTheme(baseTheme);
+    }
+
+    public void updateUiElements() {
+        for (View view : ViewUtil.getAllChildren(findViewById(android.R.id.content))) {
+            if (view instanceof Themed) ((Themed) view).refreshTheme(_themeHelper);
+        }
+        setActionBarColor(_themeHelper.getPrimaryBgColor());
+        setMenuButtonIcon(_themeHelper.getMenuButtonIcon());
+    }
+
+    private void setActionBarColor(int color) {
+        ActionBar ab = getActionBar();
+        if (ab != null) {
+            ab.setBackgroundDrawable(new ColorDrawable(color));
+            ab.setTitle(Html.fromHtml("<font color=\"#9E9E9E\">" + getString(R.string.app_name) + "</font>"));
+            //TODO: fix colors
+        }
+    }
+
+    private void setMenuButtonIcon(Drawable icon) {
+        if (_menuItem != null)
+            _menuItem.setIcon(icon);
+        //TODO: fix problem with discrepancy between menu item creation time and adapter views creation time
     }
 }

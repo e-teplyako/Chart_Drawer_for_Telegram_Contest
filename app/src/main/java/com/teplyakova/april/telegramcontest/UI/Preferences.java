@@ -9,8 +9,7 @@ public class Preferences {
 
 	private static SharedPreferences _sharedPrefs;
 
-	private static final String NIGHT_MODE_ENABLED_KEY = "night_mode";
-	private static boolean _isInNightMode;
+	private static final String THEME = "theme";
 
 	private Preferences(){}
 
@@ -24,18 +23,16 @@ public class Preferences {
 	private static Preferences retrievePrefs(Context context) {
 		Preferences prefs = new Preferences();
 		_sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-		prefs.setNightMode(_sharedPrefs.getBoolean(NIGHT_MODE_ENABLED_KEY, false));
 		return prefs;
 	}
 
-	public boolean isInNightMode() {
-		return _isInNightMode;
+	public Theme getTheme() {
+		return Theme.fromValue(_sharedPrefs.getInt(THEME, 1));
 	}
 
-	public void setNightMode(boolean enabled) {
-		_isInNightMode = enabled;
+	public void setTheme(Theme theme) {
 		SharedPreferences.Editor editor = _sharedPrefs.edit();
-		editor.putBoolean(NIGHT_MODE_ENABLED_KEY, enabled);
+		editor.putInt(THEME, theme.getValue());
 		editor.apply();
 	}
 }

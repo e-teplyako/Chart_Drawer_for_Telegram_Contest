@@ -7,13 +7,16 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
+import com.teplyakova.april.telegramcontest.UI.ThemeHelper;
+import com.teplyakova.april.telegramcontest.UI.Themed;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
-public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener{
+public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener, Themed {
     private final float DRAWING_AREA_OFFSET_X_PX;
     private final float DRAWING_AREA_OFFSET_Y_PX;
     private final float SCROLL_DRAWING_AREA_HEIGHT_PX;
@@ -61,6 +64,13 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
     }
 
     @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_SCROLL)
+            Log.e(getClass().getSimpleName(), "SCROLL FROM GENERIC");
+        return super.onGenericMotionEvent(event);
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         super.onTouchEvent(event);
         float x = event.getX();
@@ -69,11 +79,12 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
             case MotionEvent.ACTION_MOVE:
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_UP:
-                this.getParent().requestDisallowInterceptTouchEvent(true);
                 if (mDrawer.handleTouchEvent(event, x, y)) {
+                    this.getParent().requestDisallowInterceptTouchEvent(true);
                     invalidate();
                     return true;
                 }
+
         }
         return false;
     }
@@ -109,6 +120,19 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
         normSliderPosLeft = ss.normPos1;
         normSliderPosRight = ss.normPos2;
         chosenPointPosition = ss.chosenPoint;
+    }
+
+    @Override
+    public void refreshTheme(ThemeHelper themeHelper) {
+        mDrawer.setPlateFillColor(themeHelper.getPlateFillColor());
+        mDrawer.setPrimaryBgColor(themeHelper.getPrimaryBgColor());
+        mDrawer.setSliderBgColor(themeHelper.getSliderBgColor());
+        mDrawer.setSliderHandlerColor(themeHelper.getSliderHandlerColor());
+        mDrawer.setDividerColor(themeHelper.getDividerColor());
+        mDrawer.setMainTextColor(themeHelper.getMainTextColor());
+        mDrawer.setLabelColor(themeHelper.getLabelColor());
+        mDrawer.setOpaquePlateColor(themeHelper.getOpaquePlateColor());
+        invalidate();
     }
 
     private static class SavedState extends BaseSavedState {

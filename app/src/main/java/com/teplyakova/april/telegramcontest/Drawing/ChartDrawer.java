@@ -16,4 +16,12 @@ public interface ChartDrawer{
     void setChosenPointPosition(int pointPosition);
     void setSliderPositions(float pos1, float pos2);
     void setAnimatorUpdateListener(ValueAnimator.AnimatorUpdateListener listener);
+    void setPlateFillColor(int color);
+    void setPrimaryBgColor(int color);
+    void setSliderBgColor(int color);
+    void setSliderHandlerColor(int color);
+    void setDividerColor(int color);
+    void setMainTextColor(int color);
+    void setLabelColor(int color);
+    void setOpaquePlateColor(int color);
 }

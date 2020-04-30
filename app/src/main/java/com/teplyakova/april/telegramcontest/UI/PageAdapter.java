@@ -3,7 +3,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,14 +22,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-//TODO: fix checkboxes text color
 public class PageAdapter extends RecyclerView.Adapter {
     private final LayoutInflater _inflater;
-    private Context _context;
     private List<ChartData> _chartData;
     private ChartView _chartView;
+    private MainActivity _context;
 
-    PageAdapter(@NonNull List<ChartData> chartData, LayoutInflater inflater, Context context) {
+    PageAdapter(@NonNull List<ChartData> chartData, LayoutInflater inflater, MainActivity context) {
         _inflater = inflater;
         _chartData = new ArrayList<>(chartData);
         _context = context;
@@ -48,6 +49,12 @@ public class PageAdapter extends RecyclerView.Adapter {
         _chartView.setLines(_chartData.get(i).getActiveLines());
         ChartViewHolder vh = (ChartViewHolder) viewHolder;
         vh.bind(i, _chartData.get(i));
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        _context.updateUiElements();
     }
 
     @Override
@@ -79,14 +86,18 @@ public class PageAdapter extends RecyclerView.Adapter {
             _checkboxes = new CustomCheckbox[linesCount];
             for (int k = 0; k < linesCount; k++) {
                 int color = _chart.getLines()[k].color;
-                CustomCheckbox cb = CustomCheckbox.getCheckbox(_chartView.getContext(), color);
+                CustomCheckbox cb = CustomCheckbox.getCheckbox(_chartView.getContext(), color);if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    cb.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                }
                 cb.setText(_chart.getLines()[k].name);
                 cb.setChecked(_chart.isLineActive(k));
-                Log.e(getClass().getSimpleName(), _chart.isLineActive(k) + "");
                 int id = cb.getUniqueId();
                 _checkboxes[k] = cb;
                 _lineByCheckboxId.put(id, _chart.getLines()[k]);
                 _checkboxesLayout.addView(cb);
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                params.setGravity(Gravity.FILL_HORIZONTAL);
+                cb.setLayoutParams(params);
                 cb.setOnCheckedChangeListener(this);
             }
         }

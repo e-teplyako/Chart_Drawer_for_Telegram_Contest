@@ -371,39 +371,21 @@ public abstract class BaseChartDrawer implements ChartDrawer {
 
     protected void setUpPaints() {
         divider = new Paint();
-        TypedValue dividerColor = new TypedValue();
-        if (theme.resolveAttribute(R.attr.dividerColor, dividerColor, true)) {
-            divider.setColor(dividerColor.data);
-        }
         divider.setStrokeWidth(2);
 
         label = new TextPaint();
         label.setTextSize(TEXT_SIZE_MEDIUM_PX);
-        TypedValue baseLabelColor = new TypedValue();
-        if (theme.resolveAttribute(R.attr.baseLabelColor, baseLabelColor, true)) {
-            label.setColor(baseLabelColor.data);
-        }
         label.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
         label.setAntiAlias(true);
 
         plateBorder = new Paint();
-        plateBorder.setColor(dividerColor.data);
         plateBorder.setStyle(Paint.Style.STROKE);
         plateBorder.setStrokeWidth(2);
 
         plateFill = new Paint();
         plateFill.setStyle(Paint.Style.FILL);
-        TypedValue plateColor = new TypedValue();
-        if (theme.resolveAttribute(R.attr.plateBackgroundColor, plateColor, true)) {
-            plateFill.setColor(plateColor.data);
-        }
-
 
         plateXValue = new TextPaint();
-        TypedValue textColor = new TypedValue();
-        if (theme.resolveAttribute(R.attr.labelTextColor, textColor, true)) {
-            plateXValue.setColor(textColor.data);
-        }
         plateXValue.setTextSize(TEXT_SIZE_MEDIUM_PX);
         plateXValue.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
         plateXValue.setAntiAlias(true);
@@ -415,7 +397,6 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         plateYValue.setAntiAlias(true);
 
         plateName = new TextPaint();
-        plateName.setColor(textColor.data);
         plateName.setTextSize(TEXT_SIZE_MEDIUM_PX);
         plateName.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
         plateName.setTextAlign(Paint.Align.LEFT);
@@ -505,5 +486,47 @@ public abstract class BaseChartDrawer implements ChartDrawer {
 
     protected void hidePointDetails() {
         mPointIsChosen = false;
+    }
+
+    @Override
+    public void setPlateFillColor(int color) {
+        plateFill.setColor(color);
+    }
+
+    @Override
+    public void setSliderBgColor(int color) {
+        background.setColor(color);
+    }
+
+    @Override
+    public void setSliderHandlerColor(int color) {
+        slider.setColor(color);
+    }
+
+    @Override
+    public void setPrimaryBgColor(int color) {
+
+    }
+
+    @Override
+    public void setDividerColor(int color) {
+        divider.setColor(color);
+        plateBorder.setColor(color);
+    }
+
+    @Override
+    public void setMainTextColor(int color) {
+        plateName.setColor(color);
+        plateXValue.setColor(color);
+    }
+
+    @Override
+    public void setLabelColor(int color) {
+        label.setColor(color);
+    }
+
+    @Override
+    public void setOpaquePlateColor(int color) {
+
     }
 }
