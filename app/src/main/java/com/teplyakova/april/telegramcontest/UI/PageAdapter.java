@@ -9,6 +9,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.GridLayout;
 
@@ -62,7 +63,7 @@ public class PageAdapter extends RecyclerView.Adapter {
         return _chartData.size();
     }
 
-    class ChartViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener {
+    class ChartViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener, View.OnLongClickListener {
         private ChartView _chartView;
         private ChartData _chart;
         private GridLayout _checkboxesLayout;
@@ -86,7 +87,8 @@ public class PageAdapter extends RecyclerView.Adapter {
             _checkboxes = new CustomCheckbox[linesCount];
             for (int k = 0; k < linesCount; k++) {
                 int color = _chart.getLines()[k].color;
-                CustomCheckbox cb = CustomCheckbox.getCheckbox(_chartView.getContext(), color);if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                CustomCheckbox cb = CustomCheckbox.getCheckbox(_chartView.getContext(), color);
+                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                     cb.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 }
                 cb.setText(_chart.getLines()[k].name);
@@ -99,6 +101,7 @@ public class PageAdapter extends RecyclerView.Adapter {
                 params.setGravity(Gravity.FILL_HORIZONTAL);
                 cb.setLayoutParams(params);
                 cb.setOnCheckedChangeListener(this);
+                cb.setOnLongClickListener(this);
             }
         }
 
@@ -109,5 +112,14 @@ public class PageAdapter extends RecyclerView.Adapter {
             _chartView.setLines(_chart.getActiveLines());
         }
 
+        @Override
+        public boolean onLongClick(View v) {
+            _chart.setAllLinesState(true);
+            _chartView.setLines(_chart.getActiveLines());
+            for (CheckBox cb : _checkboxes) {
+                cb.setChecked(true);
+            }
+            return true;
+        }
     }
 }

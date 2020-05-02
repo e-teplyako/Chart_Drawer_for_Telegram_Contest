@@ -2,19 +2,14 @@ package com.teplyakova.april.telegramcontest.UI;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
 import com.teplyakova.april.telegramcontest.R;
 
 public class ThemeHelper {
-
 	private Context _context;
-
 	private Theme _baseTheme;
-	private int _primaryColor;
-	private int _accentColor;
 
 	public ThemeHelper(Context context) {
 		_context = context;
@@ -23,29 +18,6 @@ public class ThemeHelper {
 
 	public static ThemeHelper getInstance(Context context) {
 		return new ThemeHelper(context);
-	}
-
-	public static ThemeHelper getInstanceLoaded(Context context) {
-		ThemeHelper instance = getInstance(context);
-		instance.updateTheme();
-		return instance;
-	}
-
-	public void updateTheme(){
-		//TODO: query Shared Preferences
-		/*_primaryColor = Hawk.get(context.getString(R.string.preference_primary_color),
-				getColor(R.color.md_indigo_500));
-		_accentColor = Hawk.get(context.getString(R.string.preference_accent_color),
-				getColor(R.color.md_light_blue_500));
-		_baseTheme = Theme.fromValue(Hawk.get(context.getString(R.string.preference_base_theme), 1));*/
-	}
-
-	public int getPrimaryColor() {
-		return _primaryColor;
-	}
-
-	public int getAccentColor() {
-		return _accentColor;
 	}
 
 	public Theme getBaseTheme(){
@@ -111,6 +83,13 @@ public class ThemeHelper {
 			return ContextCompat.getColor(_context, R.color.opaqueBackgroundDay);
 		else
 			return ContextCompat.getColor(_context, R.color.opaqueBackgroundNight);
+	}
+
+	public int getStatusBarColor() {
+		if (_baseTheme == Theme.DAY)
+			return ContextCompat.getColor(_context, R.color.statusBarColorDay);
+		else
+			return ContextCompat.getColor(_context, R.color.statusBarColorNight);
 	}
 
 	public Drawable getMenuButtonIcon() {

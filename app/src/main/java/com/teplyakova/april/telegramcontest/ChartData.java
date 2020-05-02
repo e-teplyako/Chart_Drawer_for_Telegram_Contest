@@ -11,9 +11,7 @@ public class ChartData {
 
     public void init(LineData[] lines) {
         _lines = lines.clone();
-        for (LineData line : _lines) {
-            setLineState(line, true);
-        }
+        setAllLinesState(true);
     }
 
     public LineData[] getLines() {
@@ -22,6 +20,12 @@ public class ChartData {
 
     public void setLineState (LineData line, boolean isActive) {
         _lineToItsState.put(line, isActive);
+    }
+
+    public void setAllLinesState(boolean isActive) {
+        for (LineData line : _lines) {
+            setLineState(line, isActive);
+        }
     }
 
     public LineData[] getActiveLines() {

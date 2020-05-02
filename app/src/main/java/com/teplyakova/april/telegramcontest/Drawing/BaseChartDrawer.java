@@ -437,11 +437,10 @@ public abstract class BaseChartDrawer implements ChartDrawer {
         int xLabelPeriodicity;
 
         for (xLabelPeriodicity = 1; true; xLabelPeriodicity = xLabelPeriodicity * 2) {
-            if (!mXLabelsPeriodToMinChartWidthPx.containsKey(xLabelPeriodicity))
-                continue;
-
-            if (mXLabelsPeriodToMinChartWidthPx.get(xLabelPeriodicity) <= chartWidthPx)
-                break;
+            if (mXLabelsPeriodToMinChartWidthPx.containsKey(xLabelPeriodicity)) {
+                if (mXLabelsPeriodToMinChartWidthPx.get(xLabelPeriodicity) <= chartWidthPx)
+                    break;
+            }
         }
         int labelsPeriodCurrent = xLabelPeriodicity;
 

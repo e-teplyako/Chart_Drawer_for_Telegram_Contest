@@ -26,4 +26,6 @@
     <color name="baseLabelColorNight">#99A3B1C2</color>
     <color name="opaqueBackgroundDay">#80FFFFFF</color>
     <color name="opaqueBackgroundNight">#80242F3E</color>
+    <color name="statusBarColorDay">#FFFFFF</color>
+    <color name="statusBarColorNight">#1d2733</color>
 </resources>
