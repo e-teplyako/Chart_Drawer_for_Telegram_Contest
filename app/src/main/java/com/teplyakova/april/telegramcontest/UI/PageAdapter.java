@@ -1,10 +1,7 @@
 package com.teplyakova.april.telegramcontest.UI;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +12,7 @@ import android.widget.GridLayout;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.ChartView;
-import com.teplyakova.april.telegramcontest.DrawerFactory;
+import com.teplyakova.april.telegramcontest.OldDrawerFactory;
 import com.teplyakova.april.telegramcontest.LineData;
 import com.teplyakova.april.telegramcontest.R;
 
@@ -46,7 +43,7 @@ public class PageAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-        _chartView.init(DrawerFactory.getChartDrawer(_context, _chartData.get(i)));
+        _chartView.init(OldDrawerFactory.getChartDrawer(_context, _chartData.get(i)));
         _chartView.setLines(_chartData.get(i).getActiveLines());
         ChartViewHolder vh = (ChartViewHolder) viewHolder;
         vh.bind(i, _chartData.get(i));

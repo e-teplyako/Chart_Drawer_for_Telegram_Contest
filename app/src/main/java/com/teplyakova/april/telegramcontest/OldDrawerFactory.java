@@ -9,7 +9,7 @@ import com.teplyakova.april.telegramcontest.Drawing.StackedBarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.StandardLineChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 
-public class DrawerFactory {
+public class OldDrawerFactory {
     public static ChartDrawer getChartDrawer(Context context, ChartData chartData) {
         switch (chartData.type) {
             case "LineChartStandard":

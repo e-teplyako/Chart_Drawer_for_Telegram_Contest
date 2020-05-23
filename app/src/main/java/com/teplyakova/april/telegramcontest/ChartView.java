@@ -14,6 +14,7 @@ import android.view.View;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.UI.ThemeHelper;
 import com.teplyakova.april.telegramcontest.UI.Themed;
+import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener, Themed {
@@ -124,14 +125,15 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 
     @Override
     public void refreshTheme(ThemeHelper themeHelper) {
-        mDrawer.setPlateFillColor(themeHelper.getPlateFillColor());
-        mDrawer.setPrimaryBgColor(themeHelper.getPrimaryBgColor());
-        mDrawer.setSliderBgColor(themeHelper.getSliderBgColor());
-        mDrawer.setSliderHandlerColor(themeHelper.getSliderHandlerColor());
-        mDrawer.setDividerColor(themeHelper.getDividerColor());
-        mDrawer.setMainTextColor(themeHelper.getMainTextColor());
-        mDrawer.setLabelColor(themeHelper.getLabelColor());
-        mDrawer.setOpaquePlateColor(themeHelper.getOpaquePlateColor());
+        ThemedDrawer drawer = (ThemedDrawer) mDrawer;
+        drawer.setPlateFillColor(themeHelper.getPlateFillColor());
+        drawer.setPrimaryBgColor(themeHelper.getPrimaryBgColor());
+        drawer.setSliderBgColor(themeHelper.getSliderBgColor());
+        drawer.setSliderHandlerColor(themeHelper.getSliderHandlerColor());
+        drawer.setDividerColor(themeHelper.getDividerColor());
+        drawer.setMainTextColor(themeHelper.getMainTextColor());
+        drawer.setLabelColor(themeHelper.getLabelColor());
+        drawer.setOpaquePlateColor(themeHelper.getOpaquePlateColor());
         invalidate();
     }
 

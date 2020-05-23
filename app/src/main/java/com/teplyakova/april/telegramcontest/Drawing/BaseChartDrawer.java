@@ -9,17 +9,19 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.text.TextPaint;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 
 import com.teplyakova.april.telegramcontest.ChartData;
 import com.teplyakova.april.telegramcontest.R;
+import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.HashMap;
 
-public abstract class BaseChartDrawer implements ChartDrawer {
+public abstract class BaseChartDrawer implements ChartDrawer, ThemedDrawer {
     private final float                  MINIMAL_SLIDER_WIDTH_NORMALIZED = 0.2f;
     private final float                  DATE_WIDTH_PX;
     private final float                  DATE_DISTANCE_PX;
