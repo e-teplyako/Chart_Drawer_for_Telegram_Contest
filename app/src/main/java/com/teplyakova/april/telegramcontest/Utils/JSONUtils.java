@@ -35,14 +35,14 @@ public class JSONUtils {
                         for (int m = 1; m < points.length(); m++) {
                             x[m-1] = points.optLong(m);
                         }
-                        chartData.posX = x;
+                        chartData.setXPoints(x);
                     }
                     else {
                         LineData line  = new LineData();
-                        line.id = points.optString(0);
-                        line.posY = new long[points.length() - 1];
+                        line.setId(points.optString(0));
+                        line.setPoints(new int[points.length() - 1]);
                         for (int m = 1; m < points.length(); m++) {
-                            line.posY[m-1] = points.optLong(m);
+                            line.getPoints()[m-1] = points.optInt(m);
                         }
                         lines.add(line);
                     }
@@ -51,14 +51,14 @@ public class JSONUtils {
                 JSONObject jsonNames = jsonRootObject.optJSONObject("names");
                 JSONObject jsonColors = jsonRootObject.getJSONObject("colors");
                 for (LineData line : lines) {
-                    line.name = jsonNames.optString(line.id);
-                    line.color = Color.parseColor(jsonColors.optString(line.id));
+                    line.setName(jsonNames.optString(line.getId()));
+                    line.setColor(Color.parseColor(jsonColors.optString(line.getId())));
                 }
 
                 chartData.init(lines.toArray(new LineData[lines.size()]));
 
                 JSONObject jsonTypes = jsonRootObject.optJSONObject("types");
-                String type = jsonTypes.optString(lines.get(0).id);
+                String type = jsonTypes.optString(lines.get(0).getId());
                 switch (type){
                     case "line":
                         if (jsonRootObject.optBoolean("y_scaled")) {

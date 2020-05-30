@@ -3,173 +3,189 @@ package com.teplyakova.april.telegramcontest;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.os.Parcel;
-import android.os.Parcelable;
-import androidx.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
+import com.teplyakova.april.telegramcontest.Drawing.AbsScaleDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
-import com.teplyakova.april.telegramcontest.UI.ThemeHelper;
-import com.teplyakova.april.telegramcontest.UI.Themed;
-import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
-import com.teplyakova.april.telegramcontest.Utils.MathUtils;
+import com.teplyakova.april.telegramcontest.Drawing.HorizontalRangeScaleDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.IndependentLineChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.PlateDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.ScaleDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.TwoSidedScaleDrawer;
+import com.teplyakova.april.telegramcontest.Events.ChosenAreaChangedEvent;
+import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 
-public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener, Themed {
-    private final float DRAWING_AREA_OFFSET_X_PX;
-    private final float DRAWING_AREA_OFFSET_Y_PX;
-    private final float SCROLL_DRAWING_AREA_HEIGHT_PX;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
-    private ChartDrawer mDrawer;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-    public float normSliderPosLeft   = 0.8f;
-    public float normSliderPosRight  = 1;
-    public int   chosenPointPosition = -1;
+public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener {
+	private Context _context;
+	private AbsScaleDrawer _scaleDrawer;
+	private PlateDrawer _plateDrawer;
+	private ChartDrawer _chartDrawer;
+	private ChartData _chartData;
+	private LocalChartData _localChartData;
+	private HorizontalRangeScaleDrawer _hRangeScaleDrawer;
 
-    public ChartView(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
+	private float _chartAreaWidthPx;
+	private float _chartAreaMarginX;
 
-        DRAWING_AREA_OFFSET_X_PX = MathUtils.dpToPixels(8, context);
-        DRAWING_AREA_OFFSET_Y_PX = MathUtils.dpToPixels(16, context);
-        SCROLL_DRAWING_AREA_HEIGHT_PX = MathUtils.dpToPixels(50, context);
-    }
+	private boolean _isPointChosen;
+	private int _chosenPointIndex;
+	private float _chosenPointXPosition;
 
-    public void init(ChartDrawer drawer) {
-        mDrawer = drawer;
-        mDrawer.setAnimatorUpdateListener(this);
-    }
+	private float _startRange = 0f;
+	private float _endRange = 1f;
 
-    @Override
-    public boolean hasOverlappingRendering() {
-        return false;
-    }
+	public ChartView(Context context) {
+		super(context);
+		_context = context;
+	}
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
+	public ChartView(Context context, @Nullable AttributeSet attrs) {
+		super(context, attrs);
+		_context = context;
+	}
 
-        int viewWidth  = getWidth();
-        int viewHeight = getHeight();
+	public ChartView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+		super(context, attrs, defStyleAttr);
+		_context = context;
+		EventBus.getDefault().register(this);
+	}
 
-        mDrawer.setViewDimens(viewWidth, viewHeight, DRAWING_AREA_OFFSET_X_PX, DRAWING_AREA_OFFSET_Y_PX, SCROLL_DRAWING_AREA_HEIGHT_PX);
-        mDrawer.setSliderPositions(normSliderPosLeft, normSliderPosRight);
-        mDrawer.setChosenPointPosition(chosenPointPosition);
-    }
+	@Override
+	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		super.onSizeChanged(w, h, oldw, oldh);
+		_chartAreaWidthPx = getWidth() * 0.9f;
+		_chartAreaMarginX = (getWidth() - _chartAreaWidthPx) / 2;
+		float chartAreaHeightPx = getHeight() * 0.9f;
+		float chartAreaTopMarginY = (getHeight() - chartAreaHeightPx) * 0.2f;
+		float chartAreaBottomMarginY = (getHeight() - chartAreaHeightPx) * 0.8f;
+		float chartAreaStartX = 0 + _chartAreaMarginX;
+		float chartAreaEndX = getWidth() - _chartAreaMarginX;
+		float chartAreaStartY = 0 + chartAreaTopMarginY;
+		float chartAreaEndY = getHeight() - chartAreaBottomMarginY;
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        mDrawer.draw(canvas);
-    }
+		_scaleDrawer.setMargins(chartAreaStartX, chartAreaEndX, chartAreaStartY, chartAreaEndY);
+		_hRangeScaleDrawer.setMargins(chartAreaStartX, chartAreaEndX, chartAreaEndY, getHeight());
+		_chartDrawer.setMargins(chartAreaStartX, chartAreaEndX, chartAreaStartY, chartAreaEndY, _chartAreaMarginX);
+		_chartDrawer.setRangeAndAnimate(EventBus.getDefault().getStickyEvent(ChosenAreaChangedEvent.class).getStart(),
+				EventBus.getDefault().getStickyEvent(ChosenAreaChangedEvent.class).getEnd(),
+				this);
+	}
 
-    @Override
-    public boolean onGenericMotionEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_SCROLL)
-            Log.e(getClass().getSimpleName(), "SCROLL FROM GENERIC");
-        return super.onGenericMotionEvent(event);
-    }
+	public void init(ChartData chartData) {
+		_chartData = chartData;
+		_localChartData = new LocalChartData(chartData);
+		_plateDrawer = new PlateDrawer(_context);
+		_scaleDrawer = new ScaleDrawer(chartData);
+		_chartDrawer = new LineChartDrawer(chartData);
+		_hRangeScaleDrawer = new HorizontalRangeScaleDrawer(_context, chartData.getXPoints());
+	}
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        super.onTouchEvent(event);
-        float x = event.getX();
-        float y = event.getY();
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_MOVE:
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_UP:
-                if (mDrawer.handleTouchEvent(event, x, y)) {
-                    this.getParent().requestDisallowInterceptTouchEvent(true);
-                    invalidate();
-                    return true;
-                }
+	public void setLines(LineData[] lines) {
+		_chartDrawer.setLinesAndAnimate(this);
+		_scaleDrawer.setLinesAndAnimate(_localChartData.getFirstVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx),
+				_localChartData.getLastVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx), this);
+		invalidate();
+	}
 
-        }
-        return false;
-    }
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		float x = event.getX();
+		float y = event.getY();
+		switch (event.getAction()) {
+			case MotionEvent.ACTION_MOVE:
+			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_UP:
+				int index = _chartDrawer.getTouchedPointIndex(x);
+				setChosenPointPositions(index, _chartDrawer.getTouchedPointPosition(index));
+				setPointIsChosen(true);
+				this.getParent().requestDisallowInterceptTouchEvent(true);
+				invalidate();
+				return true;
+		}
+		return false;
+	}
 
-    public void setLines(LineData[] lines) {
-        mDrawer.setLines(lines);
-        invalidate();
-    }
+	@Override
+	protected void onDraw(Canvas canvas) {
+		super.onDraw(canvas);
+		_scaleDrawer.draw(canvas);
+		if (isPointChosen()) {
+			_scaleDrawer.drawChosenPointLine(canvas, getChosenPointPosition());
+		}
+		_chartDrawer.draw(canvas);
+		_hRangeScaleDrawer.draw(canvas);
+		if (isPointChosen()) {
+			_plateDrawer.draw(canvas,
+					getChosenPointPosition(),
+					DateTimeUtils.formatDateEEEdMMMYYYY(_chartData.getXPoints()[getChosenPointIndex()]),
+					getChosenPointDetails(getChosenPointIndex()));
+			_chartDrawer.drawChosenPointHighlight(canvas, getChosenPointIndex());
+		}
+	}
 
-    @Override
-    public void onAnimationUpdate(ValueAnimator animation) {
-        invalidate();
-    }
+	@Override
+	public void onAnimationUpdate(ValueAnimator animation) {
+		invalidate();
+	}
 
-    @Nullable
-    @Override
-    protected Parcelable onSaveInstanceState() {
-        Parcelable outState = super.onSaveInstanceState();
-        SavedState ss = new SavedState(outState);
-        if (mDrawer != null) {
-            float[] positions = mDrawer.getSliderPositions();
-            ss.normPos1 = positions[0];
-            ss.normPos2 = positions[1];
-            ss.chosenPoint = mDrawer.getChosenPointPosition();
-        }
-        return ss;
-    }
+	@Subscribe(threadMode = ThreadMode.MAIN)
+	public void onChosenAreaChanged(ChosenAreaChangedEvent event) {
+		setPointIsChosen(false);
+		_startRange = event.getStart();
+		_endRange = event.getEnd();
+		_chartDrawer.setRangeAndAnimate(event.getStart(), event.getEnd(), this);
+		_hRangeScaleDrawer.onChosenAreaChanged(event.getStart(), event.getEnd());
+		_scaleDrawer.chosenAreaChanged(_localChartData.getFirstVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx),
+				_localChartData.getLastVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx), this);
+		invalidate();
+	}
 
-    @Override
-    protected void onRestoreInstanceState(Parcelable state) {
-        SavedState ss = (SavedState) state;
-        super.onRestoreInstanceState(ss.getSuperState());
-        normSliderPosLeft = ss.normPos1;
-        normSliderPosRight = ss.normPos2;
-        chosenPointPosition = ss.chosenPoint;
-    }
+	public void onDestroy() {
+		EventBus.getDefault().unregister(this);
+	}
 
-    @Override
-    public void refreshTheme(ThemeHelper themeHelper) {
-        ThemedDrawer drawer = (ThemedDrawer) mDrawer;
-        drawer.setPlateFillColor(themeHelper.getPlateFillColor());
-        drawer.setPrimaryBgColor(themeHelper.getPrimaryBgColor());
-        drawer.setSliderBgColor(themeHelper.getSliderBgColor());
-        drawer.setSliderHandlerColor(themeHelper.getSliderHandlerColor());
-        drawer.setDividerColor(themeHelper.getDividerColor());
-        drawer.setMainTextColor(themeHelper.getMainTextColor());
-        drawer.setLabelColor(themeHelper.getLabelColor());
-        drawer.setOpaquePlateColor(themeHelper.getOpaquePlateColor());
-        invalidate();
-    }
+	private boolean isPointChosen() {
+		return _isPointChosen && getChosenPointIndex() >= _localChartData.getFirstInRangeIndex(_startRange) && getChosenPointIndex() <= _localChartData.getLastInRangeIndex(_endRange);
+	}
 
-    private static class SavedState extends BaseSavedState {
-        float normPos1;
-        float normPos2;
-        int   chosenPoint;
+	private Set<Item> getChosenPointDetails(int index) {
+		LinkedHashSet<Item> items = new LinkedHashSet<>();
+		for (LineData line : _chartData.getActiveLines()) {
+			String name = line.getName();
+			int color = line.getColor();
+			int value = line.getPoints()[index];
+			Item item = new Item(name, color, value);
+			items.add(item);
+		}
+		return items;
+	}
 
-        private SavedState(Parcelable superState) {
-            super(superState);
-        }
+	private void setChosenPointPositions(int index, float position) {
+		_chosenPointIndex = index;
+		_chosenPointXPosition = position;
+	}
 
-        private SavedState(Parcel in) {
-            super(in);
-            normPos1 = in.readFloat();
-            normPos2 = in.readFloat();
-            chosenPoint = in.readInt();
-        }
+	private int getChosenPointIndex() {
+		return _chosenPointIndex;
+	}
 
-        @Override
-        public void writeToParcel(Parcel out, int flags) {
-            super.writeToParcel(out, flags);
-            out.writeFloat(normPos1);
-            out.writeFloat(normPos2);
-            out.writeInt(chosenPoint);
-        }
+	private float getChosenPointPosition() {
+		return _chosenPointXPosition;
+	}
 
-        public static final Parcelable.Creator<SavedState> CREATOR
-                = new Parcelable.Creator<SavedState>() {
-            public SavedState createFromParcel(Parcel in) {
-                return new SavedState(in);
-            }
-
-            public SavedState[] newArray(int size) {
-                return new SavedState[size];
-            }
-        };
-    }
+	private void setPointIsChosen(boolean isChosen) {
+		_isPointChosen = isChosen;
+	}
 }

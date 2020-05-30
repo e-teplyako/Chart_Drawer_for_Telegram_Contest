@@ -10,9 +10,9 @@ public class DateTimeUtils {
         return new Date(timestamp);
     }
 
-    public static String formatDateMMMd(Long timestamp) {
+    public static String formatDateMMMdd(Long timestamp) {
         Date date = fromTimestamp(timestamp);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd", Locale.getDefault());
         return dateFormat.format(date);
     }
 
@@ -33,5 +33,4 @@ public class DateTimeUtils {
         SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy", Locale.getDefault());
         return dateFormat.format(date);
     }
-
 }

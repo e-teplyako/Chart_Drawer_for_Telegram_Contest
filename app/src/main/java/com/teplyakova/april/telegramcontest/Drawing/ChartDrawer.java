@@ -2,18 +2,13 @@ package com.teplyakova.april.telegramcontest.Drawing;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
-import android.view.MotionEvent;
 
-import com.teplyakova.april.telegramcontest.LineData;
-
-public interface ChartDrawer{
-    void draw(Canvas canvas);
-    void setViewDimens(float width, float height, float drawingAreaOffsetXPx, float drawingAreaOffsetYPx, float scrollDrawingAreaHeightPx);
-    boolean handleTouchEvent(MotionEvent event, float x, float y);
-    void setLines(LineData[] lines);
-    float[] getSliderPositions();
-    int getChosenPointPosition();
-    void setChosenPointPosition(int pointPosition);
-    void setSliderPositions(float pos1, float pos2);
-    void setAnimatorUpdateListener(ValueAnimator.AnimatorUpdateListener listener);
+public interface ChartDrawer {
+	Canvas draw(Canvas canvas);
+	void drawChosenPointHighlight(Canvas canvas, int index);
+	void setRangeAndAnimate(float start, float end, ValueAnimator.AnimatorUpdateListener listener);
+	void setMargins(float startX, float endX, float startY, float endY, float chartAreaWidthMarginPx);
+	void setLinesAndAnimate(ValueAnimator.AnimatorUpdateListener listener);
+	int getTouchedPointIndex(float x);
+	float getTouchedPointPosition(int index);
 }
