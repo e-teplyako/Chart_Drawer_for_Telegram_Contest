@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
 import com.teplyakova.april.telegramcontest.Events.Publisher;
 import com.teplyakova.april.telegramcontest.Events.Subscriber;
@@ -48,7 +49,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	private float _currentChosenAreaPosition;
 
 	private ChartData _chartData;
-	private LineChartDrawer _chartDrawer;
+	private ChartDrawer _chartDrawer;
 
 	private Bitmap _chartBitMap;
 	private boolean _transitionJustEnded;
