@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest;
+package com.teplyakova.april.telegramcontest.UI;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -9,6 +9,7 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Drawing.AbsScaleDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.HorizontalRangeScaleDrawer;
@@ -17,6 +18,9 @@ import com.teplyakova.april.telegramcontest.Drawing.PlateDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ScaleDrawer;
 import com.teplyakova.april.telegramcontest.Events.Publisher;
 import com.teplyakova.april.telegramcontest.Events.Subscriber;
+import com.teplyakova.april.telegramcontest.Data.Item;
+import com.teplyakova.april.telegramcontest.Data.LineData;
+import com.teplyakova.april.telegramcontest.Data.LocalChartData;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 
 import java.util.LinkedHashSet;

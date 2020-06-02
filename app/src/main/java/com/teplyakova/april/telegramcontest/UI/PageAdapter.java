@@ -12,13 +12,9 @@ import android.widget.GridLayout;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.teplyakova.april.telegramcontest.ChartData;
-import com.teplyakova.april.telegramcontest.ChartView;
-import com.teplyakova.april.telegramcontest.LineData;
-import com.teplyakova.april.telegramcontest.OldDrawerFactory;
+import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.Data.LineData;
 import com.teplyakova.april.telegramcontest.R;
-import com.teplyakova.april.telegramcontest.RangeTextView;
-import com.teplyakova.april.telegramcontest.SliderView;
 
 import java.util.ArrayList;
 import java.util.HashMap;

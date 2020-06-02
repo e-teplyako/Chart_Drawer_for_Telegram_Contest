@@ -5,7 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import com.teplyakova.april.telegramcontest.Animators.LineAlphaAnimator;
-import com.teplyakova.april.telegramcontest.LineData;
+import com.teplyakova.april.telegramcontest.Data.LineData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {

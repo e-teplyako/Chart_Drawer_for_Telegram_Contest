@@ -4,7 +4,7 @@ import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import com.teplyakova.april.telegramcontest.Animators.ScaleAnimator;
-import com.teplyakova.april.telegramcontest.ChartData;
+import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;

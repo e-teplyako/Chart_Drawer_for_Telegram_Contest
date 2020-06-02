@@ -5,7 +5,7 @@ package com.teplyakova.april.telegramcontest.Animators;
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import com.teplyakova.april.telegramcontest.LineData;
+import com.teplyakova.april.telegramcontest.Data.LineData;
 
 import java.util.HashMap;
 

@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest;
+package com.teplyakova.april.telegramcontest.UI;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -11,8 +11,10 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Events.Publisher;
 import com.teplyakova.april.telegramcontest.Events.Subscriber;
+import com.teplyakova.april.telegramcontest.Data.LocalChartData;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 
 public class RangeTextView extends View implements Subscriber {

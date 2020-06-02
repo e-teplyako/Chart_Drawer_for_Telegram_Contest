@@ -8,13 +8,13 @@
     android:paddingTop="32dp"
     android:paddingBottom="32dp">
 
-    <com.teplyakova.april.telegramcontest.RangeTextView
+    <com.teplyakova.april.telegramcontest.UI.RangeTextView
         android:id="@+id/rangeTextView"
         android:layout_width="match_parent"
         android:layout_height="20dp"
         android:layout_margin="4dp" />
 
-    <com.teplyakova.april.telegramcontest.ChartView
+    <com.teplyakova.april.telegramcontest.UI.ChartView
         android:id="@+id/chartview"
         android:layout_width="match_parent"
         android:layout_height="300dp" />
@@ -28,7 +28,7 @@
         android:useDefaultMargins="true"
         android:columnCount="4"/>
 
-    <com.teplyakova.april.telegramcontest.SliderView
+    <com.teplyakova.april.telegramcontest.UI.SliderView
         android:id="@+id/slider"
         android:layout_width="match_parent"
         android:layout_height="80dp"

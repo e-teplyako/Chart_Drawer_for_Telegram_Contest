@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest;
+package com.teplyakova.april.telegramcontest.Data;
 
 public class Item {
 	private String _name;

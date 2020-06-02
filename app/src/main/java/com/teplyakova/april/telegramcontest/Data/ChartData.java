@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest;
+package com.teplyakova.april.telegramcontest.Data;
 
 import java.util.ArrayList;
 import java.util.HashMap;

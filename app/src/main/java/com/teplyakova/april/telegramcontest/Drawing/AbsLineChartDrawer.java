@@ -3,7 +3,7 @@ package com.teplyakova.april.telegramcontest.Drawing;
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 
-import com.teplyakova.april.telegramcontest.ChartData;
+import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.HashSet;

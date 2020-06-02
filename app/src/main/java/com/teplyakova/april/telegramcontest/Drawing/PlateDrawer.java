@@ -8,7 +8,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 
-import com.teplyakova.april.telegramcontest.Item;
+import com.teplyakova.april.telegramcontest.Data.Item;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.Set;

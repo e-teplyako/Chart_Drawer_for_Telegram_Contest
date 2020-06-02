@@ -1,6 +1,8 @@
-package com.teplyakova.april.telegramcontest;
+package com.teplyakova.april.telegramcontest.Data;
 
 import android.content.Context;
+
+import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.IndependentLineChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;

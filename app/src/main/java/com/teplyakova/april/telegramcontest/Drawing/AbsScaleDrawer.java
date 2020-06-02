@@ -5,7 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 
-import com.teplyakova.april.telegramcontest.ChartData;
+import com.teplyakova.april.telegramcontest.Data.ChartData;
 
 public abstract class AbsScaleDrawer implements ValueAnimator.AnimatorUpdateListener {
 	final int MIN_VALUE_DFLT = 0;

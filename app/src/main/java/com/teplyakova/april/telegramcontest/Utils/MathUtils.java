@@ -3,7 +3,7 @@ package com.teplyakova.april.telegramcontest.Utils;
 import android.content.Context;
 import android.util.TypedValue;
 
-import com.teplyakova.april.telegramcontest.LineData;
+import com.teplyakova.april.telegramcontest.Data.LineData;
 
 public class MathUtils {
 

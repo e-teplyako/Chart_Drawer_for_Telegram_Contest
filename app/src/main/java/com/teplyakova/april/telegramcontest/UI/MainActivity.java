@@ -18,8 +18,8 @@ import android.view.WindowManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.teplyakova.april.telegramcontest.ChartData;
-import com.teplyakova.april.telegramcontest.ChartsManager;
+import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.Data.ChartsManager;
 import com.teplyakova.april.telegramcontest.R;
 
 import java.util.ArrayList;

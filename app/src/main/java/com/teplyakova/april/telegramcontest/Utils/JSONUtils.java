@@ -2,8 +2,8 @@ package com.teplyakova.april.telegramcontest.Utils;
 
 import android.graphics.Color;
 
-import com.teplyakova.april.telegramcontest.ChartData;
-import com.teplyakova.april.telegramcontest.LineData;
+import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.Data.LineData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
