@@ -41,6 +41,7 @@ public class MainActivity extends Activity {
 
         recyclerView = findViewById(R.id.pager);
         recyclerView.setHasFixedSize(true);
+        recyclerView.setItemViewCacheSize(3); //TODO: seems to fix bug with dissapearing item, but it's a crotch
         int orientation = getResources().getConfiguration().orientation;
         if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
             recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
