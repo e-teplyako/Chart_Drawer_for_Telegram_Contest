@@ -142,6 +142,16 @@ public class TwoSidedScaleDrawer extends AbsScaleDrawer {
 		drawText(canvas, _minValueRight, _maxValueRight, _endX, _rightPaint);
 	}
 
+	@Override
+	public void setDividerColor(int color) {
+		_linePaint.setColor(color);
+	}
+
+	@Override
+	public void setLabelColor(int color) {
+
+	}
+
 	private void drawText(Canvas canvas, int min, int max, float startPoint, TextPaint paint) {
 		float x = startPoint;
 		float y = _endY - TEXT_MARGIN_BOTTOM;

@@ -9,11 +9,12 @@ import android.graphics.Typeface;
 import android.text.TextPaint;
 
 import com.teplyakova.april.telegramcontest.Data.Item;
+import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.Set;
 
-public class PlateDrawer {
+public class PlateDrawer implements ThemedDrawer {
 	private static final int FONT_SIZE_DP = 12;
 	private static final int VERT_MARGIN_TEXT_DP = 4;
 	private static final int HOR_MARGIN_TEXT_DP = 7;
@@ -36,9 +37,6 @@ public class PlateDrawer {
 	private TextPaint _headerPaint;
 	private TextPaint _itemPaint;
 	private TextPaint _valuePaint;
-
-	private int _borderColor = Color.GRAY;
-	private int _fillColor = Color.WHITE;
 
 	public PlateDrawer(Context context) {
 		setupSizes(context);
@@ -119,13 +117,13 @@ public class PlateDrawer {
 
 	private void setupPaints() {
 		_borderPaint = new Paint();
-		_borderPaint.setColor(_borderColor);
+		_borderPaint.setColor(Color.GRAY);
 		_borderPaint.setStyle(Paint.Style.STROKE);
 		_borderPaint.setStrokeWidth(2);
 
 		_fillPaint = new Paint();
 		_fillPaint.setStyle(Paint.Style.FILL);
-		_fillPaint.setColor(_fillColor);
+		_fillPaint.setColor(Color.WHITE);
 
 		_headerPaint = new TextPaint();
 		_headerPaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
@@ -146,5 +144,46 @@ public class PlateDrawer {
 		_valuePaint.setTextSize(_fontSizePx);
 		_valuePaint.setTextAlign(Paint.Align.RIGHT);
 		_valuePaint.setAntiAlias(true);
+	}
+
+	@Override
+	public void setPlateFillColor(int color) {
+		_fillPaint.setColor(color);
+	}
+
+	@Override
+	public void setPrimaryBgColor(int color) {
+
+	}
+
+	@Override
+	public void setSliderBgColor(int color) {
+
+	}
+
+	@Override
+	public void setSliderHandlerColor(int color) {
+
+	}
+
+	@Override
+	public void setDividerColor(int color) {
+		_borderPaint.setColor(color);
+	}
+
+	@Override
+	public void setMainTextColor(int color) {
+		_headerPaint.setColor(color);
+		_itemPaint.setColor(color);
+	}
+
+	@Override
+	public void setLabelColor(int color) {
+
+	}
+
+	@Override
+	public void setOpaquePlateColor(int color) {
+
 	}
 }

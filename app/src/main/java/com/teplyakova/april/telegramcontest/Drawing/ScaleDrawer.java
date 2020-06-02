@@ -111,4 +111,14 @@ public class ScaleDrawer extends AbsScaleDrawer {
 			value += step;
 		}
 	}
+
+	@Override
+	public void setDividerColor(int color) {
+		_linePaint.setColor(color);
+	}
+
+	@Override
+	public void setLabelColor(int color) {
+		_textPaint.setColor(color);
+	}
 }

@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.HashSet;
@@ -109,5 +110,47 @@ public abstract class AbsLineChartDrawer implements ChartDrawer, ValueAnimator.A
 				result = true;
 		}
 		return result;
+	}
+
+	@Override
+	public void setPlateFillColor(int color) {
+
+	}
+
+	@Override
+	public void setPrimaryBgColor(int color) {
+		for (LineDrawer drawer : _lineDrawers) {
+			drawer.setPrimaryBgColor(color);
+		}
+	}
+
+	@Override
+	public void setSliderBgColor(int color) {
+
+	}
+
+	@Override
+	public void setSliderHandlerColor(int color) {
+
+	}
+
+	@Override
+	public void setDividerColor(int color) {
+
+	}
+
+	@Override
+	public void setMainTextColor(int color) {
+
+	}
+
+	@Override
+	public void setLabelColor(int color) {
+
+	}
+
+	@Override
+	public void setOpaquePlateColor(int color) {
+
 	}
 }

@@ -26,14 +26,14 @@ import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener, Subscriber {
+public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener, Subscriber, Themed {
 	private Context _context;
 	private AbsScaleDrawer _scaleDrawer;
 	private PlateDrawer _plateDrawer;
 	private ChartDrawer _chartDrawer;
+	private HorizontalRangeScaleDrawer _hRangeScaleDrawer;
 	private ChartData _chartData;
 	private LocalChartData _localChartData;
-	private HorizontalRangeScaleDrawer _hRangeScaleDrawer;
 
 	private float _chartAreaWidthPx;
 	private float _chartAreaMarginX;
@@ -185,5 +185,25 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 		_scaleDrawer.chosenAreaChanged(_localChartData.getFirstVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx),
 				_localChartData.getLastVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx), this);
 		invalidate();
+	}
+
+	@Override
+	public void refreshTheme(ThemeHelper themeHelper) {
+		setThemedColors(themeHelper, _plateDrawer);
+		setThemedColors(themeHelper, _chartDrawer);
+		setThemedColors(themeHelper, _scaleDrawer);
+		setThemedColors(themeHelper, _hRangeScaleDrawer);
+		invalidate();
+	}
+
+	private void setThemedColors(ThemeHelper themeHelper, ThemedDrawer drawer) {
+		drawer.setPlateFillColor(themeHelper.getPlateFillColor());
+		drawer.setPrimaryBgColor(themeHelper.getPrimaryBgColor());
+		drawer.setSliderBgColor(themeHelper.getSliderBgColor());
+		drawer.setSliderHandlerColor(themeHelper.getSliderHandlerColor());
+		drawer.setDividerColor(themeHelper.getDividerColor());
+		drawer.setMainTextColor(themeHelper.getMainTextColor());
+		drawer.setLabelColor(themeHelper.getLabelColor());
+		drawer.setOpaquePlateColor(themeHelper.getOpaquePlateColor());
 	}
 }

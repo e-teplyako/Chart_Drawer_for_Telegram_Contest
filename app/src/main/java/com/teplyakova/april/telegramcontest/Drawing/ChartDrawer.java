@@ -3,7 +3,9 @@ package com.teplyakova.april.telegramcontest.Drawing;
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 
-public interface ChartDrawer {
+import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
+
+public interface ChartDrawer extends ThemedDrawer {
 	Canvas draw(Canvas canvas);
 	void drawChosenPointHighlight(Canvas canvas, int index);
 	void setRangeAndAnimate(float start, float end, ValueAnimator.AnimatorUpdateListener listener);

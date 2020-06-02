@@ -20,7 +20,7 @@ import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.HashSet;
 
-public class SliderView extends View implements ValueAnimator.AnimatorUpdateListener, Publisher {
+public class SliderView extends View implements ValueAnimator.AnimatorUpdateListener, Publisher, Themed {
 	private static final float CHOSEN_AREA_START_DFLT = 0f;
 	private static final float CHOSEN_AREA_END_DFLT = 1f;
 	private static final float ROUNDING_RADIUS = 15f;
@@ -34,6 +34,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 	private Paint _bgTintPaint;
 	private Paint _handlerPaint;
+	private int _primaryBgColor;
 
 	private Path _bgPath = new Path();
 	private Path _handlerPath = new Path();
@@ -51,6 +52,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 	private Bitmap _chartBitMap;
 	private boolean _transitionJustEnded;
+	private boolean _themeJustRefreshed;
 
 	private HashSet<Subscriber> _subscribers = new HashSet<Subscriber>();
 
@@ -110,20 +112,21 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		if (_chartDrawer.isInSetLinesTransition()) {
 			_chartDrawer.draw(canvas);
 		}
-		else if(transitionJustEnded()) {
+		else if(transitionJustEnded() || isThemeJustRefreshed()) {
 			_chartBitMap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.RGB_565);
 			Canvas canvasForBitmap = new Canvas(_chartBitMap);
-			canvasForBitmap.drawColor(Color.WHITE); //TODO: fix
+			canvasForBitmap.drawColor(_primaryBgColor); //TODO: fix
 			canvasForBitmap = _chartDrawer.drawChartForGlobalRange(canvasForBitmap);
 			canvasForBitmap.setBitmap(_chartBitMap);
 			setTransitionJustEnded(false);
+			setThemeJustRefreshed(false);
 			canvas.drawBitmap(_chartBitMap, 0, 0, null);
 		}
 		else if (_chartBitMap != null){
 			canvas.drawBitmap(_chartBitMap, 0, 0, null);
 		}
 		else {
-			canvas.drawColor(Color.WHITE); //TODO: fix
+			canvas.drawColor(_primaryBgColor); //TODO: fix
 			_chartDrawer.draw(canvas);
 		}
 		canvas.drawPath(_bgPath, _bgTintPaint);
@@ -300,5 +303,22 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		for (Subscriber s : _subscribers) {
 			s.updateRange(_chosenAreaStart, _chosenAreaEnd);
 		}
+	}
+
+	@Override
+	public void refreshTheme(ThemeHelper themeHelper) {
+		setBgColor(themeHelper.getSliderBgColor());
+		setHandlerColor(themeHelper.getSliderHandlerColor());
+		_primaryBgColor = themeHelper.getPrimaryBgColor();
+		setThemeJustRefreshed(true);
+		invalidate();
+	}
+
+	private void setThemeJustRefreshed(boolean value) {
+		_themeJustRefreshed = value;
+	}
+
+	private boolean isThemeJustRefreshed() {
+		return _themeJustRefreshed;
 	}
 }

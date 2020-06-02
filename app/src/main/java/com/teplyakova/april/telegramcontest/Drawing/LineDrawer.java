@@ -19,6 +19,7 @@ public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {
 
 	private Paint _linePaint;
 	private Paint _circlePaint;
+	private int _primaryBgColor;
 	private LineAlphaAnimator _alphaAnimator;
 	private int _alpha = 255;
 
@@ -66,7 +67,7 @@ public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {
 		_circlePaint.setAlpha(getAlpha());
 		canvas.drawCircle(_mappedXPoints[index - _minVisibleIndex], _mappedYPoints[index - _minVisibleIndex], 16f, _circlePaint);
 		//TODO: fix
-		_circlePaint.setColor(Color.WHITE);
+		_circlePaint.setColor(_primaryBgColor);
 		_circlePaint.setAlpha(getAlpha());
 		canvas.drawCircle(_mappedXPoints[index - _minVisibleIndex], _mappedYPoints[index - _minVisibleIndex], 8f, _circlePaint);
 	}
@@ -133,5 +134,9 @@ public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {
 
 	public boolean isInSetLinesTransion() {
 		return (_alphaAnimator != null && _alphaAnimator.isRunning());
+	}
+
+	public void setPrimaryBgColor(int color) {
+		_primaryBgColor = color;
 	}
 }

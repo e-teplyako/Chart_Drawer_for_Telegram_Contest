@@ -6,8 +6,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
 
-public abstract class AbsScaleDrawer implements ValueAnimator.AnimatorUpdateListener {
+public abstract class AbsScaleDrawer implements ValueAnimator.AnimatorUpdateListener, ThemedDrawer {
 	final int MIN_VALUE_DFLT = 0;
 	final int MAX_VALUE_DFLT = 420;
 	final int SEGMENTS_NUMBER_DFLT = 6;
@@ -77,4 +78,40 @@ public abstract class AbsScaleDrawer implements ValueAnimator.AnimatorUpdateList
 	}
 
 	abstract void drawText(Canvas canvas);
+
+	@Override
+	public void setPlateFillColor(int color) {
+
+	}
+
+	@Override
+	public void setPrimaryBgColor(int color) {
+
+	}
+
+	@Override
+	public void setSliderBgColor(int color) {
+
+	}
+
+	@Override
+	public void setSliderHandlerColor(int color) {
+
+	}
+
+	@Override
+	public abstract void setDividerColor(int color);
+
+	@Override
+	public void setMainTextColor(int color) {
+
+	}
+
+	@Override
+	public abstract void setLabelColor(int color);
+
+	@Override
+	public void setOpaquePlateColor(int color) {
+
+	}
 }

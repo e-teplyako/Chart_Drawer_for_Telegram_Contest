@@ -17,7 +17,7 @@ import com.teplyakova.april.telegramcontest.Events.Subscriber;
 import com.teplyakova.april.telegramcontest.Data.LocalChartData;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 
-public class RangeTextView extends View implements Subscriber {
+public class RangeTextView extends View implements Subscriber, Themed {
 	private ChartData _chartData;
 	private LocalChartData _localChartData;
 	private float _startRange = 0f;
@@ -59,6 +59,12 @@ public class RangeTextView extends View implements Subscriber {
 	public void updateRange(float start, float end) {
 		_startRange = start;
 		_endRange = end;
+		invalidate();
+	}
+
+	@Override
+	public void refreshTheme(ThemeHelper themeHelper) {
+		_textPaint.setColor(themeHelper.getMainTextColor());
 		invalidate();
 	}
 }

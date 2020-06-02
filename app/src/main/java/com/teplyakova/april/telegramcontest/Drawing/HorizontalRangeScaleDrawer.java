@@ -8,11 +8,12 @@ import android.graphics.Typeface;
 import android.text.TextPaint;
 import android.util.Log;
 
+import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 import java.util.HashMap;
 
-public class HorizontalRangeScaleDrawer {
+public class HorizontalRangeScaleDrawer implements ThemedDrawer {
 	private long[] _allElems;
 	private float _elemWidthPx;
 	private float _distanceBtwElemsPx;
@@ -146,5 +147,45 @@ public class HorizontalRangeScaleDrawer {
 		_startVisibleArea = start;
 		_endVisibleArea = end;
 		_currentPeriodicity = getCurrentPeriodicity();
+	}
+
+	@Override
+	public void setPlateFillColor(int color) {
+
+	}
+
+	@Override
+	public void setPrimaryBgColor(int color) {
+
+	}
+
+	@Override
+	public void setSliderBgColor(int color) {
+
+	}
+
+	@Override
+	public void setSliderHandlerColor(int color) {
+
+	}
+
+	@Override
+	public void setDividerColor(int color) {
+
+	}
+
+	@Override
+	public void setMainTextColor(int color) {
+
+	}
+
+	@Override
+	public void setLabelColor(int color) {
+		_paint.setColor(color);
+	}
+
+	@Override
+	public void setOpaquePlateColor(int color) {
+
 	}
 }
