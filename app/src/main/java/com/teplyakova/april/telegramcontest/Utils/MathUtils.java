@@ -187,10 +187,4 @@ public class MathUtils {
 		result[n] = array2[length - 1];
 		return result;
 	}
-
-	public static int getEqOrGreaterDivisible(int divisible, int divider) {
-		return(divisible % divider == 0) ?
-				divisible :
-				(divisible + divider) - (divisible % divider);
-	}
 }
