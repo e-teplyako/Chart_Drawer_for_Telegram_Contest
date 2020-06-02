@@ -11,14 +11,11 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import com.teplyakova.april.telegramcontest.Events.ChosenAreaChangedEvent;
+import com.teplyakova.april.telegramcontest.Events.Publisher;
+import com.teplyakova.april.telegramcontest.Events.Subscriber;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-public class RangeTextView extends View {
+public class RangeTextView extends View implements Subscriber {
 	private ChartData _chartData;
 	private LocalChartData _localChartData;
 	private float _startRange = 0f;
@@ -27,20 +24,17 @@ public class RangeTextView extends View {
 
 	public RangeTextView(Context context) {
 		super(context);
-		EventBus.getDefault().register(this);
 	}
 
 	public RangeTextView(Context context, @Nullable AttributeSet attrs) {
 		super(context, attrs);
-		EventBus.getDefault().register(this);
 	}
 
 	public RangeTextView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
-		EventBus.getDefault().register(this);
 	}
 
-	public void init(ChartData chartData) {
+	public void init(ChartData chartData, Publisher publisher) {
 		_chartData = chartData;
 		_localChartData = new LocalChartData(chartData);
 		_textPaint = new TextPaint();
@@ -48,6 +42,7 @@ public class RangeTextView extends View {
 		_textPaint.setTextSize(36);
 		_textPaint.setTextAlign(Paint.Align.RIGHT);
 		_textPaint.setTypeface(Typeface.create("Roboto", Typeface.BOLD));
+		publisher.addSubscriber(this);
 	}
 
 	@Override
@@ -58,10 +53,10 @@ public class RangeTextView extends View {
 				DateTimeUtils.formatDatedMMMMMyyyy(_chartData.getXPoints()[_localChartData.getLastInRangeIndex(_endRange)]), getWidth(), getHeight() / 2, _textPaint);
 	}
 
-	@Subscribe(threadMode = ThreadMode.MAIN)
-	public void onRangeChanged(ChosenAreaChangedEvent event) {
-		_startRange = event.getStart();
-		_endRange = event.getEnd();
+	@Override
+	public void updateRange(float start, float end) {
+		_startRange = start;
+		_endRange = end;
 		invalidate();
 	}
 }

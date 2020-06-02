@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.TextPaint;
+import android.util.Log;
+
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ public class HorizontalRangeScaleDrawer {
 	private float _width;
 	private float _startX;
 	private float _yPosition;
+	private int _currentPeriodicity;
 
 	private HashMap<Integer, Float> _periodicityToWidthPx = new HashMap<>();
 	private TextPaint _paint;
@@ -33,6 +36,8 @@ public class HorizontalRangeScaleDrawer {
 		setupSizes(context);
 		setupPaints();
 		_allElems = elems;
+		_startVisibleArea = 0f;
+		_endVisibleArea = 1f;
 	}
 
 	public void draw(Canvas canvas) {
@@ -45,6 +50,7 @@ public class HorizontalRangeScaleDrawer {
 		_startX = startX;
 		_sliderMinWidthToWholeWidth = _minVisibleAreaWidthPx / _width;
 		calculatePeriodicity();
+		_currentPeriodicity = getCurrentPeriodicity();
 	}
 
 	private void calculatePeriodicity() {
@@ -71,24 +77,26 @@ public class HorizontalRangeScaleDrawer {
 	}
 
 	private void drawScale(Canvas canvas) {
-		int periodicity = getCurrentPeriodicity();
+		if (_currentPeriodicity < 1)
+			return;
+
 		float startRange = _allElems[0] + (_allElems[_allElems.length - 1] - _allElems[0]) * _startVisibleArea;
 		float endRange = _allElems[0] + (_allElems[_allElems.length - 1] - _allElems[0]) * _endVisibleArea;
 		_paint.setAlpha(255);
-		for (int i = _allElems.length - 1; i >= 0; i -= periodicity) {
+		for (int i = _allElems.length - 1; i >= 0; i -= _currentPeriodicity) {
 			if (_allElems[i] >= startRange && _allElems[i] <= endRange) {
 				float x = mapPoint(_allElems[i], startRange, endRange);
 				canvas.drawText(DateTimeUtils.formatDateMMMdd(_allElems[i]), x, _yPosition, _paint);
 			}
 		}
 
-		drawInbetweenOpaqueLabels(canvas, periodicity, startRange, endRange);
+		drawInbetweenOpaqueLabels(canvas, _currentPeriodicity, startRange, endRange);
 	}
 
 	private void drawInbetweenOpaqueLabels(Canvas canvas, int periodicity, float startRange, float endRange) {
 		float chartWidthPx = _width / (_endVisibleArea - _startVisibleArea);
 
-		if (_periodicityToWidthPx.get(periodicity) == chartWidthPx)
+		if (_periodicityToWidthPx.containsKey(periodicity) && _periodicityToWidthPx.get(periodicity) == chartWidthPx)
 			return;
 
 		if (_periodicityToWidthPx.containsKey(periodicity / 2)) {
@@ -137,5 +145,6 @@ public class HorizontalRangeScaleDrawer {
 	public void onChosenAreaChanged(float start, float end) {
 		_startVisibleArea = start;
 		_endVisibleArea = end;
+		_currentPeriodicity = getCurrentPeriodicity();
 	}
 }

@@ -40,10 +40,11 @@ public class JSONUtils {
                     else {
                         LineData line  = new LineData();
                         line.setId(points.optString(0));
-                        line.setPoints(new int[points.length() - 1]);
+                        int[] yPoints = new int[points.length() - 1];
                         for (int m = 1; m < points.length(); m++) {
-                            line.getPoints()[m-1] = points.optInt(m);
+                            yPoints[m-1] = points.optInt(m);
                         }
+                        line.setPoints(yPoints);
                         lines.add(line);
                     }
                 }

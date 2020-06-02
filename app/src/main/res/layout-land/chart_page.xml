@@ -6,6 +6,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <com.teplyakova.april.telegramcontest.RangeTextView
+        android:id="@+id/rangeTextView"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_margin="4dp" />
+
     <com.teplyakova.april.telegramcontest.ChartView
         android:id="@+id/chartview"
         android:layout_width="match_parent"
@@ -22,5 +28,11 @@
         android:useDefaultMargins="true"
         android:columnCount="4">
     </GridLayout>
+
+    <com.teplyakova.april.telegramcontest.SliderView
+        android:id="@+id/slider"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_margin="12dp"/>
 
 </LinearLayout>

@@ -12,22 +12,17 @@ import androidx.annotation.Nullable;
 import com.teplyakova.april.telegramcontest.Drawing.AbsScaleDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.HorizontalRangeScaleDrawer;
-import com.teplyakova.april.telegramcontest.Drawing.IndependentLineChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.PlateDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ScaleDrawer;
-import com.teplyakova.april.telegramcontest.Drawing.TwoSidedScaleDrawer;
-import com.teplyakova.april.telegramcontest.Events.ChosenAreaChangedEvent;
+import com.teplyakova.april.telegramcontest.Events.Publisher;
+import com.teplyakova.april.telegramcontest.Events.Subscriber;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener {
+public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener, Subscriber {
 	private Context _context;
 	private AbsScaleDrawer _scaleDrawer;
 	private PlateDrawer _plateDrawer;
@@ -59,7 +54,6 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 	public ChartView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
 		_context = context;
-		EventBus.getDefault().register(this);
 	}
 
 	@Override
@@ -78,12 +72,12 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 		_scaleDrawer.setMargins(chartAreaStartX, chartAreaEndX, chartAreaStartY, chartAreaEndY);
 		_hRangeScaleDrawer.setMargins(chartAreaStartX, chartAreaEndX, chartAreaEndY, getHeight());
 		_chartDrawer.setMargins(chartAreaStartX, chartAreaEndX, chartAreaStartY, chartAreaEndY, _chartAreaMarginX);
-		_chartDrawer.setRangeAndAnimate(EventBus.getDefault().getStickyEvent(ChosenAreaChangedEvent.class).getStart(),
-				EventBus.getDefault().getStickyEvent(ChosenAreaChangedEvent.class).getEnd(),
-				this);
+		//TODO: fix?
+		_chartDrawer.setRangeAndAnimate(0f,1f,this);
 	}
 
-	public void init(ChartData chartData) {
+	public void init(ChartData chartData, Publisher publisher) {
+		publisher.addSubscriber(this);
 		_chartData = chartData;
 		_localChartData = new LocalChartData(chartData);
 		_plateDrawer = new PlateDrawer(_context);
@@ -140,20 +134,8 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 		invalidate();
 	}
 
-	@Subscribe(threadMode = ThreadMode.MAIN)
-	public void onChosenAreaChanged(ChosenAreaChangedEvent event) {
-		setPointIsChosen(false);
-		_startRange = event.getStart();
-		_endRange = event.getEnd();
-		_chartDrawer.setRangeAndAnimate(event.getStart(), event.getEnd(), this);
-		_hRangeScaleDrawer.onChosenAreaChanged(event.getStart(), event.getEnd());
-		_scaleDrawer.chosenAreaChanged(_localChartData.getFirstVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx),
-				_localChartData.getLastVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx), this);
-		invalidate();
-	}
-
 	public void onDestroy() {
-		EventBus.getDefault().unregister(this);
+		//TODO: remove subscription?
 	}
 
 	private boolean isPointChosen() {
@@ -187,5 +169,17 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 
 	private void setPointIsChosen(boolean isChosen) {
 		_isPointChosen = isChosen;
+	}
+
+	@Override
+	public void updateRange(float start, float end) {
+		setPointIsChosen(false);
+		_startRange = start;
+		_endRange = end;
+		_chartDrawer.setRangeAndAnimate(start, end, this);
+		_hRangeScaleDrawer.onChosenAreaChanged(start, end);
+		_scaleDrawer.chosenAreaChanged(_localChartData.getFirstVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx),
+				_localChartData.getLastVisibleIndex(_startRange, _endRange, _chartAreaMarginX, _chartAreaWidthPx), this);
+		invalidate();
 	}
 }

@@ -51,9 +51,9 @@ public class PageAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-        _chartView.init(_chartData.get(i));
         _sliderView.init(_chartData.get(i));
-        _rangeTextView.init(_chartData.get(i));
+        _chartView.init(_chartData.get(i), _sliderView);
+        _rangeTextView.init(_chartData.get(i), _sliderView);
         _chartView.setLines(_chartData.get(i).getActiveLines());
         _sliderView.setLines();
         ChartViewHolder vh = (ChartViewHolder) viewHolder;

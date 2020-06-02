@@ -22,7 +22,7 @@ public class LineData {
     }
 
     public void setPoints(int[] points) {
-        _points = points;
+        _points = points.clone();
     }
 
     public String getId() {

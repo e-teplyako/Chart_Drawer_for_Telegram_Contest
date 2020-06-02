@@ -13,12 +13,13 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
-import com.teplyakova.april.telegramcontest.Events.ChosenAreaChangedEvent;
+import com.teplyakova.april.telegramcontest.Events.Publisher;
+import com.teplyakova.april.telegramcontest.Events.Subscriber;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
-import org.greenrobot.eventbus.EventBus;
+import java.util.HashSet;
 
-public class SliderView extends View implements ValueAnimator.AnimatorUpdateListener {
+public class SliderView extends View implements ValueAnimator.AnimatorUpdateListener, Publisher {
 	private static final float CHOSEN_AREA_START_DFLT = 0f;
 	private static final float CHOSEN_AREA_END_DFLT = 1f;
 	private static final float ROUNDING_RADIUS = 15f;
@@ -49,6 +50,8 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 	private Bitmap _chartBitMap;
 	private boolean _transitionJustEnded;
+
+	private HashSet<Subscriber> _subscribers = new HashSet<Subscriber>();
 
 	public SliderView(Context context) {
 		super(context);
@@ -84,8 +87,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 		_chosenAreaStart = startChosenArea;
 		_chosenAreaEnd = endChosenArea;
-
-		EventBus.getDefault().postSticky(new ChosenAreaChangedEvent(_chosenAreaStart, _chosenAreaEnd));
+		notifySubscribers();
 	}
 
 	public void setBgColor(int color) {
@@ -280,5 +282,22 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 	private void setTransitionJustEnded(boolean justEnded) {
 		_transitionJustEnded = justEnded;
+	}
+
+	@Override
+	public void addSubscriber(Subscriber subscriber) {
+		_subscribers.add(subscriber);
+	}
+
+	@Override
+	public void removeSubscriber(Subscriber subscriber) {
+		_subscribers.remove(subscriber);
+	}
+
+	@Override
+	public void notifySubscribers() {
+		for (Subscriber s : _subscribers) {
+			s.updateRange(_chosenAreaStart, _chosenAreaEnd);
+		}
 	}
 }
