@@ -13,6 +13,7 @@ import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdateListener {
 	ChartData _chartData;
@@ -29,8 +30,9 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	private float _startY;
 	private Paint _barPaint;
 	private Paint _highlightPaint;
-	private HashSet<Bar> _bars = new HashSet<>();
+	private HashSet<Bar> _bars = new LinkedHashSet<>();
 	private Path[] _paths;
+	RectF _highlightRect;
 
 	public BarChartDrawer(ChartData chartData) {
 		_chartData = chartData;
@@ -51,6 +53,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 			_bars.add(bar);
 		}
 		setupPaint();
+		_highlightRect = new RectF();
 	}
 
 	@Override
@@ -70,7 +73,11 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 	@Override
 	public void drawChosenPointHighlight(Canvas canvas, int index) {
-
+		float halfBarWidth = (_mappedXPoints[_mappedXPoints.length - 1] - _mappedXPoints[0]) / (_mappedXPoints.length - 1) / 2;
+		_highlightRect.set(0f, _startY, _mappedXPoints[index - _minVisibleIndex] - halfBarWidth, canvas.getWidth());
+		canvas.drawRect(_highlightRect, _highlightPaint);
+		_highlightRect.set(_mappedXPoints[index - _minVisibleIndex] + halfBarWidth, _startY, canvas.getWidth(), _endY);
+		canvas.drawRect(_highlightRect, _highlightPaint);
 	}
 
 	@Override
@@ -85,7 +92,8 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 		_maxVisibleIndex = MathUtils.getIndexOfNearestRightElement(_chartData.getXPoints(),  endPos + distanceToScreenBorder);
 
 		_mappedXPoints  = mapXPoints(startPos, endPos);
-		mapYPoints(getMaxPosYCoefficient(), MathUtils.getMax(_chartData.getActiveLines()));
+		mapYPoints(getMaxPosYCoefficient(),
+				MathUtils.getMaxYForStackedChart(_chartData.getActiveLines(), _minVisibleIndex, _maxVisibleIndex));
 	}
 
 	@Override
@@ -98,7 +106,9 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 	@Override
 	public void setLinesAndAnimate(ValueAnimator.AnimatorUpdateListener listener) {
-
+		if (_mappedXPoints != null)
+			mapYPoints(getMaxPosYCoefficient(),
+				MathUtils.getMaxYForStackedChart(_chartData.getActiveLines(), _minVisibleIndex, _maxVisibleIndex));
 	}
 
 	@Override
@@ -160,7 +170,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 	@Override
 	public void setOpaquePlateColor(int color) {
-
+		_highlightPaint.setColor(color);
 	}
 
 	private float[] mapXPoints(long xMin, long xMax) {
@@ -233,7 +243,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 		ArrayList<Bar> arrayList = new ArrayList<>();
 
 		for (Bar bar : _bars)
-			if (bar.isVisible())
+			if (_chartData.isLineActive(bar.Line))
 				arrayList.add(bar);
 
 		return arrayList.toArray(new Bar[arrayList.size()]);

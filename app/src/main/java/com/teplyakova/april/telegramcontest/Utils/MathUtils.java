@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.TypedValue;
 
 import com.teplyakova.april.telegramcontest.Data.LineData;
+import com.teplyakova.april.telegramcontest.Drawing.Bar;
 
 public class MathUtils {
 
@@ -122,6 +123,34 @@ public class MathUtils {
 		}
 		return min;
 	}
+
+	public static int getMaxYForStackedChart(LineData[] lines, int minIndex, int maxIndex) {
+		if (lines == null || lines.length == 0)
+			return -1;
+		int oneArrayLength = maxIndex - minIndex + 1;
+		int[] wholeArray = new int[oneArrayLength];
+		int m = 0;
+		for (int i = minIndex; i <= maxIndex; i++) {
+			for (int j = 0; j < lines.length; j++) {
+				wholeArray[m] = wholeArray[m] + lines[j].getPoints()[i];
+			}
+			m++;
+		}
+		int max = getMax(wholeArray);
+		return max;
+	}
+
+	/*public static float getMaxYForStackedChart(Bar[] bars, int minIndex, int maxIndex) {
+		if (bars == null || bars.length == 0 || maxIndex == -1)
+			return -1;
+		float[] sumArray = new float[bars[0].Line.getPoints().length];
+		for (Bar bar : bars) {
+			for (int i = minIndex, j = 0; i <= maxIndex; i++, j++) {
+				sumArray[j] += bar.Line.getPoints()[i] * bar.PosYCoefficient;
+			}
+		}
+		return getMax(sumArray);
+	}*/
 
 	public static int getIndexOfNearestElement (float[] array, float point) {
 		int index = 0;

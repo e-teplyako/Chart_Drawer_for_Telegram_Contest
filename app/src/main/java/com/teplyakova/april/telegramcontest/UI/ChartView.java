@@ -119,18 +119,18 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		_scaleDrawer.draw(canvas);
 		if (isPointChosen()) {
 			_scaleDrawer.drawChosenPointLine(canvas, getChosenPointPosition());
 		}
 		_chartDrawer.draw(canvas);
+		_scaleDrawer.draw(canvas);
 		_hRangeScaleDrawer.draw(canvas);
 		if (isPointChosen()) {
+			_chartDrawer.drawChosenPointHighlight(canvas, getChosenPointIndex());
 			_plateDrawer.draw(canvas,
 					getChosenPointPosition(),
 					DateTimeUtils.formatDateEEEdMMMYYYY(_chartData.getXPoints()[getChosenPointIndex()]),
 					getChosenPointDetails(getChosenPointIndex()));
-			_chartDrawer.drawChosenPointHighlight(canvas, getChosenPointIndex());
 		}
 	}
 
