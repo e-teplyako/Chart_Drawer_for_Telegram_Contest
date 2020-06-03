@@ -1,11 +1,14 @@
 package com.teplyakova.april.telegramcontest.Drawing;
 
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.util.Log;
 
+import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
@@ -34,6 +37,9 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	private Path[] _paths;
 	RectF _highlightRect;
 
+	LocalYMinMaxAnimator _yMaxAnimator;
+	private int _localYMax;
+
 	public BarChartDrawer(ChartData chartData) {
 		_chartData = chartData;
 
@@ -52,13 +58,17 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 			bar.PosYCoefficientEnd = 1;
 			_bars.add(bar);
 		}
+		_localYMax = MathUtils.getMaxYForStackedChart(_chartData.getActiveLines(), _minVisibleIndex, _maxVisibleIndex);
 		setupPaint();
 		_highlightRect = new RectF();
 	}
 
 	@Override
 	public void onAnimationUpdate(ValueAnimator animation) {
-
+		_localYMax = (int) animation.getAnimatedValue(LocalYMinMaxAnimator.MAX);
+		Log.e(getClass().getSimpleName(), "max after " + animation.getAnimatedFraction() + ": " + _localYMax);
+		if (_mappedXPoints != null)
+			mapYPoints(getMaxPosYCoefficient(), _localYMax);
 	}
 
 	@Override
@@ -92,8 +102,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 		_maxVisibleIndex = MathUtils.getIndexOfNearestRightElement(_chartData.getXPoints(),  endPos + distanceToScreenBorder);
 
 		_mappedXPoints  = mapXPoints(startPos, endPos);
-		mapYPoints(getMaxPosYCoefficient(),
-				MathUtils.getMaxYForStackedChart(_chartData.getActiveLines(), _minVisibleIndex, _maxVisibleIndex));
+		setMaxYAndAnimate(listener);
 	}
 
 	@Override
@@ -106,9 +115,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 	@Override
 	public void setLinesAndAnimate(ValueAnimator.AnimatorUpdateListener listener) {
-		if (_mappedXPoints != null)
-			mapYPoints(getMaxPosYCoefficient(),
-				MathUtils.getMaxYForStackedChart(_chartData.getActiveLines(), _minVisibleIndex, _maxVisibleIndex));
+		//setMaxYAndAnimate();
 	}
 
 	@Override
@@ -186,7 +193,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	private void mapYPoints(float coefficient, long yMax) {
 		int[] previous = new int[_maxVisibleIndex - _minVisibleIndex + 1];
 		for (Bar bar : _bars) {
-			if (bar.isVisible()) {
+			if (_chartData.isLineActive(bar.Line)) {
 				bar.MappedPointsY = new float[_maxVisibleIndex - _minVisibleIndex + 1];
 				for (int i = 0, j = _minVisibleIndex; i < bar.MappedPointsY.length; i++, j++) {
 					float percentage = (bar.Line.getPoints()[j] * bar.PosYCoefficient + previous[i]) / yMax;
@@ -268,5 +275,11 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 		_highlightPaint = new Paint();
 		_highlightPaint.setStyle(Paint.Style.FILL);
+	}
+
+	private void setMaxYAndAnimate(ValueAnimator.AnimatorUpdateListener listener) {
+		int max = MathUtils.getMaxYForStackedChart(_chartData.getActiveLines(), _minVisibleIndex, _maxVisibleIndex);
+		_yMaxAnimator = new LocalYMinMaxAnimator();
+		_yMaxAnimator.start(0, 0, _localYMax, max, listener, this);
 	}
 }

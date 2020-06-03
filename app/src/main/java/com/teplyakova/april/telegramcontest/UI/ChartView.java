@@ -82,6 +82,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 	}
 
 	public void init(ChartData chartData, Publisher publisher) {
+		this.setLayerType(LAYER_TYPE_SOFTWARE, null);
 		publisher.addSubscriber(this);
 		_chartData = chartData;
 		_localChartData = new LocalChartData(chartData);
