@@ -12,7 +12,7 @@ import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
-import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -113,8 +113,8 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 	@Override
 	public void setLinesAndAnimate(ValueAnimator.AnimatorUpdateListener listener) {
-		_barAnimator = new BarAppearingAnimator();
 		for (Bar bar : _bars) {
+			_barAnimator = new BarAppearingAnimator();
 			float endCoeff = (_chartData.isLineActive(bar.Line) ? 1f : 0f);
 			_barAnimator.start(bar, bar.PosYCoefficient, endCoeff, listener, this);
 		}
@@ -196,28 +196,25 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	private void mapYPoints(float coefficient, long yMax) {
 		int[] previous = new int[_maxVisibleIndex - _minVisibleIndex + 1];
 		for (Bar bar : _bars) {
-			if (bar.isVisible()) {
-				bar.MappedPointsY = new float[_maxVisibleIndex - _minVisibleIndex + 1];
-				for (int i = 0, j = _minVisibleIndex; i < bar.MappedPointsY.length; i++, j++) {
-					float percentage = (bar.Line.getPoints()[j] * bar.PosYCoefficient + previous[i]) / yMax;
-					bar.MappedPointsY[i] = _endY - coefficient * (_endY - _startY) * percentage;
-					previous[i] += bar.Line.getPoints()[j] * bar.PosYCoefficient;
-					Log.e(getClass().getSimpleName(), "Bar " + bar.Line.getName() + " coeff form mapping: " + bar.PosYCoefficient);
-				}
+			bar.MappedPointsY = new float[_maxVisibleIndex - _minVisibleIndex + 1];
+			for (int i = 0, j = _minVisibleIndex; i < bar.MappedPointsY.length; i++, j++) {
+				float percentage = (bar.Line.getPoints()[j] * bar.PosYCoefficient + previous[i]) / yMax;
+				bar.MappedPointsY[i] = _endY - coefficient * (_endY - _startY) * percentage;
+				previous[i] += bar.Line.getPoints()[j] * bar.PosYCoefficient;
+				//Log.e(getClass().getSimpleName(), "Bar " + bar.Line.getName() + " coeff form mapping: " + bar.PosYCoefficient);
 			}
+
 		}
 		preparePaths();
 	}
 
 	private Canvas drawBars(Canvas canvas) {
-		Bar[] bars = getVisibleBars();
-
-		if (bars == null || bars.length == 0)
+		if (_bars == null || _bars.size() == 0)
 			return canvas;
 
-		for (int i = 0; i < _paths.length; i++) {
-			_barPaint.setColor(bars[i].Line.getColor());
-			canvas.drawPath(_paths[i], _barPaint);
+		for (Bar bar : _bars) {
+			_barPaint.setColor(bar.Line.getColor());
+			canvas.drawPath(bar.Path, _barPaint);
 		}
 
 		return canvas;
@@ -227,47 +224,33 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 		float halfBarWidth = (_mappedXPoints[_mappedXPoints.length - 1] - _mappedXPoints[0]) / (_mappedXPoints.length - 1) / 2;
 		float startX = _mappedXPoints[0] - halfBarWidth;
 		float startY = _endY;
-		Bar[] bars = getVisibleBars();
-		_paths = new Path[bars.length];
 
 		float[] previous = new float[_mappedXPoints.length];
 		Arrays.fill(previous, _endY);
 		Path path = new Path();
 		path.moveTo(startX, startY);
-		for (int i = 0; i < bars.length; i++) {
-			for (int j = 0; j < bars[i].MappedPointsY.length; j++) {
-				path.lineTo(_mappedXPoints[j] - halfBarWidth, bars[i].MappedPointsY[j]);
-				path.lineTo(_mappedXPoints[j] + halfBarWidth, bars[i].MappedPointsY[j]);
+		for (Bar bar : _bars) {
+			for (int j = 0; j < bar.MappedPointsY.length; j++) {
+				path.lineTo(_mappedXPoints[j] - halfBarWidth, bar.MappedPointsY[j]);
+				path.lineTo(_mappedXPoints[j] + halfBarWidth, bar.MappedPointsY[j]);
 			}
 			for (int n = previous.length - 1; n >= 0; n--) {
 				path.lineTo(_mappedXPoints[n] + halfBarWidth, previous[n]);
 				path.lineTo(_mappedXPoints[n] - halfBarWidth, previous[n]);
-				previous[n] = bars[i].MappedPointsY[n];
+				previous[n] = bar.MappedPointsY[n];
 			}
-			_paths[i] = path;
+			bar.Path = path;
 			path = new Path();
-			path.moveTo(_mappedXPoints[0] - halfBarWidth, bars[i].MappedPointsY[0]);
+			path.moveTo(_mappedXPoints[0] - halfBarWidth, bar.MappedPointsY[0]);
 		}
-	}
-
-	private Bar[] getVisibleBars() {
-		ArrayList<Bar> arrayList = new ArrayList<>();
-
-		for (Bar bar : _bars)
-			if (bar.isVisible())
-				arrayList.add(bar);
-
-		return arrayList.toArray(new Bar[arrayList.size()]);
 	}
 
 	private float getMaxPosYCoefficient() {
 		float max = 0;
-		Bar[] bars = getVisibleBars();
-		for (Bar bar : bars) {
+		for (Bar bar : _bars) {
 			if (bar.PosYCoefficient > max)
 				max = bar.PosYCoefficient;
 		}
-
 		return max;
 	}
 
