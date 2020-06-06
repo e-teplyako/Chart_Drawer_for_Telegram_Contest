@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -41,13 +42,12 @@ public class MainActivity extends Activity {
 
         recyclerView = findViewById(R.id.pager);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setItemViewCacheSize(3); //TODO: seems to fix bug with dissapearing item, but it's a crotch
-        int orientation = getResources().getConfiguration().orientation;
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        } else {
-            recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        }
+        recyclerView.setItemViewCacheSize(3); //TODO: seems to fix bug with disappearing item, but it's a crotch
+        Display display = getWindowManager().getDefaultDisplay();
+        int height = display.getHeight();
+        recyclerView.setLayoutManager(new PreCachingLayoutManager(this, LinearLayoutManager.VERTICAL, false,
+                height * 2));
+
 
         adapter = new PageAdapter(chartData, getLayoutInflater(),  this);
         recyclerView.setAdapter(adapter);
