@@ -5,9 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.util.Log;
-
-import com.teplyakova.april.telegramcontest.Animators.BarAppearingAnimator;
 import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
@@ -18,12 +15,12 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 
 public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdateListener {
-	ChartData _chartData;
+	private ChartData _chartData;
 
-	long _minValue;
-	long _maxValue;
-	int _minVisibleIndex;
-	int _maxVisibleIndex;
+	private long _minValue;
+	private long _maxValue;
+	private int _minVisibleIndex;
+	private int _maxVisibleIndex;
 
 	private float[] _mappedXPoints;
 	private float _chartAreaWidthPx;
@@ -33,10 +30,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	private Paint _barPaint;
 	private Paint _highlightPaint;
 	private HashSet<Bar> _bars = new LinkedHashSet<>();
-	private Path[] _paths;
-	RectF _highlightRect;
-
-	LocalYMinMaxAnimator _yMaxAnimator;
+	private RectF _highlightRect;
 	private int _localYMax;
 
 	public BarChartDrawer(ChartData chartData) {
@@ -199,7 +193,6 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 				float percentage = (bar.Line.getPoints()[j] * bar.PosYCoefficient + previous[i]) / yMax;
 				bar.MappedPointsY[i] = _endY - coefficient * (_endY - _startY) * percentage;
 				previous[i] += bar.Line.getPoints()[j] * bar.PosYCoefficient;
-				//Log.e(getClass().getSimpleName(), "Bar " + bar.Line.getName() + " coeff form mapping: " + bar.PosYCoefficient);
 			}
 
 		}
@@ -264,7 +257,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 	private void setMaxYAndAnimate(ValueAnimator.AnimatorUpdateListener listener) {
 		int max = MathUtils.getMaxYForStackedChart(_chartData.getActiveLines(), _minVisibleIndex, _maxVisibleIndex);
-		_yMaxAnimator = new LocalYMinMaxAnimator();
-		_yMaxAnimator.start(0, 0, _localYMax, max, listener, this);
+		LocalYMinMaxAnimator yMaxAnimator = new LocalYMinMaxAnimator();
+		yMaxAnimator.start(0, 0, _localYMax, max, listener, this);
 	}
 }
