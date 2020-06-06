@@ -38,7 +38,6 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 	LocalYMinMaxAnimator _yMaxAnimator;
 	private int _localYMax;
-	BarAppearingAnimator _barAnimator;
 
 	public BarChartDrawer(ChartData chartData) {
 		_chartData = chartData;
@@ -114,9 +113,8 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	@Override
 	public void setLinesAndAnimate(ValueAnimator.AnimatorUpdateListener listener) {
 		for (Bar bar : _bars) {
-			_barAnimator = new BarAppearingAnimator();
 			float endCoeff = (_chartData.isLineActive(bar.Line) ? 1f : 0f);
-			_barAnimator.start(bar, bar.PosYCoefficient, endCoeff, listener, this);
+			bar.Animator.start(bar, bar.PosYCoefficient, endCoeff, listener, this);
 		}
 		setMaxYAndAnimate(listener);
 	}
