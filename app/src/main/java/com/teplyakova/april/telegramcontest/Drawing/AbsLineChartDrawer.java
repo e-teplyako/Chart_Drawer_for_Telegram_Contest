@@ -25,15 +25,6 @@ public abstract class AbsLineChartDrawer implements ChartDrawer, ValueAnimator.A
 
 	public abstract Canvas draw(Canvas canvas);
 
-	public Canvas drawChartForGlobalRange(Canvas canvas) {
-		int min = MathUtils.getMin(_chartData.getActiveLines());
-		int max = MathUtils.getMax(_chartData.getActiveLines());
-		for (LineDrawer drawer : _lineDrawers) {
-			canvas = drawer.draw(canvas, min, max);
-		}
-		return canvas;
-	}
-
 	public abstract void drawChosenPointHighlight(Canvas canvas, int index);
 
 	public void setRangeAndAnimate(float start, float end, ValueAnimator.AnimatorUpdateListener listener) {

@@ -68,11 +68,6 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	}
 
 	@Override
-	public Canvas drawChartForGlobalRange(Canvas canvas) {
-		return drawBars(canvas);
-	}
-
-	@Override
 	public void drawChosenPointHighlight(Canvas canvas, int index) {
 		float halfBarWidth = (_mappedXPoints[_mappedXPoints.length - 1] - _mappedXPoints[0]) / (_mappedXPoints.length - 1) / 2;
 		_highlightRect.set(0f, _startY, _mappedXPoints[index - _minVisibleIndex] - halfBarWidth, canvas.getWidth());
@@ -115,7 +110,12 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 	@Override
 	public boolean isInSetLinesTransition() {
-		return false;
+		boolean isinTransition = false;
+		for (Bar bar : _bars) {
+			if (bar.Animator.isRunning())
+				isinTransition = true;
+		}
+		return isinTransition;
 	}
 
 	@Override

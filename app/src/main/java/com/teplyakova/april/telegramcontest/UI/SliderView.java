@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
 import com.teplyakova.april.telegramcontest.Events.Publisher;
@@ -80,7 +81,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 	public void init(ChartData chartData) {
 		_chartData = chartData;
-		_chartDrawer = new LineChartDrawer(chartData);
+		_chartDrawer = new BarChartDrawer(chartData);
 	}
 
 	public void setChosenAreaPositions(float startChosenArea, float endChosenArea) {
@@ -117,7 +118,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 			_chartBitMap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.RGB_565);
 			Canvas canvasForBitmap = new Canvas(_chartBitMap);
 			canvasForBitmap.drawColor(_primaryBgColor); //TODO: fix
-			canvasForBitmap = _chartDrawer.drawChartForGlobalRange(canvasForBitmap);
+			canvasForBitmap = _chartDrawer.draw(canvasForBitmap);
 			canvasForBitmap.setBitmap(_chartBitMap);
 			setTransitionJustEnded(false);
 			setThemeJustRefreshed(false);

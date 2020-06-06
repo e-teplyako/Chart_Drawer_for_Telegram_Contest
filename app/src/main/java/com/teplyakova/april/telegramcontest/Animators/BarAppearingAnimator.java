@@ -44,6 +44,9 @@ public class BarAppearingAnimator implements ValueAnimator.AnimatorUpdateListene
 	@Override
 	public void onAnimationUpdate(ValueAnimator animation) {
 		_bar.PosYCoefficient = (float) animation.getAnimatedValue(COEFFICIENT);
-		Log.e(getClass().getSimpleName(), "Bar " + _bar.Line.getName() + " coeff form anim: " + _bar.PosYCoefficient);
+	}
+
+	public boolean isRunning() {
+		return (_animator != null && _animator.isRunning());
 	}
 }
