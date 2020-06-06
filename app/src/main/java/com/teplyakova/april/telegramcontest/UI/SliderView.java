@@ -12,12 +12,15 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
+
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
 import com.teplyakova.april.telegramcontest.Events.Publisher;
 import com.teplyakova.april.telegramcontest.Events.Subscriber;
+import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.HashSet;
@@ -37,6 +40,8 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	private Paint _bgTintPaint;
 	private Paint _handlerPaint;
 	private int _primaryBgColor;
+	private int _primaryBgColorDay;
+	private int _primaryBgColorNight;
 
 	private Path _bgPath = new Path();
 	private Path _handlerPath = new Path();
@@ -52,9 +57,12 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	private ChartData _chartData;
 	private ChartDrawer _chartDrawer;
 
-	private Bitmap _chartBitMap;
+	private Bitmap _dayChartBitmap;
+	private Bitmap _nightChartBitmap;
 	private boolean _transitionJustEnded;
 	private boolean _themeJustRefreshed;
+
+	private Theme _theme;
 
 	private HashSet<Subscriber> _subscribers = new HashSet<Subscriber>();
 
@@ -63,6 +71,8 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		setupPaints();
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
+		_primaryBgColorDay = ContextCompat.getColor(context, R.color.primaryBackgroundColorDay);
+		_primaryBgColorNight = ContextCompat.getColor(context, R.color.primaryBackgroundColorNight);
 	}
 
 	public SliderView(Context context, AttributeSet attrs) {
@@ -70,6 +80,8 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		setupPaints();
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
+		_primaryBgColorDay = ContextCompat.getColor(context, R.color.primaryBackgroundColorDay);
+		_primaryBgColorNight = ContextCompat.getColor(context, R.color.primaryBackgroundColorNight);
 	}
 
 	public SliderView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -77,6 +89,8 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		setupPaints();
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
+		_primaryBgColorDay = ContextCompat.getColor(context, R.color.primaryBackgroundColorDay);
+		_primaryBgColorNight = ContextCompat.getColor(context, R.color.primaryBackgroundColorNight);
 	}
 
 	public void init(ChartData chartData) {
@@ -114,18 +128,22 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		if (_chartDrawer.isInSetLinesTransition()) {
 			_chartDrawer.draw(canvas);
 		}
-		else if(transitionJustEnded() || isThemeJustRefreshed()) {
-			_chartBitMap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.RGB_565);
-			Canvas canvasForBitmap = new Canvas(_chartBitMap);
-			canvasForBitmap.drawColor(_primaryBgColor); //TODO: fix
+		else if(transitionJustEnded()) {
+			_dayChartBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.RGB_565);
+			Canvas canvasForBitmap = new Canvas(_dayChartBitmap);
+			canvasForBitmap.drawColor(_primaryBgColorDay);
 			canvasForBitmap = _chartDrawer.draw(canvasForBitmap);
-			canvasForBitmap.setBitmap(_chartBitMap);
+			canvasForBitmap.setBitmap(_dayChartBitmap);
+			_nightChartBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.RGB_565);
+			canvasForBitmap = new Canvas(_nightChartBitmap);
+			canvasForBitmap.drawColor(_primaryBgColorNight);
+			canvasForBitmap = _chartDrawer.draw(canvasForBitmap);
+			canvasForBitmap.setBitmap(_nightChartBitmap);
 			setTransitionJustEnded(false);
-			setThemeJustRefreshed(false);
-			canvas.drawBitmap(_chartBitMap, 0, 0, null);
+			canvas.drawBitmap(getBitmap(), 0, 0, null);
 		}
-		else if (_chartBitMap != null){
-			canvas.drawBitmap(_chartBitMap, 0, 0, null);
+		else if (getBitmap() != null){
+			canvas.drawBitmap(getBitmap(), 0, 0, null);
 		}
 		else {
 			canvas.drawColor(_primaryBgColor); //TODO: fix
@@ -311,9 +329,14 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	public void refreshTheme(ThemeHelper themeHelper) {
 		setBgColor(themeHelper.getSliderBgColor());
 		setHandlerColor(themeHelper.getSliderHandlerColor());
-		_primaryBgColor = themeHelper.getPrimaryBgColor();
 		setThemeJustRefreshed(true);
+		_primaryBgColor = themeHelper.getPrimaryBgColor();
+		_theme = themeHelper.getBaseTheme();
 		invalidate();
+	}
+
+	private Bitmap getBitmap() {
+		return (_theme == Theme.DAY) ? _dayChartBitmap : _nightChartBitmap;
 	}
 
 	private void setThemeJustRefreshed(boolean value) {
