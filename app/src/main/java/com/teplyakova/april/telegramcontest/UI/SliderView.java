@@ -15,6 +15,7 @@ import android.view.View;
 import androidx.core.content.ContextCompat;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.Data.DrawerFactory;
 import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
@@ -61,6 +62,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	private Bitmap _nightChartBitmap;
 	private boolean _transitionJustEnded;
 	private Theme _theme;
+	private Context _context;
 
 	private HashSet<Subscriber> _subscribers = new HashSet<Subscriber>();
 
@@ -69,6 +71,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		setupPaints(context);
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
+		_context = context;
 	}
 
 	public SliderView(Context context, AttributeSet attrs) {
@@ -76,6 +79,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		setupPaints(context);
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
+		_context = context;
 	}
 
 	public SliderView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -83,11 +87,12 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		setupPaints(context);
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
+		_context = context;
 	}
 
 	public void init(ChartData chartData) {
 		_chartData = chartData;
-		_chartDrawer = new BarChartDrawer(chartData);
+		_chartDrawer = DrawerFactory.getChartDrawer(_context, _chartData);
 	}
 
 	public void setChosenAreaPositions(float startChosenArea, float endChosenArea) {

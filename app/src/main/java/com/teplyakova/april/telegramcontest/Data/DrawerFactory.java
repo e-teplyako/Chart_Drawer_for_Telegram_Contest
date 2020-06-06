@@ -3,11 +3,12 @@ package com.teplyakova.april.telegramcontest.Data;
 import android.content.Context;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.IndependentLineChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
 
-public class OldDrawerFactory {
+public class DrawerFactory {
     public static ChartDrawer getChartDrawer(Context context, ChartData chartData) {
         switch (chartData.type) {
             case "LineChartStandard":
@@ -15,9 +16,8 @@ public class OldDrawerFactory {
             case "LineChart2OrdAxis":
                 return new IndependentLineChartDrawer(chartData);
             case "BarChart":
-                return new LineChartDrawer(chartData);
             case "StackedBarChart":
-                return new LineChartDrawer(chartData);
+                return new BarChartDrawer(chartData);
             case "StackedAreaChart":
                 return new LineChartDrawer(chartData);
             default:

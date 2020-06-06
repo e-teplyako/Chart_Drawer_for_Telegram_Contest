@@ -10,6 +10,7 @@ import android.view.View;
 import androidx.annotation.Nullable;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
+import com.teplyakova.april.telegramcontest.Data.DrawerFactory;
 import com.teplyakova.april.telegramcontest.Drawing.AbsScaleDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
@@ -87,7 +88,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 		_localChartData = new LocalChartData(chartData);
 		_plateDrawer = new PlateDrawer(_context);
 		_scaleDrawer = new ScaleDrawer(chartData);
-		_chartDrawer = new BarChartDrawer(chartData);
+		_chartDrawer = DrawerFactory.getChartDrawer(_context, _chartData);
 		_hRangeScaleDrawer = new HorizontalRangeScaleDrawer(_context, chartData.getXPoints());
 	}
 
