@@ -60,37 +60,29 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	private Bitmap _dayChartBitmap;
 	private Bitmap _nightChartBitmap;
 	private boolean _transitionJustEnded;
-	private boolean _themeJustRefreshed;
-
 	private Theme _theme;
 
 	private HashSet<Subscriber> _subscribers = new HashSet<Subscriber>();
 
 	public SliderView(Context context) {
 		super(context);
-		setupPaints();
+		setupPaints(context);
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
-		_primaryBgColorDay = ContextCompat.getColor(context, R.color.primaryBackgroundColorDay);
-		_primaryBgColorNight = ContextCompat.getColor(context, R.color.primaryBackgroundColorNight);
 	}
 
 	public SliderView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		setupPaints();
+		setupPaints(context);
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
-		_primaryBgColorDay = ContextCompat.getColor(context, R.color.primaryBackgroundColorDay);
-		_primaryBgColorNight = ContextCompat.getColor(context, R.color.primaryBackgroundColorNight);
 	}
 
 	public SliderView(Context context, AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
-		setupPaints();
+		setupPaints(context);
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
-		_primaryBgColorDay = ContextCompat.getColor(context, R.color.primaryBackgroundColorDay);
-		_primaryBgColorNight = ContextCompat.getColor(context, R.color.primaryBackgroundColorNight);
 	}
 
 	public void init(ChartData chartData) {
@@ -129,16 +121,8 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 			_chartDrawer.draw(canvas);
 		}
 		else if(transitionJustEnded()) {
-			_dayChartBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.RGB_565);
-			Canvas canvasForBitmap = new Canvas(_dayChartBitmap);
-			canvasForBitmap.drawColor(_primaryBgColorDay);
-			canvasForBitmap = _chartDrawer.draw(canvasForBitmap);
-			canvasForBitmap.setBitmap(_dayChartBitmap);
-			_nightChartBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.RGB_565);
-			canvasForBitmap = new Canvas(_nightChartBitmap);
-			canvasForBitmap.drawColor(_primaryBgColorNight);
-			canvasForBitmap = _chartDrawer.draw(canvasForBitmap);
-			canvasForBitmap.setBitmap(_nightChartBitmap);
+			_dayChartBitmap = prepareBitmap(canvas, _primaryBgColorDay);
+			_nightChartBitmap = prepareBitmap(canvas, _primaryBgColorNight);
 			setTransitionJustEnded(false);
 			canvas.drawBitmap(getBitmap(), 0, 0, null);
 		}
@@ -215,7 +199,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		_chartDrawer.setRangeAndAnimate(0f, 1f, this);
 	}
 
-	private void setupPaints() {
+	private void setupPaints(Context context) {
 		_bgTintPaint = new Paint();
 		_bgTintPaint.setColor(BG_COLOR_DFLT);
 		_bgTintPaint.setStyle(Paint.Style.FILL);
@@ -224,6 +208,9 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		_handlerPaint.setColor(HANDLER_COLOR_DFLT);
 		_handlerPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		_handlerPaint.setStrokeWidth(4);
+
+		_primaryBgColorDay = ContextCompat.getColor(context, R.color.primaryBackgroundColorDay);
+		_primaryBgColorNight = ContextCompat.getColor(context, R.color.primaryBackgroundColorNight);
 	}
 
 	private void setupSizes(Context context) {
@@ -329,21 +316,21 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	public void refreshTheme(ThemeHelper themeHelper) {
 		setBgColor(themeHelper.getSliderBgColor());
 		setHandlerColor(themeHelper.getSliderHandlerColor());
-		setThemeJustRefreshed(true);
 		_primaryBgColor = themeHelper.getPrimaryBgColor();
 		_theme = themeHelper.getBaseTheme();
 		invalidate();
 	}
 
+	private Bitmap prepareBitmap(Canvas canvas, int bgColor) {
+		Bitmap bitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.RGB_565);
+		Canvas canvasForBitmap = new Canvas(bitmap);
+		canvasForBitmap.drawColor(bgColor);
+		canvasForBitmap = _chartDrawer.draw(canvasForBitmap);
+		canvasForBitmap.setBitmap(bitmap);
+		return bitmap;
+	}
+
 	private Bitmap getBitmap() {
 		return (_theme == Theme.DAY) ? _dayChartBitmap : _nightChartBitmap;
-	}
-
-	private void setThemeJustRefreshed(boolean value) {
-		_themeJustRefreshed = value;
-	}
-
-	private boolean isThemeJustRefreshed() {
-		return _themeJustRefreshed;
 	}
 }
