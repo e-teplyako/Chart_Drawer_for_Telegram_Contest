@@ -17,7 +17,6 @@ import com.teplyakova.april.telegramcontest.Data.LineData;
 
 public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener, Subscriber, Themed {
 	private Context _context;
-	private ChartData _chartData;
 	private DrawingManager _drawingManager;
 
 	public ChartView(Context context) {
@@ -53,7 +52,6 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 
 	public void init(ChartData chartData, Publisher publisher) {
 		publisher.addSubscriber(this);
-		_chartData = chartData;
 		_drawingManager = new DrawingManager(chartData, _context, this);
 	}
 

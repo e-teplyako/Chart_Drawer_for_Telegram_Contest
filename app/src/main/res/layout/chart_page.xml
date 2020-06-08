@@ -31,7 +31,7 @@
     <com.teplyakova.april.telegramcontest.UI.SliderView
         android:id="@+id/slider"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="70dp"
         android:layout_margin="12dp"/>
 
 </LinearLayout>
