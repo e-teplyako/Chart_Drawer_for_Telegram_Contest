@@ -6,7 +6,9 @@ import android.graphics.Paint;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
+import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 
@@ -24,7 +26,7 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 	private float _startY;
 
 	private Paint _areaPaint;
-	private HashSet<Bar> _areas = new LinkedHashSet<>();
+	private ArrayList<Area> _areas = new ArrayList<>();
 
 	public StackedAreaChartDrawer(ChartData chartData) {
 		_chartData = chartData;
@@ -36,7 +38,7 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 
 		for (LineData lineData : chartData.getLines())
 		{
-			Bar area = new Bar();
+			Area area = new Area();
 			area.Line = lineData;
 			area.MappedPointsY = new float[lineData.getPoints().length];
 			area.PosYCoefficient = 1;
@@ -130,5 +132,35 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 		_areaPaint.setStyle(Paint.Style.FILL);
 		_areaPaint.setStrokeCap(Paint.Cap.SQUARE);
 		_areaPaint.setAntiAlias(true);
+	}
+
+	private void preparePaths() {
+
+	}
+
+	private float[] mapXPoints(long xMin, long xMax) {
+		long calculatedArea = xMax - xMin;
+		float[] mappedXPoints = new float[_lastVisibleIndex - _firstVisibleIndex + 1];
+		for (int i = 0, j = _firstVisibleIndex; i < mappedXPoints.length; i++, j++) {
+			float percentage = (float) (_chartData.getXPoints()[j] - xMin) / (float) calculatedArea;
+			mappedXPoints[i] = _chartAreaWidthMarginPx + _chartAreaWidthPx * percentage;
+		}
+		return mappedXPoints;
+	}
+
+	private void calculatePercentages() {
+		float[] sums = new float[_chartData.getXPoints().length];
+		for (Area area : _areas) {
+			area.Percentages = new float[sums.length];
+			for (int i = 0; i < area.Percentages.length; i++) {
+				sums[i] += area.Line.getPoints()[i];
+			}
+		}
+
+		for (int i = 0; i < sums.length; i++) {
+			for (Area area : _areas) {
+				area.Percentages[i] = area.Line.getPoints()[i] / sums[i] * 100;
+			}
+		}
 	}
 }
