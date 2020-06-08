@@ -194,7 +194,6 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 				bar.MappedPointsY[i] = _endY - coefficient * (_endY - _startY) * percentage;
 				previous[i] += bar.Line.getPoints()[j] * bar.PosYCoefficient;
 			}
-
 		}
 		preparePaths();
 	}

@@ -3,19 +3,20 @@ package com.teplyakova.april.telegramcontest.Drawing;
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.util.Log;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.Arrays;
 
 public class StackedAreaChartDrawer implements ChartDrawer {
 	private ChartData _chartData;
-	private long _firstVisibleValue;
-	private long _lastVisibleValue;
+	private long _minValue;
+	private long _maxValue;
 	private int _firstVisibleIndex;
 	private int _lastVisibleIndex;
 
@@ -31,8 +32,8 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 	public StackedAreaChartDrawer(ChartData chartData) {
 		_chartData = chartData;
 
-		_firstVisibleValue = chartData.getXPoints()[0];
-		_lastVisibleValue = chartData.getXPoints()[chartData.getXPoints().length - 1];
+		_minValue = chartData.getXPoints()[0];
+		_maxValue = chartData.getXPoints()[chartData.getXPoints().length - 1];
 		_firstVisibleIndex = 0;
 		_lastVisibleIndex = chartData.getXPoints().length - 1;
 
@@ -44,12 +45,13 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 			area.PosYCoefficient = 1;
 			_areas.add(area);
 		}
+		calculatePercentages();
 		setupPaint();
 	}
 
 	@Override
 	public Canvas draw(Canvas canvas) {
-		return null;
+		return drawAreas(canvas);
 	}
 
 	@Override
@@ -59,12 +61,24 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 
 	@Override
 	public void setRangeAndAnimate(float start, float end, ValueAnimator.AnimatorUpdateListener listener) {
+		long width = _maxValue - _minValue;
+		long startPos = (long) Math.floor(start * width) + _minValue;
+		long endPos = (long) Math.ceil(end * width) + _minValue;
 
+		long distanceToScreenBorder = (long) Math.ceil (((endPos - startPos) * _chartAreaWidthMarginPx) / _chartAreaWidthPx);
+
+		_firstVisibleIndex = MathUtils.getIndexOfNearestLeftElement(_chartData.getXPoints(), startPos - distanceToScreenBorder);
+		_lastVisibleIndex = MathUtils.getIndexOfNearestRightElement(_chartData.getXPoints(),  endPos + distanceToScreenBorder);
+		_mappedXPoints = mapXPoints(startPos, endPos);
+		mapYPoints(getMaxPosYCoefficient());
 	}
 
 	@Override
 	public void setMargins(float startX, float endX, float startY, float endY, float chartAreaWidthMarginPx) {
-
+		_chartAreaWidthPx = endX - startX;
+		_chartAreaWidthMarginPx = chartAreaWidthMarginPx;
+		_endY = endY;
+		_startY = startY;
 	}
 
 	@Override
@@ -79,12 +93,19 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 
 	@Override
 	public int getTouchedPointIndex(float x) {
-		return 0;
+		int position = MathUtils.getIndexOfNearestElement(_mappedXPoints, x);
+		while (_chartData.getXPoints()[position + _firstVisibleIndex] < _minValue) {
+			position++;
+		}
+		while (_chartData.getXPoints()[position + _firstVisibleIndex] > _maxValue) {
+			position--;
+		}
+		return position + _firstVisibleIndex;
 	}
 
 	@Override
 	public float getTouchedPointPosition(int index) {
-		return 0;
+		return _mappedXPoints[index - _firstVisibleIndex];
 	}
 
 	@Override
@@ -135,7 +156,23 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 	}
 
 	private void preparePaths() {
-
+		float[] previous = new float[_mappedXPoints.length];
+		Arrays.fill(previous, _endY);
+		Path path = new Path();
+		path.moveTo(_mappedXPoints[_mappedXPoints.length - 1], _endY);
+		for (int j = 0; j < _areas.size(); j++) {
+			for (int i = previous.length - 1; i >= 0; i--) {
+				path.lineTo(_mappedXPoints[i], previous[i]);
+			}
+			for (int i = 0; i < _areas.get(j).MappedPointsY.length; i++) {
+				path.lineTo(_mappedXPoints[i], _areas.get(j).MappedPointsY[i]);
+			}
+			_areas.get(j).Path = path;
+			path = new Path();
+			path.moveTo(_mappedXPoints[_mappedXPoints.length - 1],
+					_areas.get(j).MappedPointsY[_areas.get(j).MappedPointsY.length - 1]);
+			previous = _areas.get(j).MappedPointsY;
+		}
 	}
 
 	private float[] mapXPoints(long xMin, long xMax) {
@@ -146,6 +183,19 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 			mappedXPoints[i] = _chartAreaWidthMarginPx + _chartAreaWidthPx * percentage;
 		}
 		return mappedXPoints;
+	}
+
+	private void mapYPoints(float coefficient) {
+		int[] previous = new int[_lastVisibleIndex - _firstVisibleIndex + 1];
+		for (Area area : _areas) {
+			area.MappedPointsY = new float[_lastVisibleIndex - _firstVisibleIndex + 1];
+			for (int i = 0, j = _firstVisibleIndex; i < area.MappedPointsY.length; i++, j++) {
+				float percentage = (area.Percentages[j] * area.PosYCoefficient + previous[i]) / 100;
+				area.MappedPointsY[i] = _endY - coefficient * (_endY - _startY) * percentage;
+				previous[i] += area.Percentages[j] * area.PosYCoefficient;
+			}
+		}
+		preparePaths();
 	}
 
 	private void calculatePercentages() {
@@ -159,8 +209,31 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 
 		for (int i = 0; i < sums.length; i++) {
 			for (Area area : _areas) {
-				area.Percentages[i] = area.Line.getPoints()[i] / sums[i] * 100;
+				area.Percentages[i] = area.Line.getPoints()[i] / sums[i] *100;
 			}
 		}
+
+		for (Area area : _areas) {
+			Log.e(getClass().getSimpleName(), "06.04 " + area.Line.getName() + ": " + area.Percentages[0]);
+			Log.e(getClass().getSimpleName(), "05.04 " + area.Line.getName() + ": " + area.Percentages[1]);
+		}
+	}
+
+	private float getMaxPosYCoefficient() {
+		float max = 0;
+		for (Area area : _areas) {
+			if (area.PosYCoefficient > max)
+				max = area.PosYCoefficient;
+		}
+		return max;
+	}
+
+	private Canvas drawAreas(Canvas canvas) {
+		for (Area area : _areas) {
+			_areaPaint.setColor(area.Line.getColor());
+			canvas.drawPath(area.Path, _areaPaint);
+		}
+
+		return canvas;
 	}
 }

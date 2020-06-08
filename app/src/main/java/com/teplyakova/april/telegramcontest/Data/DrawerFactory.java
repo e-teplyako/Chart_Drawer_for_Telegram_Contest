@@ -7,6 +7,7 @@ import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.IndependentLineChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.StackedAreaChartDrawer;
 
 public class DrawerFactory {
     public static ChartDrawer getChartDrawer(Context context, ChartData chartData) {
@@ -19,7 +20,7 @@ public class DrawerFactory {
             case "StackedBarChart":
                 return new BarChartDrawer(chartData);
             case "StackedAreaChart":
-                return new LineChartDrawer(chartData);
+                return new StackedAreaChartDrawer(chartData);
             default:
                 return new LineChartDrawer(chartData);
         }
