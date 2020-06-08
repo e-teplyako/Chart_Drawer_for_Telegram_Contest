@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest.Drawing;
+package com.teplyakova.april.telegramcontest.Drawing.Chart;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
@@ -14,4 +14,5 @@ public interface ChartDrawer extends ThemedDrawer {
 	boolean isInSetLinesTransition();
 	int getTouchedPointIndex(float x);
 	float getTouchedPointPosition(int index);
+	void setAntiAlias(boolean antiAlias);
 }

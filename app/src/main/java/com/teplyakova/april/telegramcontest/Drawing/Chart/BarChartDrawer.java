@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest.Drawing;
+package com.teplyakova.april.telegramcontest.Drawing.Chart;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
@@ -8,6 +8,8 @@ import android.graphics.RectF;
 import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
+import com.teplyakova.april.telegramcontest.Drawing.Chart.Bar;
+import com.teplyakova.april.telegramcontest.Drawing.Chart.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.Arrays;
@@ -133,6 +135,11 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	@Override
 	public float getTouchedPointPosition(int index) {
 		return _mappedXPoints[index - _minVisibleIndex];
+	}
+
+	@Override
+	public void setAntiAlias(boolean antiAlias) {
+		_barPaint.setAntiAlias(antiAlias);
 	}
 
 	@Override

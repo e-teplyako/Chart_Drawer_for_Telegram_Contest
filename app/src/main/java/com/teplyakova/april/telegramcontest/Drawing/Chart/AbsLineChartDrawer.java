@@ -1,10 +1,9 @@
-package com.teplyakova.april.telegramcontest.Drawing;
+package com.teplyakova.april.telegramcontest.Drawing.Chart;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
-import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.HashSet;
@@ -21,9 +20,12 @@ public abstract class AbsLineChartDrawer implements ChartDrawer, ValueAnimator.A
 	private float[] _mappedXPoints;
 	private float _chartAreaWidthPx;
 	private float _chartAreaWidthMarginPx;
-
+	float _startY;
+	float _endY;
 
 	public abstract Canvas draw(Canvas canvas);
+
+	public abstract void setAntiAlias(boolean antiAlias);
 
 	public abstract void drawChosenPointHighlight(Canvas canvas, int index);
 
@@ -51,6 +53,8 @@ public abstract class AbsLineChartDrawer implements ChartDrawer, ValueAnimator.A
 	public void setMargins(float startX, float endX, float startY, float endY, float chartAreaWidthMarginPx) {
 		_chartAreaWidthPx = endX - startX;
 		_chartAreaWidthMarginPx = chartAreaWidthMarginPx;
+		_startY = startY;
+		_endY =endY;
 
 		for (LineDrawer drawer : _lineDrawers) {
 			drawer.setMargins(startY, endY);
@@ -144,4 +148,6 @@ public abstract class AbsLineChartDrawer implements ChartDrawer, ValueAnimator.A
 	public void setOpaquePlateColor(int color) {
 
 	}
+
+	abstract void drawChosenPointLine(Canvas canvas, float pointPosition);
 }

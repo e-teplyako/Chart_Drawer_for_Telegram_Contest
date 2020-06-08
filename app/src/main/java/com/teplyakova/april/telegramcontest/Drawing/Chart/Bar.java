@@ -1,13 +1,14 @@
-package com.teplyakova.april.telegramcontest.Drawing;
+package com.teplyakova.april.telegramcontest.Drawing.Chart;
+
+import android.graphics.Path;
 
 import com.teplyakova.april.telegramcontest.Animators.BarAppearingAnimator;
 import com.teplyakova.april.telegramcontest.Data.LineData;
 
-public class Area {
+public class Bar {
 	public LineData Line;
-	public int[] Percentages;
 	public float PosYCoefficient;
 	public float[] MappedPointsY;
-	public android.graphics.Path Path;
+	public Path Path;
 	public BarAppearingAnimator Animator = new BarAppearingAnimator();
 }

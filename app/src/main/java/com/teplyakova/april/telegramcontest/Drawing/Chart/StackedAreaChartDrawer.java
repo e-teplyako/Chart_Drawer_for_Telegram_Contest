@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest.Drawing;
+package com.teplyakova.april.telegramcontest.Drawing.Chart;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
@@ -7,12 +7,15 @@ import android.graphics.Path;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
+import com.teplyakova.april.telegramcontest.Drawing.Chart.Area;
+import com.teplyakova.april.telegramcontest.Drawing.Chart.Bar;
+import com.teplyakova.april.telegramcontest.Drawing.Chart.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class StackedAreaChartDrawer implements ChartDrawer {
+public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdateListener {
 	private ChartData _chartData;
 	private long _minValue;
 	private long _maxValue;
@@ -26,6 +29,7 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 	private float _startY;
 
 	private Paint _areaPaint;
+	private Paint _dividerPaint;
 	private ArrayList<Area> _areas = new ArrayList<>();
 
 	public StackedAreaChartDrawer(ChartData chartData) {
@@ -55,7 +59,7 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 
 	@Override
 	public void drawChosenPointHighlight(Canvas canvas, int index) {
-
+		drawChosenPointLine(canvas, getTouchedPointPosition(index));
 	}
 
 	@Override
@@ -82,7 +86,10 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 
 	@Override
 	public void setLinesAndAnimate(ValueAnimator.AnimatorUpdateListener listener) {
-
+		for (Bar area : _areas) {
+			float endCoeff = (_chartData.isLineActive(area.Line) ? 1f : 0f);
+			area.Animator.start(area, area.PosYCoefficient, endCoeff, listener, this);
+		}
 	}
 
 	@Override
@@ -108,6 +115,11 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 	}
 
 	@Override
+	public void setAntiAlias(boolean aa) {
+		_areaPaint.setAntiAlias(aa);
+	}
+
+	@Override
 	public void setPlateFillColor(int color) {
 
 	}
@@ -129,7 +141,7 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 
 	@Override
 	public void setDividerColor(int color) {
-
+		_dividerPaint.setColor(color);
 	}
 
 	@Override
@@ -152,6 +164,9 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 		_areaPaint.setStyle(Paint.Style.FILL);
 		_areaPaint.setStrokeCap(Paint.Cap.SQUARE);
 		_areaPaint.setAntiAlias(true);
+
+		_dividerPaint = new Paint();
+		_dividerPaint.setStrokeWidth(2);
 	}
 
 	private void preparePaths() {
@@ -243,5 +258,15 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 		}
 
 		return canvas;
+	}
+
+	@Override
+	public void onAnimationUpdate(ValueAnimator animation) {
+		if (_mappedXPoints != null)
+			mapYPoints(getMaxPosYCoefficient());
+	}
+
+	private void drawChosenPointLine(Canvas canvas, float pointPosition) {
+		canvas.drawLine(pointPosition, _startY, pointPosition, _endY, _dividerPaint);
 	}
 }

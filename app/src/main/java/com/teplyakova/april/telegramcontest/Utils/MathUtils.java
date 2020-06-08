@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.TypedValue;
 
 import com.teplyakova.april.telegramcontest.Data.LineData;
-import com.teplyakova.april.telegramcontest.Drawing.Bar;
 
 public class MathUtils {
 

@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest.Drawing;
+package com.teplyakova.april.telegramcontest.Drawing.Chart;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
@@ -138,5 +138,9 @@ public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {
 
 	public void setPrimaryBgColor(int color) {
 		_primaryBgColor = color;
+	}
+
+	public void setAntiAlias(boolean aa) {
+		_linePaint.setAntiAlias(aa);
 	}
 }

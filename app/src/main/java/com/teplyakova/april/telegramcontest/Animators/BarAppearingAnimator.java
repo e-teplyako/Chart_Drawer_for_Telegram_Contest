@@ -2,10 +2,9 @@ package com.teplyakova.april.telegramcontest.Animators;
 
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
-import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
-import com.teplyakova.april.telegramcontest.Drawing.Bar;
+import com.teplyakova.april.telegramcontest.Drawing.Chart.Bar;
 
 public class BarAppearingAnimator implements ValueAnimator.AnimatorUpdateListener {
 	public static final String COEFFICIENT = "coefficient";

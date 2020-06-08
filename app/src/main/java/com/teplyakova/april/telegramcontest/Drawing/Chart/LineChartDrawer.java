@@ -1,7 +1,8 @@
-package com.teplyakova.april.telegramcontest.Drawing;
+package com.teplyakova.april.telegramcontest.Drawing.Chart;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 
 import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
@@ -13,6 +14,8 @@ import java.util.HashSet;
 public class LineChartDrawer extends AbsLineChartDrawer {
 	private int _localYMin;
 	private int _localYMax;
+
+	private Paint _dividerPaint;
 
 	public LineChartDrawer(ChartData chartData) {
 		_chartData = chartData;
@@ -30,6 +33,9 @@ public class LineChartDrawer extends AbsLineChartDrawer {
 			drawer.setMinMaxIndexes(_minVisibleIndex, _maxVisibleIndex);
 			drawer.setStrokeWidth(5);
 		}
+
+		_dividerPaint = new Paint();
+		_dividerPaint.setStrokeWidth(2);
 	}
 
 	public Canvas draw(Canvas canvas) {
@@ -39,7 +45,15 @@ public class LineChartDrawer extends AbsLineChartDrawer {
 		return canvas;
 	}
 
+	@Override
+	public void setAntiAlias(boolean aa) {
+		for (LineDrawer drawer : _lineDrawers) {
+			drawer.setAntiAlias(aa);
+		}
+	}
+
 	public void drawChosenPointHighlight(Canvas canvas, int index) {
+		drawChosenPointLine(canvas, getTouchedPointPosition(index));
 		for (LineDrawer drawer : _lineDrawers) {
 			drawer.drawChosenPointCircle(canvas, index, _localYMin, _localYMax);
 		}
@@ -53,8 +67,18 @@ public class LineChartDrawer extends AbsLineChartDrawer {
 	}
 
 	@Override
+	void drawChosenPointLine(Canvas canvas, float pointPosition) {
+		canvas.drawLine(pointPosition, _startY, pointPosition, _endY, _dividerPaint);
+	}
+
+	@Override
 	public void onAnimationUpdate(ValueAnimator animation) {
 		_localYMin = (int) animation.getAnimatedValue(LocalYMinMaxAnimator.MIN);
 		_localYMax = (int) animation.getAnimatedValue(LocalYMinMaxAnimator.MAX);
+	}
+
+	@Override
+	public void setDividerColor(int color) {
+		_dividerPaint.setColor(color);
 	}
 }

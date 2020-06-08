@@ -15,10 +15,8 @@ import android.view.View;
 import androidx.core.content.ContextCompat;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
-import com.teplyakova.april.telegramcontest.Data.DrawerFactory;
-import com.teplyakova.april.telegramcontest.Drawing.BarChartDrawer;
-import com.teplyakova.april.telegramcontest.Drawing.ChartDrawer;
-import com.teplyakova.april.telegramcontest.Drawing.LineChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.Chart.ChartDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.DrawingManager;
 import com.teplyakova.april.telegramcontest.Events.Publisher;
 import com.teplyakova.april.telegramcontest.Events.Subscriber;
 import com.teplyakova.april.telegramcontest.R;
@@ -62,7 +60,6 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	private Bitmap _nightChartBitmap;
 	private boolean _transitionJustEnded;
 	private Theme _theme;
-	private Context _context;
 
 	private HashSet<Subscriber> _subscribers = new HashSet<Subscriber>();
 
@@ -71,7 +68,6 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		setupPaints(context);
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
-		_context = context;
 	}
 
 	public SliderView(Context context, AttributeSet attrs) {
@@ -79,7 +75,6 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		setupPaints(context);
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
-		_context = context;
 	}
 
 	public SliderView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -87,12 +82,12 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		setupPaints(context);
 		setupSizes(context);
 		setChosenAreaPositions(CHOSEN_AREA_START_DFLT, CHOSEN_AREA_END_DFLT);
-		_context = context;
 	}
 
 	public void init(ChartData chartData) {
 		_chartData = chartData;
-		_chartDrawer = DrawerFactory.getChartDrawer(_context, _chartData);
+		_chartDrawer = DrawingManager.createChartDrawer(_chartData);
+		_chartDrawer.setAntiAlias(false);
 	}
 
 	public void setChosenAreaPositions(float startChosenArea, float endChosenArea) {

@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest.Drawing;
+package com.teplyakova.april.telegramcontest.Drawing.Scale;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
@@ -7,6 +7,7 @@ import android.text.TextPaint;
 import com.teplyakova.april.telegramcontest.Animators.ScaleAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
+import com.teplyakova.april.telegramcontest.Drawing.Scale.AbsScaleDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.math.RoundingMode;

@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest.Drawing;
+package com.teplyakova.april.telegramcontest.Drawing.Scale;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
@@ -54,10 +54,6 @@ public abstract class AbsScaleDrawer implements ValueAnimator.AnimatorUpdateList
 											ValueAnimator.AnimatorUpdateListener listener);
 
 	public abstract void chosenAreaChanged(int firstVisibleIndex, int lastVisibleIndex, ValueAnimator.AnimatorUpdateListener listener);
-
-	public void drawChosenPointLine(Canvas canvas, float pointPosition) {
-		canvas.drawLine(pointPosition, _startY, pointPosition, _endY, _linePaint);
-	}
 
 	public void draw(Canvas canvas) {
 		drawLines(canvas);
