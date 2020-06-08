@@ -140,17 +140,21 @@ public class MathUtils {
 		return max;
 	}
 
-	/*public static float getMaxYForStackedChart(Bar[] bars, int minIndex, int maxIndex) {
-		if (bars == null || bars.length == 0 || maxIndex == -1)
+	public static int getMaxIndex(float[] array) {
+		if (array.length == 0) {
 			return -1;
-		float[] sumArray = new float[bars[0].Line.getPoints().length];
-		for (Bar bar : bars) {
-			for (int i = minIndex, j = 0; i <= maxIndex; i++, j++) {
-				sumArray[j] += bar.Line.getPoints()[i] * bar.PosYCoefficient;
+		}
+
+		float max = array[0];
+		int maxIndex = 0;
+		for (int i = 1; i < array.length; i++) {
+			if (array[i] > max) {
+				maxIndex = i;
+				max = array[i];
 			}
 		}
-		return getMax(sumArray);
-	}*/
+		return maxIndex;
+	}
 
 	public static int getIndexOfNearestElement (float[] array, float point) {
 		int index = 0;

@@ -4,7 +4,6 @@ import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.util.Log;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
@@ -201,21 +200,30 @@ public class StackedAreaChartDrawer implements ChartDrawer {
 	private void calculatePercentages() {
 		float[] sums = new float[_chartData.getXPoints().length];
 		for (Area area : _areas) {
-			area.Percentages = new float[sums.length];
+			area.Percentages = new int[sums.length];
 			for (int i = 0; i < area.Percentages.length; i++) {
 				sums[i] += area.Line.getPoints()[i];
 			}
 		}
-
 		for (int i = 0; i < sums.length; i++) {
-			for (Area area : _areas) {
-				area.Percentages[i] = area.Line.getPoints()[i] / sums[i] *100;
+			float[] assumedPercentages = new float[_areas.size()];
+			for (int j = 0; j < _areas.size(); j++) {
+				assumedPercentages[j] = _areas.get(j).Line.getPoints()[i] / sums[i] * 100;
 			}
-		}
+			int sum = 0;
+			for (int n = 0; n < assumedPercentages.length; n++) {
+				int floor = (int) Math.floor(assumedPercentages[n]);
+				sum += floor;
+				_areas.get(n).Percentages[i] = floor;
+				assumedPercentages[n] = assumedPercentages[n] - floor;
+			}
 
-		for (Area area : _areas) {
-			Log.e(getClass().getSimpleName(), "06.04 " + area.Line.getName() + ": " + area.Percentages[0]);
-			Log.e(getClass().getSimpleName(), "05.04 " + area.Line.getName() + ": " + area.Percentages[1]);
+			int remaining = 100 - sum;
+			for (int j = 0; j < remaining; j++) {
+				int index = MathUtils.getMaxIndex(assumedPercentages);
+				assumedPercentages[index] = -1;
+				_areas.get(index).Percentages[i]++;
+			}
 		}
 	}
 
