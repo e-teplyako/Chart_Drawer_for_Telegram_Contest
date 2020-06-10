@@ -14,8 +14,10 @@ import com.teplyakova.april.telegramcontest.Drawing.Chart.IndependentLineChartDr
 import com.teplyakova.april.telegramcontest.Drawing.Chart.LineChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.Chart.StackedAreaChartDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.Scale.AbsScaleDrawer;
-import com.teplyakova.april.telegramcontest.Drawing.Scale.ScaleDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.Scale.StandardScaleDrawer;
 import com.teplyakova.april.telegramcontest.Drawing.Scale.TwoSidedScaleDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.Scale.ZeroHundredScaleDrawer;
+import com.teplyakova.april.telegramcontest.Drawing.Scale.ZeroUpScaleDrawer;
 import com.teplyakova.april.telegramcontest.UI.ThemeHelper;
 import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;
@@ -144,8 +146,13 @@ public class DrawingManager {
 		switch (_chartData.type) {
 			case "LineChart2OrdAxis":
 				return new TwoSidedScaleDrawer(_chartData);
+			case "BarChart":
+			case "StackedBarChart":
+				return new ZeroUpScaleDrawer(_chartData);
+			case "StackedAreaChart":
+				return new ZeroHundredScaleDrawer(_chartData);
 			default:
-				return new ScaleDrawer(_chartData);
+				return new StandardScaleDrawer(_chartData);
 		}
 	}
 

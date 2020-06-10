@@ -5,15 +5,15 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 
+import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
-import com.teplyakova.april.telegramcontest.Drawing.Chart.Area;
-import com.teplyakova.april.telegramcontest.Drawing.Chart.Bar;
-import com.teplyakova.april.telegramcontest.Drawing.Chart.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdateListener {
 	private ChartData _chartData;
@@ -269,4 +269,15 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 	private void drawChosenPointLine(Canvas canvas, float pointPosition) {
 		canvas.drawLine(pointPosition, _startY, pointPosition, _endY, _dividerPaint);
 	}
+
+	private HashSet<Area> getInactiveAreas() {
+		HashSet<Area> areas = new HashSet<>();
+		for (Area area : _areas) {
+			if (!_chartData.isLineActive(area.Line)) {
+				areas.add(area);
+			}
+		}
+		return areas;
+	}
+
 }

@@ -10,7 +10,7 @@ import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-public class ScaleDrawer extends AbsScaleDrawer {
+public class StandardScaleDrawer extends AbsScaleDrawer {
 	private int _minValue = MIN_VALUE_DFLT;
 	private int _maxValue = MAX_VALUE_DFLT;
 	private ScaleAnimator _animator = new ScaleAnimator();
@@ -18,7 +18,11 @@ public class ScaleDrawer extends AbsScaleDrawer {
 	private int _futureMaxValue;
 	private Paint _textPaint = new Paint();
 
-	public ScaleDrawer(ChartData chartData) {
+	public StandardScaleDrawer() {
+
+	}
+
+	public StandardScaleDrawer(ChartData chartData) {
 		_chartData = chartData;
 		setMinValue(MathUtils.getLocalMin(_chartData.getActiveLines(), 0, _chartData.getXPoints().length - 1));
 		setMaxValue(MathUtils.getLocalMax(_chartData.getActiveLines(), 0, _chartData.getXPoints().length - 1));
@@ -46,11 +50,11 @@ public class ScaleDrawer extends AbsScaleDrawer {
 				MathUtils.getLocalMax(_chartData.getActiveLines(), firstVisibleIndex, lastVisibleIndex), listener);
 	}
 
-	private void setMinValue(int minValue) {
+	void setMinValue(int minValue) {
 		_minValue = minValue;
 	}
 
-	private void setMaxValue(int maxValue) {
+	void setMaxValue(int maxValue) {
 		_maxValue = maxValue;
 	}
 
@@ -66,7 +70,7 @@ public class ScaleDrawer extends AbsScaleDrawer {
 		return _maxValue;
 	}
 
-	private void setMinMaxValueAndAnimate(int minValue, int maxValue, ValueAnimator.AnimatorUpdateListener listener) {
+	void setMinMaxValueAndAnimate(int minValue, int maxValue, ValueAnimator.AnimatorUpdateListener listener) {
 		if (minValue == _minValue && maxValue == _maxValue)
 			return;
 
