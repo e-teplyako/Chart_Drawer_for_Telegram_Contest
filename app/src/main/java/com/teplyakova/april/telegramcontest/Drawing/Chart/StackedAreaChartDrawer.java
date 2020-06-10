@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 
 import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
+import com.teplyakova.april.telegramcontest.Animators.TestAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
@@ -32,6 +33,11 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 	private Paint _dividerPaint;
 	private ArrayList<Area> _areas = new ArrayList<>();
 
+	private int[] _sums;
+	private int[] _futureSums;
+	private float _t;
+	private TestAnimator _animator = new TestAnimator();
+
 	public StackedAreaChartDrawer(ChartData chartData) {
 		_chartData = chartData;
 
@@ -49,6 +55,7 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 			_areas.add(area);
 		}
 		calculatePercentages();
+		_sums = calculateSums();
 		setupPaint();
 	}
 
@@ -90,11 +97,15 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 			float endCoeff = (_chartData.isLineActive(area.Line) ? 1f : 0f);
 			area.Animator.start(area, area.PosYCoefficient, endCoeff, listener, this);
 		}
+		if (isInSetLinesTransition())
+			_sums = _futureSums.clone();
+		_futureSums = calculateSums();
+		_animator.start(0, this, listener);
 	}
 
 	@Override
 	public boolean isInSetLinesTransition() {
-		return false;
+		return _animator.isInProgress();
 	}
 
 	@Override
@@ -204,9 +215,10 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 		for (Area area : _areas) {
 			area.MappedPointsY = new float[_lastVisibleIndex - _firstVisibleIndex + 1];
 			for (int i = 0, j = _firstVisibleIndex; i < area.MappedPointsY.length; i++, j++) {
-				float percentage = (area.Percentages[j] * area.PosYCoefficient + previous[i]) / 100;
+				float sum = MathUtils.lerp(_sums[j], _futureSums[j], _t);
+				float percentage = (area.Line.getPoints()[j] * area.PosYCoefficient + previous[i]) / sum;
 				area.MappedPointsY[i] = _endY - coefficient * (_endY - _startY) * percentage;
-				previous[i] += area.Percentages[j] * area.PosYCoefficient;
+				previous[i] += area.Line.getPoints()[j] * area.PosYCoefficient;
 			}
 		}
 		preparePaths();
@@ -262,8 +274,13 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 
 	@Override
 	public void onAnimationUpdate(ValueAnimator animation) {
+		if (animation.getAnimatedValue(TestAnimator.T) != null)
+			_t = (float) animation.getAnimatedValue(TestAnimator.T);
 		if (_mappedXPoints != null)
 			mapYPoints(getMaxPosYCoefficient());
+		if (animation.getAnimatedFraction() >= 1) {
+			_sums =_futureSums;
+		}
 	}
 
 	private void drawChosenPointLine(Canvas canvas, float pointPosition) {
@@ -280,4 +297,14 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 		return areas;
 	}
 
+	private int[] calculateSums() {
+		int[] sums = new int[_chartData.getXPoints().length];
+		for (int i = 0; i < sums.length; i++) {
+			for (Area area : _areas) {
+				if (_chartData.isLineActive(area.Line))
+					sums[i] += area.Line.getPoints()[i];
+			}
+		}
+		return sums;
+	}
 }

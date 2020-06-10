@@ -4,8 +4,10 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -60,13 +62,14 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 		invalidate();
 	}
 
+	float y1 = 0, y2 = 0;
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		float x = event.getX();
-		float y = event.getY();
+		int minDist = 150;
 		switch (event.getAction()) {
-			case MotionEvent.ACTION_MOVE:
 			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_MOVE:
 			case MotionEvent.ACTION_UP:
 				_drawingManager.onTouch(x);
 				this.getParent().requestDisallowInterceptTouchEvent(true);
