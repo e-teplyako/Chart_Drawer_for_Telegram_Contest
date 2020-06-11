@@ -28,6 +28,7 @@ public class ChartRecyclerView extends RecyclerView implements Themed {
 	float mDownX;
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		super.onInterceptTouchEvent(ev);
 		int state = this.getScrollState();
 		if (state == ChartRecyclerView.SCROLL_STATE_DRAGGING || state == ChartRecyclerView.SCROLL_STATE_SETTLING) {
 			return super.onInterceptTouchEvent(ev);

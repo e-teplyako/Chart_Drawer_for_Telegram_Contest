@@ -4,10 +4,8 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -20,6 +18,8 @@ import com.teplyakova.april.telegramcontest.Data.LineData;
 public class ChartView extends View implements ValueAnimator.AnimatorUpdateListener, Subscriber, Themed {
 	private Context _context;
 	private DrawingManager _drawingManager;
+	private float _downX;
+	private boolean _touchIsHandled;
 
 	public ChartView(Context context) {
 		super(context);
@@ -62,17 +62,16 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 		invalidate();
 	}
 
-	float mDownX;
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		float x = event.getX();
 		int minDist = 150;
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-				mDownX = event.getRawX();
+				_downX = event.getRawX();
 				return true;
 			case MotionEvent.ACTION_MOVE:
-				float deltaX = event.getRawX() - mDownX;
+				float deltaX = event.getRawX() - _downX;
 				if (Math.abs(deltaX) > 150) {
 					super.onTouchEvent(event);
 					this.getParent().requestDisallowInterceptTouchEvent(true);
@@ -84,6 +83,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 				_drawingManager.onTouch(x);
 				invalidate();
 				return true;
+
 		}
 		return false;
 	}
