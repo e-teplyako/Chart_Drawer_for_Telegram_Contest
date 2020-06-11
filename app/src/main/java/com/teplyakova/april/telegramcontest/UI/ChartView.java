@@ -19,7 +19,6 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 	private Context _context;
 	private DrawingManager _drawingManager;
 	private float _downX;
-	private boolean _touchIsHandled;
 
 	public ChartView(Context context) {
 		super(context);
@@ -65,14 +64,13 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		float x = event.getX();
-		int minDist = 150;
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
 				_downX = event.getRawX();
 				return true;
 			case MotionEvent.ACTION_MOVE:
 				float deltaX = event.getRawX() - _downX;
-				if (Math.abs(deltaX) > 150) {
+				if (Math.abs(deltaX) > 60) {
 					super.onTouchEvent(event);
 					this.getParent().requestDisallowInterceptTouchEvent(true);
 					_drawingManager.onTouch(x);
