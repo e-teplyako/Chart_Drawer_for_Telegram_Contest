@@ -60,6 +60,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	private Bitmap _nightChartBitmap;
 	private boolean _transitionJustEnded;
 	private Theme _theme;
+	private Path _clipPath;
 
 	private HashSet<Subscriber> _subscribers = new HashSet<Subscriber>();
 
@@ -117,12 +118,13 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
+		canvas.clipPath(_clipPath);
 		if (_chartDrawer.isInSetLinesTransition()) {
 			_chartDrawer.draw(canvas);
 		}
 		else if(transitionJustEnded()) {
-			_dayChartBitmap = prepareBitmap(canvas, _primaryBgColorDay);
-			_nightChartBitmap = prepareBitmap(canvas, _primaryBgColorNight);
+			_dayChartBitmap = prepareBitmap(canvas.getWidth(), canvas.getHeight(), _primaryBgColorDay);
+			_nightChartBitmap = prepareBitmap(canvas.getWidth(), canvas.getHeight(), _primaryBgColorNight);
 			setTransitionJustEnded(false);
 			canvas.drawBitmap(getBitmap(), 0, 0, null);
 		}
@@ -194,9 +196,10 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
 		preparePaths(_chosenAreaStart, _chosenAreaEnd);
-		float proportion = _chosenAreaMinWidthPx / getWidth();
 		_chartDrawer.setMargins(0, w, 0, h, 0);
 		_chartDrawer.setRangeAndAnimate(0f, 1f, this);
+		_clipPath = new Path();
+		_clipPath.addRoundRect(new RectF(0f, 0f, w, h), ROUNDING_RADIUS, ROUNDING_RADIUS, Path.Direction.CW);
 	}
 
 	private void setupPaints(Context context) {
@@ -321,10 +324,11 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		invalidate();
 	}
 
-	private Bitmap prepareBitmap(Canvas canvas, int bgColor) {
-		Bitmap bitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.RGB_565);
+	private Bitmap prepareBitmap(int w, int h,int bgColor) {
+		Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565);
 		Canvas canvasForBitmap = new Canvas(bitmap);
 		canvasForBitmap.drawColor(bgColor);
+		canvasForBitmap.clipPath(_clipPath);
 		canvasForBitmap = _chartDrawer.draw(canvasForBitmap);
 		canvasForBitmap.setBitmap(bitmap);
 		return bitmap;

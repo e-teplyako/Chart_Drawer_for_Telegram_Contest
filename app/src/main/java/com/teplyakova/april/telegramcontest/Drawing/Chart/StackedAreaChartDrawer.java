@@ -94,10 +94,13 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 			float endCoeff = (_chartData.isLineActive(area.Line) ? 1f : 0f);
 			area.Animator.start(area, area.PosYCoefficient, endCoeff, listener, this);
 		}
-		if (isInSetLinesTransition())
+		float init = 0;
+		/*if (isInSetLinesTransition()) {
 			_sums = _futureSums.clone();
+			init = _animator.getAnimatedFraction();
+		}*/
 		_futureSums = calculateSums();
-		_animator.start(0, this, listener);
+		_animator.start(init, this, listener);
 	}
 
 	@Override
@@ -258,6 +261,15 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 				max = area.PosYCoefficient;
 		}
 		return max;
+	}
+
+	private float getMinPosYCoefficient() {
+		float min = 1;
+		for (Area area : _areas) {
+			if (area.PosYCoefficient < min)
+				min = area.PosYCoefficient;
+		}
+		return min;
 	}
 
 	private Canvas drawAreas(Canvas canvas) {
