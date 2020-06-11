@@ -4,12 +4,12 @@ import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
-public class TestAnimator {
+public class ParameterAnimator {
 	public static final String T = "t";
 
 	private ValueAnimator _animator;
 
-	public TestAnimator () {
+	public ParameterAnimator() {
 	}
 
 	public void start(float initT, ValueAnimator.AnimatorUpdateListener... listeners) {
@@ -23,7 +23,7 @@ public class TestAnimator {
 		_animator = new ValueAnimator();
 		_animator.setValues(t);
 		_animator.setInterpolator(new AccelerateDecelerateInterpolator());
-		_animator.setDuration(400);
+		_animator.setDuration(200);
 		for (ValueAnimator.AnimatorUpdateListener listener : listeners) {
 			if (listener != null) {
 				_animator.addUpdateListener(listener);

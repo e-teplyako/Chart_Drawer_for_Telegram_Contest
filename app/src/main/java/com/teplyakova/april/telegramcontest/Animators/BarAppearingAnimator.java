@@ -30,7 +30,7 @@ public class BarAppearingAnimator implements ValueAnimator.AnimatorUpdateListene
 		_animator = new ValueAnimator();
 		_animator.setValues(propertyCoefficient);
 		_animator.setInterpolator(new AccelerateDecelerateInterpolator());
-		_animator.setDuration(400);
+		_animator.setDuration(200);
 		for (ValueAnimator.AnimatorUpdateListener listener : listeners) {
 			if (listener != null) {
 				_animator.addUpdateListener(listener);

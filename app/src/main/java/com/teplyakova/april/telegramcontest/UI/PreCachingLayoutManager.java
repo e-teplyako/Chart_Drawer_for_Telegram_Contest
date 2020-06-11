@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.AttributeSet;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 public class PreCachingLayoutManager extends LinearLayoutManager {
 	private int _defaultExtraLayoutSpace = 600;
@@ -43,7 +42,7 @@ public class PreCachingLayoutManager extends LinearLayoutManager {
 	}
 
 	@Override
-	protected int getExtraLayoutSpace(RecyclerView.State state) {
+	protected int getExtraLayoutSpace(ChartRecyclerView.State state) {
 		return (_extraLayoutSpace > 0) ? _extraLayoutSpace : _defaultExtraLayoutSpace;
 	}
 }

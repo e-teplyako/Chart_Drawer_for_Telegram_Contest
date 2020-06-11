@@ -10,7 +10,6 @@ import android.widget.CompoundButton;
 import android.widget.GridLayout;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
@@ -20,7 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class PageAdapter extends RecyclerView.Adapter {
+public class PageAdapter extends ChartRecyclerView.Adapter {
     private final LayoutInflater _inflater;
     private List<ChartData> _chartData;
     private ChartView _chartView;
@@ -36,7 +35,7 @@ public class PageAdapter extends RecyclerView.Adapter {
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+    public ChartRecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = _inflater.inflate(R.layout.chart_page, viewGroup, false);
         _chartView =  view.findViewById(R.id.chartview);
         _sliderView = view.findViewById(R.id.slider);
@@ -46,7 +45,7 @@ public class PageAdapter extends RecyclerView.Adapter {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
+    public void onBindViewHolder(@NonNull ChartRecyclerView.ViewHolder viewHolder, int i) {
         _sliderView.init(_chartData.get(i));
         _chartView.init(_chartData.get(i), _sliderView);
         _rangeTextView.init(_chartData.get(i), _sliderView);
@@ -57,7 +56,7 @@ public class PageAdapter extends RecyclerView.Adapter {
     }
 
     @Override
-    public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
+    public void onViewAttachedToWindow(@NonNull ChartRecyclerView.ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
         _context.updateUiElements();
     }
@@ -67,7 +66,7 @@ public class PageAdapter extends RecyclerView.Adapter {
         return _chartData.size();
     }
 
-    class ChartViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener, View.OnLongClickListener {
+    class ChartViewHolder extends ChartRecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener, View.OnLongClickListener {
         private ChartView _chartView;
         private SliderView _sliderView;
         private ChartData _chart;

@@ -5,8 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 
-import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
-import com.teplyakova.april.telegramcontest.Animators.TestAnimator;
+import com.teplyakova.april.telegramcontest.Animators.ParameterAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
@@ -14,7 +13,6 @@ import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 
 public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdateListener {
 	private ChartData _chartData;
@@ -36,7 +34,7 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 	private int[] _sums;
 	private int[] _futureSums;
 	private float _t;
-	private TestAnimator _animator = new TestAnimator();
+	private ParameterAnimator _animator = new ParameterAnimator();
 
 	public StackedAreaChartDrawer(ChartData chartData) {
 		_chartData = chartData;
@@ -274,8 +272,8 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 
 	@Override
 	public void onAnimationUpdate(ValueAnimator animation) {
-		if (animation.getAnimatedValue(TestAnimator.T) != null)
-			_t = (float) animation.getAnimatedValue(TestAnimator.T);
+		if (animation.getAnimatedValue(ParameterAnimator.T) != null)
+			_t = (float) animation.getAnimatedValue(ParameterAnimator.T);
 		if (_mappedXPoints != null)
 			mapYPoints(getMaxPosYCoefficient());
 		if (animation.getAnimatedFraction() >= 1) {
@@ -285,16 +283,6 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 
 	private void drawChosenPointLine(Canvas canvas, float pointPosition) {
 		canvas.drawLine(pointPosition, _startY, pointPosition, _endY, _dividerPaint);
-	}
-
-	private HashSet<Area> getInactiveAreas() {
-		HashSet<Area> areas = new HashSet<>();
-		for (Area area : _areas) {
-			if (!_chartData.isLineActive(area.Line)) {
-				areas.add(area);
-			}
-		}
-		return areas;
 	}
 
 	private int[] calculateSums() {

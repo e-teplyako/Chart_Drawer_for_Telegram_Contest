@@ -17,7 +17,6 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.ChartsManager;
@@ -29,7 +28,7 @@ public class MainActivity extends Activity {
 
     private static final String STATE_ADAPTER = "adapter";
     PageAdapter adapter;
-    RecyclerView recyclerView;
+    ChartRecyclerView recyclerView;
     ThemeHelper _themeHelper;
     MenuItem _menuItem;
 
