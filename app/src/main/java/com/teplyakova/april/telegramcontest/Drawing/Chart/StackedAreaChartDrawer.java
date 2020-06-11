@@ -95,10 +95,11 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 			area.Animator.start(area, area.PosYCoefficient, endCoeff, listener, this);
 		}
 		float init = 0;
-		/*if (isInSetLinesTransition()) {
-			_sums = _futureSums.clone();
-			init = _animator.getAnimatedFraction();
-		}*/
+		if (isInSetLinesTransition()) {
+			for (int i = 0; i < _sums.length; i++) {
+				_sums[i] = Math.round(MathUtils.lerp(_sums[i], _futureSums[i], _t));
+			}
+		}
 		_futureSums = calculateSums();
 		_animator.start(init, this, listener);
 	}
