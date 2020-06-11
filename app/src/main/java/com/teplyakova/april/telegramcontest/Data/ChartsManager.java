@@ -1,8 +1,6 @@
 package com.teplyakova.april.telegramcontest.Data;
 
 import android.content.Context;
-
-import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Utils.FileIOUtils;
 import com.teplyakova.april.telegramcontest.Utils.JSONUtils;
 

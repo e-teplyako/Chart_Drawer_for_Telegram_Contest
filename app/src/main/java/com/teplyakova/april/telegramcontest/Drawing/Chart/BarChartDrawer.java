@@ -8,8 +8,6 @@ import android.graphics.RectF;
 import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
-import com.teplyakova.april.telegramcontest.Drawing.Chart.Bar;
-import com.teplyakova.april.telegramcontest.Drawing.Chart.ChartDrawer;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.Arrays;
@@ -19,8 +17,6 @@ import java.util.LinkedHashSet;
 public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdateListener {
 	private ChartData _chartData;
 
-	private long _minValue;
-	private long _maxValue;
 	private int _minVisibleIndex;
 	private int _maxVisibleIndex;
 
@@ -29,17 +25,18 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	private float _chartAreaWidthMarginPx;
 	private float _endY;
 	private float _startY;
+
 	private Paint _barPaint;
 	private Paint _highlightPaint;
-	private HashSet<Bar> _bars = new LinkedHashSet<>();
 	private RectF _highlightRect;
+
+	private HashSet<Bar> _bars = new LinkedHashSet<>();
+
 	private int _localYMax;
 
 	public BarChartDrawer(ChartData chartData) {
 		_chartData = chartData;
 
-		_minValue = chartData.getXPoints()[0];
-		_maxValue = chartData.getXPoints()[chartData.getXPoints().length - 1];
 		_minVisibleIndex = 0;
 		_maxVisibleIndex = chartData.getXPoints().length - 1;
 
@@ -80,9 +77,9 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 	@Override
 	public void setRangeAndAnimate(float start, float end, ValueAnimator.AnimatorUpdateListener listener) {
-		long width = _maxValue - _minValue;
-		long startPos = (long) Math.floor(start * width) + _minValue;
-		long endPos = (long) Math.ceil(end * width) + _minValue;
+		long width = _chartData.getXPoints()[_chartData.getXPoints().length - 1] - _chartData.getXPoints()[0];
+		long startPos = (long) Math.floor(start * width) + _chartData.getXPoints()[0];
+		long endPos = (long) Math.ceil(end * width) + _chartData.getXPoints()[0];
 
 		long distanceToScreenBorder = (long) Math.ceil (((endPos - startPos) * _chartAreaWidthMarginPx) / _chartAreaWidthPx);
 
@@ -123,10 +120,10 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 	@Override
 	public int getTouchedPointIndex(float x) {
 		int position = MathUtils.getIndexOfNearestElement(_mappedXPoints, x);
-		while (_chartData.getXPoints()[position + _minVisibleIndex] < _minValue) {
+		while (_chartData.getXPoints()[position + _minVisibleIndex] < _chartData.getXPoints()[0]) {
 			position++;
 		}
-		while (_chartData.getXPoints()[position + _minVisibleIndex] > _maxValue) {
+		while (_chartData.getXPoints()[position + _minVisibleIndex] > _chartData.getXPoints()[_chartData.getXPoints().length - 1]) {
 			position--;
 		}
 		return position + _minVisibleIndex;

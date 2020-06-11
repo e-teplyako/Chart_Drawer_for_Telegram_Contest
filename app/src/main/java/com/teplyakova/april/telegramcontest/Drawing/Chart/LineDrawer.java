@@ -2,7 +2,6 @@ package com.teplyakova.april.telegramcontest.Drawing.Chart;
 
 import android.animation.ValueAnimator;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import com.teplyakova.april.telegramcontest.Animators.LineAlphaAnimator;
 import com.teplyakova.april.telegramcontest.Data.LineData;
@@ -66,7 +65,6 @@ public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {
 		_circlePaint.setColor(_line.getColor());
 		_circlePaint.setAlpha(getAlpha());
 		canvas.drawCircle(_mappedXPoints[index - _minVisibleIndex], _mappedYPoints[index - _minVisibleIndex], 16f, _circlePaint);
-		//TODO: fix
 		_circlePaint.setColor(_primaryBgColor);
 		_circlePaint.setAlpha(getAlpha());
 		canvas.drawCircle(_mappedXPoints[index - _minVisibleIndex], _mappedYPoints[index - _minVisibleIndex], 8f, _circlePaint);

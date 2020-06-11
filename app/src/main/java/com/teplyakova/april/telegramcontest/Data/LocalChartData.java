@@ -1,6 +1,5 @@
 package com.teplyakova.april.telegramcontest.Data;
 
-import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class LocalChartData {

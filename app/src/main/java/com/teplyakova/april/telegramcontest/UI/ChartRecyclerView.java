@@ -11,6 +11,8 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class ChartRecyclerView extends RecyclerView implements Themed {
+	private float _downY;
+	private float _downX;
 
 	ViewConfiguration vc = ViewConfiguration.get(this.getContext());
 	public ChartRecyclerView(@NonNull Context context) {
@@ -24,8 +26,7 @@ public class ChartRecyclerView extends RecyclerView implements Themed {
 	public ChartRecyclerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
 	}
-	float mDownY;
-	float mDownX;
+
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
 		super.onInterceptTouchEvent(ev);
@@ -35,14 +36,13 @@ public class ChartRecyclerView extends RecyclerView implements Themed {
 		}
 		switch (ev.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-				mDownY = ev.getRawY();
-				mDownX = ev.getRawX();
+				_downY = ev.getRawY();
+				_downX = ev.getRawX();
 				return false;
 			case MotionEvent.ACTION_MOVE:
-				float deltaY = ev.getRawY() - mDownY;
-				float deltaX = ev.getRawX() - mDownX;
+				float deltaY = ev.getRawY() - _downY;
+				float deltaX = ev.getRawX() - _downX;
 				if (Math.abs(deltaY) > 60 && Math.abs(deltaX) < 100) {
-					Log.e(getClass().getSimpleName(), "SCROLLED");
 					super.onInterceptTouchEvent(ev);
 					return true;
 				}

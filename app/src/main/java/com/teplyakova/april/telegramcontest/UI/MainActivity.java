@@ -2,7 +2,6 @@ package com.teplyakova.april.telegramcontest.UI;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.content.res.Configuration;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -21,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.ChartsManager;
 import com.teplyakova.april.telegramcontest.R;
+import com.teplyakova.april.telegramcontest.Utils.ViewUtils;
 
 import java.util.ArrayList;
 
@@ -98,7 +98,7 @@ public class MainActivity extends Activity {
     }
 
     public void updateUiElements() {
-        for (View view : ViewUtil.getAllChildren(findViewById(android.R.id.content))) {
+        for (View view : ViewUtils.getAllChildren(findViewById(android.R.id.content))) {
             if (view instanceof Themed) ((Themed) view).refreshTheme(_themeHelper);
         }
         setActionBarColor(_themeHelper.getPrimaryBgColor());

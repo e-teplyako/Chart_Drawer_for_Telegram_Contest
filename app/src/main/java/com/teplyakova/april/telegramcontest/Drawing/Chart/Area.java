@@ -1,9 +1,9 @@
 package com.teplyakova.april.telegramcontest.Drawing.Chart;
 
 public class Area extends Bar {
-	public int[] Percentages;
+	int[] Percentages;
 
-	public Area() {
+	Area() {
 		Animator.setDuration(250);
 	}
 }

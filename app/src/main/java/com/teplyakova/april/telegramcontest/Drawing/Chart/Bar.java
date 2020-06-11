@@ -6,9 +6,9 @@ import com.teplyakova.april.telegramcontest.Animators.BarAppearingAnimator;
 import com.teplyakova.april.telegramcontest.Data.LineData;
 
 public class Bar {
-	public LineData Line;
+	LineData Line;
 	public float PosYCoefficient;
-	public float[] MappedPointsY;
-	public Path Path;
-	public BarAppearingAnimator Animator = new BarAppearingAnimator();
+	float[] MappedPointsY;
+	Path Path;
+	BarAppearingAnimator Animator = new BarAppearingAnimator();
 }

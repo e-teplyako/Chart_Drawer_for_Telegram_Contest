@@ -1,4 +1,4 @@
-package com.teplyakova.april.telegramcontest.UI;
+package com.teplyakova.april.telegramcontest.Utils;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ViewUtil {
+public class ViewUtils {
 	public static List<View> getAllChildren(View target) {
 		if (!(target instanceof ViewGroup)) return Collections.singletonList(target);
 
