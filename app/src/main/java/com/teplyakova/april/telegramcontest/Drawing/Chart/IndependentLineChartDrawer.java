@@ -64,7 +64,7 @@ public class IndependentLineChartDrawer extends AbsLineChartDrawer {
 
 	@Override
 	public void drawChosenPointHighlight(Canvas canvas, int index) {
-		drawChosenPointLine(canvas, index);
+		drawChosenPointLine(canvas, getTouchedPointPosition(index));
 		for (LineDrawer drawer : _lineDrawers) {
 			drawer.drawChosenPointCircle(canvas, index, _localMins.get(drawer.getLine()), _localMaxes.get(drawer.getLine()));
 		}

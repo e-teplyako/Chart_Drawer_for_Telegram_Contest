@@ -12,7 +12,6 @@ import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 
 public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdateListener {
 	private ChartData _chartData;

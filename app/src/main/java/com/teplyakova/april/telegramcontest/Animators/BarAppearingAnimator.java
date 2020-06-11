@@ -10,6 +10,7 @@ public class BarAppearingAnimator implements ValueAnimator.AnimatorUpdateListene
 	public static final String COEFFICIENT = "coefficient";
 	private Bar _bar;
 	private ValueAnimator _animator;
+	private int _duration = 400;
 
 	public BarAppearingAnimator() {
 
@@ -30,7 +31,7 @@ public class BarAppearingAnimator implements ValueAnimator.AnimatorUpdateListene
 		_animator = new ValueAnimator();
 		_animator.setValues(propertyCoefficient);
 		_animator.setInterpolator(new AccelerateDecelerateInterpolator());
-		_animator.setDuration(200);
+		_animator.setDuration(_duration);
 		for (ValueAnimator.AnimatorUpdateListener listener : listeners) {
 			if (listener != null) {
 				_animator.addUpdateListener(listener);
@@ -47,5 +48,9 @@ public class BarAppearingAnimator implements ValueAnimator.AnimatorUpdateListene
 
 	public boolean isRunning() {
 		return (_animator != null && _animator.isRunning());
+	}
+
+	public void setDuration(int duration) {
+		_duration = duration;
 	}
 }

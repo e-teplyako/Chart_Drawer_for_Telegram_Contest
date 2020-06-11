@@ -23,7 +23,7 @@ public class ParameterAnimator {
 		_animator = new ValueAnimator();
 		_animator.setValues(t);
 		_animator.setInterpolator(new AccelerateDecelerateInterpolator());
-		_animator.setDuration(200);
+		_animator.setDuration(250);
 		for (ValueAnimator.AnimatorUpdateListener listener : listeners) {
 			if (listener != null) {
 				_animator.addUpdateListener(listener);
