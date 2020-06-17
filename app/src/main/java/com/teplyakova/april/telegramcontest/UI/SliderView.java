@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -61,6 +62,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	private boolean _transitionJustEnded;
 	private Theme _theme;
 	private Path _clipPath;
+	private float _downY;
 
 	private HashSet<Subscriber> _subscribers = new HashSet<Subscriber>();
 
@@ -144,6 +146,10 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		float x = event.getX();
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_MOVE:
+				if (Math.abs(event.getRawY() - _downY) > 100) {
+					this.getParent().requestDisallowInterceptTouchEvent(false);
+					return false;
+				}
 				if (isLeftHandlerCaught()){
 					float max = MathUtils.clamp(_chosenAreaEnd - _chosenAreaMinWidthPx / getWidth(), 0f, 1f);
 					setChosenAreaPositions(MathUtils.clamp(x / getWidth(), 0f, max), _chosenAreaEnd);
@@ -166,6 +172,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 				invalidate();
 				return true;
 			case MotionEvent.ACTION_DOWN:
+				_downY = event.getRawY();
 				if ((x >= _chosenAreaStart * getWidth() - _handlerWidthPx) && (x <= _chosenAreaStart * getWidth() + _handlerWidthPx)) {
 					setLeftHandlerCaught(true);
 				}
