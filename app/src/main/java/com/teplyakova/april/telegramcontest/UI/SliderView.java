@@ -332,7 +332,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	}
 
 	private Bitmap prepareBitmap(int w, int h,int bgColor) {
-		Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565);
+		Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_4444);
 		Canvas canvasForBitmap = new Canvas(bitmap);
 		canvasForBitmap.drawColor(bgColor);
 		canvasForBitmap.clipPath(_clipPath);

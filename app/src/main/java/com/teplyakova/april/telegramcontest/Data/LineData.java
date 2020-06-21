@@ -18,7 +18,7 @@ public class LineData {
     }
 
     public int[] getPoints() {
-        return _points.clone();
+        return _points;
     }
 
     public void setPoints(int[] points) {

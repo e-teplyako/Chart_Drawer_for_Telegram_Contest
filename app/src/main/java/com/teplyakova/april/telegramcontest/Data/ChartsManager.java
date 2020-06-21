@@ -22,4 +22,8 @@ public class ChartsManager {
 
         return _charts;
     }
+
+    public static ChartData getChart(int index, Context context) {
+        return getCharts(context).get(index);
+    }
 }
