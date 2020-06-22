@@ -22,7 +22,7 @@ public class ChartData {
 	}
 
 	public LineData[] getLines() {
-		return _lines.clone();
+		return _lines;
 	}
 
 	public long[] getXPoints() {
@@ -30,7 +30,7 @@ public class ChartData {
 	}
 
 	public void setXPoints(long[] points) {
-		_xPoints = points;
+		_xPoints = points.clone();
 	}
 
 	public void setLineState (LineData line, boolean isActive) {
