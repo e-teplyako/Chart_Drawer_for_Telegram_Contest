@@ -40,7 +40,7 @@ public class LineChartDrawer extends AbsLineChartDrawer {
 
 	public Canvas draw(Canvas canvas) {
 		for (LineDrawer drawer : _lineDrawers) {
-				canvas = drawer.draw(canvas);
+				canvas = drawer.draw(canvas, _localYMin, _localYMax);
 		}
 		return canvas;
 	}
@@ -75,9 +75,6 @@ public class LineChartDrawer extends AbsLineChartDrawer {
 	public void onAnimationUpdate(ValueAnimator animation) {
 		_localYMin = (int) animation.getAnimatedValue(LocalYMinMaxAnimator.MIN);
 		_localYMax = (int) animation.getAnimatedValue(LocalYMinMaxAnimator.MAX);
-		for (LineDrawer drawer : _lineDrawers) {
-			drawer.updateYPoints(_localYMin, _localYMax);
-		}
 	}
 
 	@Override

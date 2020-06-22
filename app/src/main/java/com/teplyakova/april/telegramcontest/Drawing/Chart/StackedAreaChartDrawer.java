@@ -51,6 +51,7 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 			area.PosYCoefficient = 1;
 			_areas.add(area);
 		}
+		calculatePercentages();
 		_sums = calculateSums();
 		setupPaint();
 	}

@@ -52,8 +52,8 @@ public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {
 		return _line;
 	}
 
-	public Canvas draw(Canvas canvas) {
-		canvas = drawLine(canvas);
+	public Canvas draw(Canvas canvas, int minY, int maxY) {
+		canvas = drawLine(minY, maxY, canvas);
 		return canvas;
 	}
 
@@ -78,12 +78,14 @@ public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {
 		_alphaAnimator.start(getAlpha(), endAlpha, listener, this);
 	}
 
-	private Canvas drawLine(Canvas canvas) {
+	private Canvas drawLine(int yMin, int yMax, Canvas canvas) {
 		if (getAlpha() <= 0)
 			return canvas;
 
 		_linePaint.setColor(_line.getColor());
 		_linePaint.setAlpha(getAlpha());
+		//TODO: fix
+		_mappedYPoints = mapYPoints(_line.getPoints(), yMin, yMax);
 		float[] drawingPoints = MathUtils.concatArraysForDrawing(_mappedXPoints, _mappedYPoints);
 		if (drawingPoints != null) {
 			canvas.drawLines(drawingPoints, _linePaint);
@@ -138,9 +140,5 @@ public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {
 
 	public void setAntiAlias(boolean aa) {
 		_linePaint.setAntiAlias(aa);
-	}
-
-	public void updateYPoints(int yMin, int yMax) {
-		_mappedYPoints = mapYPoints(_line.getPoints(), yMin, yMax);
 	}
 }
