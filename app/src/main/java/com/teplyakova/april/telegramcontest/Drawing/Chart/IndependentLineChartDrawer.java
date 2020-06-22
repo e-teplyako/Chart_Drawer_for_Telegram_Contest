@@ -50,7 +50,7 @@ public class IndependentLineChartDrawer extends AbsLineChartDrawer {
 	@Override
 	public Canvas draw(Canvas canvas) {
 		for (LineDrawer drawer : _lineDrawers) {
-			canvas = drawer.draw(canvas, _localMins.get(drawer.getLine()), _localMaxes.get(drawer.getLine()));
+			canvas = drawer.draw(canvas);
 		}
 		return canvas;
 	}
@@ -87,7 +87,9 @@ public class IndependentLineChartDrawer extends AbsLineChartDrawer {
 
 	@Override
 	public void onAnimationUpdate(ValueAnimator animation) {
-
+		for (LineDrawer drawer : _lineDrawers) {
+			drawer.updateYPoints(_localMins.get(drawer.getLine()), _localMaxes.get(drawer.getLine()));
+		}
 	}
 
 	@Override
