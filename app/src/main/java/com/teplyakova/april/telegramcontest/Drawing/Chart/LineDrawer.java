@@ -84,7 +84,6 @@ public class LineDrawer implements ValueAnimator.AnimatorUpdateListener {
 
 		_linePaint.setColor(_line.getColor());
 		_linePaint.setAlpha(getAlpha());
-		//TODO: fix
 		_mappedYPoints = mapYPoints(_line.getPoints(), yMin, yMax);
 		float[] drawingPoints = MathUtils.concatArraysForDrawing(_mappedXPoints, _mappedYPoints);
 		if (drawingPoints != null) {

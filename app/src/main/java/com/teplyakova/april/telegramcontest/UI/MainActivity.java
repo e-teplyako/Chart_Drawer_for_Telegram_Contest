@@ -6,7 +6,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Trace;
 import android.text.Html;
 import android.view.Display;
 import android.view.Menu;
@@ -42,7 +41,7 @@ public class MainActivity extends Activity {
 
         recyclerView = findViewById(R.id.pager);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setItemViewCacheSize(3); //TODO: seems to fix bug with disappearing item, but it's a crotch
+        recyclerView.setItemViewCacheSize(3);
         Display display = getWindowManager().getDefaultDisplay();
         int height = display.getHeight();
         recyclerView.setLayoutManager(new PreCachingLayoutManager(this, LinearLayoutManager.VERTICAL, false,
@@ -112,14 +111,12 @@ public class MainActivity extends Activity {
         if (ab != null) {
             ab.setBackgroundDrawable(new ColorDrawable(color));
             ab.setTitle(Html.fromHtml("<font color=\"#9E9E9E\">" + getString(R.string.app_name) + "</font>"));
-            //TODO: fix colors
         }
     }
 
     private void setMenuButtonIcon(Drawable icon) {
         if (_menuItem != null)
             _menuItem.setIcon(icon);
-        //TODO: fix problem with discrepancy between menu item creation time and adapter views creation time
     }
 
     private void setStatusBarColor(int color) {

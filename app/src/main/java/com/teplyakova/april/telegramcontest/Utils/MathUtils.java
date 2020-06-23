@@ -125,7 +125,7 @@ public class MathUtils {
 
 	public static int getMaxYForStackedChart(LineData[] lines, int minIndex, int maxIndex) {
 		if (lines == null || lines.length == 0)
-			return -1;
+			return 0;
 		int oneArrayLength = maxIndex - minIndex + 1;
 		int[] wholeArray = new int[oneArrayLength];
 		int m = 0;
@@ -141,7 +141,7 @@ public class MathUtils {
 
 	public static int getMaxIndex(float[] array) {
 		if (array.length == 0) {
-			return -1;
+			return 0;
 		}
 
 		float max = array[0];

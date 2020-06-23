@@ -1,11 +1,15 @@
 package com.teplyakova.april.telegramcontest.UI;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.widget.CheckBox;
 
-public class CustomCheckbox extends CheckBox implements Themed{
+import com.teplyakova.april.telegramcontest.R;
+import com.teplyakova.april.telegramcontest.Utils.MathUtils;
+
+public class CustomCheckbox extends CheckBox {
 	private static int ID = 1337;
 	private int _id;
 
@@ -15,8 +19,11 @@ public class CustomCheckbox extends CheckBox implements Themed{
 
 	public static CustomCheckbox getCheckbox(Context context, int color) {
 		CustomCheckbox cb = new CustomCheckbox(context);
-		cb.setUniqueId(++ID);
 		cb.setButtonDrawable(null);
+		cb.setBackground(null);
+		cb.setWidth(Math.round(MathUtils.dpToPixels(78, context)));
+		cb.setTextSize(14);
+		cb.setUniqueId(++ID);
 		cb.setBackground(getDrawable(color));
 		cb.setPadding(20,20,20,20);
 		return cb;
@@ -53,11 +60,5 @@ public class CustomCheckbox extends CheckBox implements Themed{
 		shape.setShape(GradientDrawable.RECTANGLE);
 		shape.setCornerRadius(100);
 		return shape;
-	}
-
-	@Override
-	public void refreshTheme(ThemeHelper themeHelper) {
-		setTextColor(themeHelper.getMainTextColor());
-		invalidate();
 	}
 }

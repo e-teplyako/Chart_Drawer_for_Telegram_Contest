@@ -1,5 +1,6 @@
 package com.teplyakova.april.telegramcontest.UI;
 
+import android.graphics.Color;
 import android.os.Build;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.GridLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -25,6 +27,7 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
     private ChartView _chartView;
     private SliderView _sliderView;
     private RangeTextView _rangeTextView;
+    private TextView _nameTextView;
     private MainActivity _context;
 
     PageAdapter(@NonNull List<ChartData> chartData, LayoutInflater inflater, MainActivity context) {
@@ -40,6 +43,7 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
         _chartView =  view.findViewById(R.id.chartview);
         _sliderView = view.findViewById(R.id.slider);
         _rangeTextView = view.findViewById(R.id.rangeTextView);
+        _nameTextView = view.findViewById(R.id.nameTextView);
         GridLayout checkboxesLayout = view.findViewById(R.id.checkboxes_layout);
         return new ChartViewHolder(view, _chartView, _sliderView, checkboxesLayout);
     }
@@ -49,7 +53,7 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
         _sliderView.init(_chartData.get(i));
         _chartView.init(_chartData.get(i), _sliderView);
         _rangeTextView.init(_chartData.get(i), _sliderView);
-        _chartView.setLines(_chartData.get(i).getActiveLines());
+        _chartView.setLines();
         _sliderView.setLines();
         ChartViewHolder vh = (ChartViewHolder) viewHolder;
         vh.bind(i, _chartData.get(i));
@@ -83,6 +87,7 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
 
         void bind(int position, ChartData chart) {
             _chart = chart;
+            _nameTextView.setText("Chart #" + position);
             createAndAttachCheckboxes(position);
         }
 
@@ -93,18 +98,20 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
             for (int k = 0; k < linesCount; k++) {
                 int color = _chart.getLines()[k].getColor();
                 CustomCheckbox cb = CustomCheckbox.getCheckbox(_chartView.getContext(), color);
-                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    cb.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                }
-                cb.setText(_chart.getLines()[k].getName());
+                cb.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 cb.setChecked(_chart.isLineActive(k));
+				if (cb.isChecked()) {
+					cb.setTextColor(Color.WHITE);
+					cb.setText("\u2713" + _chart.getLines()[k].getName());
+				}
+				else {
+					cb.setTextColor(_chart.getLines()[k].getColor());
+					cb.setText(_chart.getLines()[k].getName());
+				}
                 int id = cb.getUniqueId();
                 _checkboxes[k] = cb;
                 _lineByCheckboxId.put(id, _chart.getLines()[k]);
                 _checkboxesLayout.addView(cb);
-                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-                params.setGravity(Gravity.FILL_HORIZONTAL);
-                cb.setLayoutParams(params);
                 cb.setOnCheckedChangeListener(this);
                 cb.setOnLongClickListener(this);
             }
@@ -113,15 +120,24 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             CustomCheckbox cb = (CustomCheckbox) buttonView;
-            _chart.setLineState(_lineByCheckboxId.get(cb.getUniqueId()), isChecked);
-            _chartView.setLines(_chart.getActiveLines());
+            LineData line = _lineByCheckboxId.get(cb.getUniqueId());
+            _chart.setLineState(line, isChecked);
+            _chartView.setLines();
             _sliderView.setLines();
+            if (isChecked) {
+				cb.setTextColor(Color.WHITE);
+				cb.setText("\u2713" + line.getName());
+			}
+            else {
+				cb.setTextColor(line.getColor());
+				cb.setText(line.getName());
+			}
         }
 
         @Override
         public boolean onLongClick(View v) {
             _chart.setAllLinesState(true);
-            _chartView.setLines(_chart.getActiveLines());
+            _chartView.setLines();
             _sliderView.setLines();
             for (CheckBox cb : _checkboxes) {
                 cb.setChecked(true);

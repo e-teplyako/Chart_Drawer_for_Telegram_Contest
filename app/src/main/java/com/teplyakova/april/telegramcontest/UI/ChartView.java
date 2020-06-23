@@ -56,7 +56,7 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 		_drawingManager = new DrawingManager(chartData, _context, this);
 	}
 
-	public void setLines(LineData[] lines) {
+	public void setLines() {
 		_drawingManager.setLines();
 		invalidate();
 	}
@@ -95,10 +95,6 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 	@Override
 	public void onAnimationUpdate(ValueAnimator animation) {
 		invalidate();
-	}
-
-	public void onDestroy() {
-		//TODO: remove subscription?
 	}
 
 	@Override

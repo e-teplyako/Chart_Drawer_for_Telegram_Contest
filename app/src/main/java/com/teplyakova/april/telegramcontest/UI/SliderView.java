@@ -134,7 +134,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 			canvas.drawBitmap(getBitmap(), 0, 0, null);
 		}
 		else {
-			canvas.drawColor(_primaryBgColor); //TODO: fix
+			canvas.drawColor(_primaryBgColor);
 			_chartDrawer.draw(canvas);
 		}
 		canvas.drawPath(_bgPath, _bgTintPaint);
