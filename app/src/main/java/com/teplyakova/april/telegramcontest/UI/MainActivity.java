@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.text.Html;
 import android.view.Display;
 import android.view.Menu;
@@ -41,7 +42,7 @@ public class MainActivity extends Activity {
 
         recyclerView = findViewById(R.id.pager);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setItemViewCacheSize(3);
+        //recyclerView.setItemViewCacheSize(3);
         Display display = getWindowManager().getDefaultDisplay();
         int height = display.getHeight();
         recyclerView.setLayoutManager(new PreCachingLayoutManager(this, LinearLayoutManager.VERTICAL, false,

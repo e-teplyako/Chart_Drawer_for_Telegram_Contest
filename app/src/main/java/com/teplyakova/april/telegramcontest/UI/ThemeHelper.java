@@ -1,6 +1,7 @@
 package com.teplyakova.april.telegramcontest.UI;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 
 import androidx.core.content.ContextCompat;
@@ -97,5 +98,12 @@ public class ThemeHelper {
 			return ContextCompat.getDrawable(_context, R.drawable.ic_day_mode);
 		else
 			return ContextCompat.getDrawable(_context, R.drawable.ic_night_mode);
+	}
+
+	public int getRecyclerViewColor() {
+		if (_baseTheme == Theme.DAY)
+			return Color.parseColor("#E0E0E0");
+		else
+			return Color.parseColor("#0E1B2A");
 	}
 }

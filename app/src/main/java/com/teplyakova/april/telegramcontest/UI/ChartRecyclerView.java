@@ -29,7 +29,7 @@ public class ChartRecyclerView extends RecyclerView implements Themed {
 
 	@Override
 	public void refreshTheme(ThemeHelper themeHelper) {
-		setBackgroundColor(themeHelper.getPrimaryBgColor());
+		setBackgroundColor(themeHelper.getRecyclerViewColor());
 		invalidate();
 	}
 

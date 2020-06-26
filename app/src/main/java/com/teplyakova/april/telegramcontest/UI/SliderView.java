@@ -39,12 +39,14 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 	private Paint _bgTintPaint;
 	private Paint _handlerPaint;
+	private Paint _highlightPaint;
 	private int _primaryBgColor;
 	private int _primaryBgColorDay;
 	private int _primaryBgColorNight;
 
 	private Path _bgPath = new Path();
 	private Path _handlerPath = new Path();
+	private Path _highlightPath = new Path();
 
 	private float _chosenAreaStart;
 	private float _chosenAreaEnd;
@@ -139,6 +141,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		}
 		canvas.drawPath(_bgPath, _bgTintPaint);
 		canvas.drawPath(_handlerPath, _handlerPaint);
+		canvas.drawPath(_highlightPath, _highlightPaint);
 	}
 
 	@Override
@@ -221,6 +224,10 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 		_primaryBgColorDay = ContextCompat.getColor(context, R.color.primaryBackgroundColorDay);
 		_primaryBgColorNight = ContextCompat.getColor(context, R.color.primaryBackgroundColorNight);
+
+		_highlightPaint = new Paint();
+		_highlightPaint.setColor(Color.WHITE);
+		_highlightPaint.setStyle(Paint.Style.FILL);
 	}
 
 	private void setupSizes(Context context) {
@@ -262,6 +269,17 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 		_handlerPath.lineTo(endChosenArea * getWidth() - _handlerWidthPx, 0f);
 		_handlerPath.moveTo(startChosenArea * getWidth() + _handlerWidthPx, getHeight());
 		_handlerPath.lineTo(endChosenArea * getWidth() - _handlerWidthPx, getHeight());
+
+		RectF highlightRect = new RectF(startChosenArea * getWidth() + _handlerWidthPx * 0.4f,
+				getHeight() * 0.39f,
+				startChosenArea * getWidth() + _handlerWidthPx * 0.6f,
+				getHeight() * 0.61f);
+		_highlightPath.reset();
+		_highlightPath.addRoundRect(highlightRect,  ROUNDING_RADIUS, ROUNDING_RADIUS, Path.Direction.CW);
+		highlightRect.left = _chosenAreaEnd * getWidth() - _handlerWidthPx * 0.6f;
+		highlightRect.right = _chosenAreaEnd * getWidth() - _handlerWidthPx * 0.4f;
+		_highlightPath.addRoundRect(highlightRect,  ROUNDING_RADIUS, ROUNDING_RADIUS, Path.Direction.CW);
+
 	}
 
 	private boolean isLeftHandlerCaught() {

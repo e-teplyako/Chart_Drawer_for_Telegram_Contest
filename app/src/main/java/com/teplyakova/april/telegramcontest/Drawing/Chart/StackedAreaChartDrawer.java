@@ -278,7 +278,6 @@ public class StackedAreaChartDrawer implements ChartDrawer, ValueAnimator.Animat
 			_areaPaint.setColor(area.Line.getColor());
 			canvas.drawPath(area.Path, _areaPaint);
 		}
-
 		return canvas;
 	}
 
