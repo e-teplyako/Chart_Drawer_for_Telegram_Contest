@@ -1,6 +1,7 @@
 package com.teplyakova.april.telegramcontest.UI;
 
 import android.graphics.Color;
+import android.os.Debug;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -95,7 +96,7 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
             _checkboxes = new CustomCheckbox[linesCount];
             for (int k = 0; k < linesCount; k++) {
                 int color = _chart.getLines()[k].getColor();
-                CustomCheckbox cb = CustomCheckbox.getCheckbox(_chartView.getContext(), color);
+                CustomCheckbox cb = CustomCheckbox.getCheckbox(_context, color);
                 cb.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 cb.setChecked(_chart.isLineActive(k));
 				if (cb.isChecked()) {

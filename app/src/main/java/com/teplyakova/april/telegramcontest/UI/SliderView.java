@@ -31,8 +31,6 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 	private static final float ROUNDING_RADIUS = 15f;
 	private static final int HANDLER_WIDTH_DP = 12;
 	private static final int CHOSEN_AREA_MIN_WIDTH_DP = 48;
-	private static final int BG_COLOR_DFLT = Color.parseColor("#99E2EEF9");
-	private static final int HANDLER_COLOR_DFLT = Color.parseColor("#8086A9C4");
 
 	private float _handlerWidthPx;
 	private float _chosenAreaMinWidthPx;
@@ -214,11 +212,9 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 	private void setupPaints(Context context) {
 		_bgTintPaint = new Paint();
-		_bgTintPaint.setColor(BG_COLOR_DFLT);
 		_bgTintPaint.setStyle(Paint.Style.FILL);
 
 		_handlerPaint = new Paint();
-		_handlerPaint.setColor(HANDLER_COLOR_DFLT);
 		_handlerPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		_handlerPaint.setStrokeWidth(4);
 
