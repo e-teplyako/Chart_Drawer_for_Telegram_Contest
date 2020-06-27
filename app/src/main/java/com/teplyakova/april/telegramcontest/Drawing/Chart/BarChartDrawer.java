@@ -5,6 +5,8 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.util.Log;
+
 import com.teplyakova.april.telegramcontest.Animators.LocalYMinMaxAnimator;
 import com.teplyakova.april.telegramcontest.Data.ChartData;
 import com.teplyakova.april.telegramcontest.Data.LineData;
@@ -51,6 +53,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 		_localYMax = MathUtils.getMaxYForStackedChart(_chartData.getActiveLines(), _minVisibleIndex, _maxVisibleIndex);
 		setupPaint();
 		_highlightRect = new RectF();
+		setRangeAndAnimate(0f, 1f, null);
 	}
 
 	@Override
@@ -87,6 +90,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 		_maxVisibleIndex = MathUtils.getIndexOfNearestRightElement(_chartData.getXPoints(),  endPos + distanceToScreenBorder);
 
 		_mappedXPoints  = mapXPoints(startPos, endPos);
+		mapYPoints(getMaxPosYCoefficient(), _localYMax);
 		setMaxYAndAnimate(listener);
 	}
 
@@ -199,6 +203,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 				previous[i] += bar.Line.getPoints()[j] * bar.PosYCoefficient;
 			}
 		}
+		Log.e(getClass().getSimpleName(), "prepare() called");
 		preparePaths();
 	}
 
@@ -208,6 +213,7 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 		for (Bar bar : _bars) {
 			_barPaint.setColor(bar.Line.getColor());
+			Log.e(getClass().getSimpleName(), "drawPath() called");
 			canvas.drawPath(bar.Path, _barPaint);
 		}
 
