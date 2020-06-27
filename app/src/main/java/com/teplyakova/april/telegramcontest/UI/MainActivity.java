@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
 
         recyclerView = findViewById(R.id.pager);
         recyclerView.setHasFixedSize(true);
-        //recyclerView.setItemViewCacheSize(3);
+        //recyclerView.setItemViewCacheSize(5);
         Display display = getWindowManager().getDefaultDisplay();
         int height = display.getHeight();
         recyclerView.setLayoutManager(new PreCachingLayoutManager(this, LinearLayoutManager.VERTICAL, false,

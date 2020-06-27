@@ -2,6 +2,7 @@ package com.teplyakova.april.telegramcontest.UI;
 
 import android.graphics.Color;
 import android.os.Debug;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,10 +24,6 @@ import java.util.List;
 public class PageAdapter extends ChartRecyclerView.Adapter {
     private final LayoutInflater _inflater;
     private List<ChartData> _chartData;
-    private ChartView _chartView;
-    private SliderView _sliderView;
-    private RangeTextView _rangeTextView;
-    private TextView _nameTextView;
     private MainActivity _context;
 
     PageAdapter(@NonNull List<ChartData> chartData, LayoutInflater inflater, MainActivity context) {
@@ -39,23 +36,14 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
     @Override
     public ChartRecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = _inflater.inflate(R.layout.chart_page, viewGroup, false);
-        _chartView =  view.findViewById(R.id.chartview);
-        _sliderView = view.findViewById(R.id.slider);
-        _rangeTextView = view.findViewById(R.id.rangeTextView);
-        _nameTextView = view.findViewById(R.id.nameTextView);
-        GridLayout checkboxesLayout = view.findViewById(R.id.checkboxes_layout);
-        return new ChartViewHolder(view, _chartView, _sliderView, checkboxesLayout);
+        return new ChartViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ChartRecyclerView.ViewHolder viewHolder, int i) {
-        _sliderView.init(_chartData.get(i));
-        _chartView.init(_chartData.get(i), _sliderView);
-        _rangeTextView.init(_chartData.get(i), _sliderView);
-        _chartView.setLines();
-        _sliderView.setLines();
         ChartViewHolder vh = (ChartViewHolder) viewHolder;
         vh.bind(i, _chartData.get(i));
+        //Log.e(getClass().getSimpleName(), "VH binded for position " + i);
     }
 
     @Override
@@ -72,21 +60,37 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
     class ChartViewHolder extends ChartRecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener, View.OnLongClickListener {
         private ChartView _chartView;
         private SliderView _sliderView;
+        private RangeTextView _rangeTextView;
+        private TextView _nameTextView;
         private ChartData _chart;
         private GridLayout _checkboxesLayout;
         private CustomCheckbox[] _checkboxes;
         private HashMap<Integer, LineData> _lineByCheckboxId = new HashMap<>();
 
-        ChartViewHolder(@NonNull View pageView, @NonNull ChartView chartView, @NonNull SliderView sliderView, @NonNull GridLayout checkboxesLayout) {
-            super(pageView);
-            _chartView = chartView;
-            _sliderView = sliderView;
-            _checkboxesLayout = checkboxesLayout;
+        ChartViewHolder(@NonNull View view) {
+            super(view);
+
+            _chartView =  view.findViewById(R.id.chartview);
+            _sliderView = view.findViewById(R.id.slider);
+            _rangeTextView = view.findViewById(R.id.rangeTextView);
+            _nameTextView = view.findViewById(R.id.nameTextView);
+            _checkboxesLayout = view.findViewById(R.id.checkboxes_layout);
+
+            if (_chartView != null && _sliderView != null && _rangeTextView != null && _nameTextView != null && _checkboxesLayout != null)
+                Log.e(getClass().getSimpleName(), "All views found by id");
         }
 
         void bind(int position, ChartData chart) {
             _chart = chart;
+            if (_chartData.get(position) == null) {
+                Log.e(getClass().getSimpleName(), "Chart # " + position + "doesn't exist");
+            }
             _nameTextView.setText("Chart #" + position);
+            _sliderView.init(_chartData.get(position));
+            _rangeTextView.init(_chartData.get(position), _sliderView);
+            _chartView.init(_chartData.get(position), _sliderView);
+            _chartView.setLines();
+            _sliderView.setLines();
             createAndAttachCheckboxes(position);
         }
 

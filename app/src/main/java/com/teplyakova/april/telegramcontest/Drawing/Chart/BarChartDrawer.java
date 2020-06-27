@@ -203,7 +203,6 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 				previous[i] += bar.Line.getPoints()[j] * bar.PosYCoefficient;
 			}
 		}
-		Log.e(getClass().getSimpleName(), "prepare() called");
 		preparePaths();
 	}
 
@@ -213,7 +212,6 @@ public class BarChartDrawer implements ChartDrawer, ValueAnimator.AnimatorUpdate
 
 		for (Bar bar : _bars) {
 			_barPaint.setColor(bar.Line.getColor());
-			Log.e(getClass().getSimpleName(), "drawPath() called");
 			canvas.drawPath(bar.Path, _barPaint);
 		}
 

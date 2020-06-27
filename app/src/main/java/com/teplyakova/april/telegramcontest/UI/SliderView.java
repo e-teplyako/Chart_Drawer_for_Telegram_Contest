@@ -89,7 +89,11 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 	public void init(ChartData chartData) {
 		_chartData = chartData;
+		if (_chartData == null)
+			Log.e(getClass().getSimpleName(), "Chartdata == null");
 		_chartDrawer = DrawingManager.createChartDrawer(_chartData);
+		if (_chartDrawer == null)
+			Log.e(getClass().getSimpleName(), "ChartDrawer == null");
 		_chartDrawer.setAntiAlias(false);
 	}
 

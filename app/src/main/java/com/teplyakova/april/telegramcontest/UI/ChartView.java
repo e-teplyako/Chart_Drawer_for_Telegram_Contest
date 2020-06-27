@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -53,7 +54,12 @@ public class ChartView extends View implements ValueAnimator.AnimatorUpdateListe
 
 	public void init(ChartData chartData, Publisher publisher) {
 		publisher.addSubscriber(this);
+		if (publisher == null)
+			Log.e(getClass().getSimpleName(), "Publisher == null");
 		_drawingManager = new DrawingManager(chartData, _context, this);
+
+		if (_drawingManager == null)
+			Log.e(getClass().getSimpleName(), "DrawingManager == null");
 	}
 
 	public void setLines() {
