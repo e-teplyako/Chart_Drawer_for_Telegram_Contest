@@ -10,6 +10,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.GridLayout;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 
@@ -142,7 +143,7 @@ public class PageAdapter extends ChartRecyclerView.Adapter {
             _chart.setAllLinesState(true);
             _chartView.setLines();
             _sliderView.setLines();
-            for (CheckBox cb : _checkboxes) {
+            for (CompoundButton cb : _checkboxes) {
                 cb.setChecked(true);
             }
             return true;

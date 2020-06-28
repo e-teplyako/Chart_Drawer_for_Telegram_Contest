@@ -1,15 +1,20 @@
 package com.teplyakova.april.telegramcontest.UI;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.util.TypedValue;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.ToggleButton;
 
 import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
-public class CustomCheckbox extends CheckBox {
+public class CustomCheckbox extends CompoundButton {
 	private static int ID = 1337;
 	private int _id;
 
@@ -22,12 +27,13 @@ public class CustomCheckbox extends CheckBox {
 		cb.setButtonDrawable(null);
 		cb.setBackground(null);
 		cb.setWidth(Math.round(MathUtils.dpToPixels(78, context)));
-		cb.setTextSize(14);
+		cb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
 		cb.setUniqueId(++ID);
 		cb.setBackground(getDrawable(color));
 		cb.setPadding(20,20,20,20);
 		return cb;
 	}
+
 	public void setUniqueId(int id) {
 		_id = id;
 	}
