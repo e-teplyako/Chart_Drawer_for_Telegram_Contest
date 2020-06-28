@@ -1,17 +1,10 @@
 package com.teplyakova.april.telegramcontest.UI;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.util.TypedValue;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ToggleButton;
-
-import com.teplyakova.april.telegramcontest.R;
 import com.teplyakova.april.telegramcontest.Utils.MathUtils;
 
 public class CustomCheckbox extends CompoundButton {

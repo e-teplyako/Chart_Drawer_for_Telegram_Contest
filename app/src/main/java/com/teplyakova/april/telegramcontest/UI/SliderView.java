@@ -9,7 +9,6 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -89,11 +88,7 @@ public class SliderView extends View implements ValueAnimator.AnimatorUpdateList
 
 	public void init(ChartData chartData) {
 		_chartData = chartData;
-		if (_chartData == null)
-			Log.e(getClass().getSimpleName(), "Chartdata == null");
 		_chartDrawer = DrawingManager.createChartDrawer(_chartData);
-		if (_chartDrawer == null)
-			Log.e(getClass().getSimpleName(), "ChartDrawer == null");
 		_chartDrawer.setAntiAlias(false);
 	}
 

@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.TextPaint;
-import android.util.Log;
 
 import com.teplyakova.april.telegramcontest.UI.ThemedDrawer;
 import com.teplyakova.april.telegramcontest.Utils.DateTimeUtils;

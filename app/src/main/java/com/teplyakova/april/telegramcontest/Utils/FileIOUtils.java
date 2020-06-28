@@ -2,12 +2,7 @@ package com.teplyakova.april.telegramcontest.Utils;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.os.Environment;
-
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;

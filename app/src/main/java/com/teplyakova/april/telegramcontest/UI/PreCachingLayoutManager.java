@@ -1,7 +1,6 @@
 package com.teplyakova.april.telegramcontest.UI;
 
 import android.content.Context;
-import android.util.AttributeSet;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
